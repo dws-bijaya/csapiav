@@ -82,6 +82,7 @@ return (($ret = (function(){
            return strlen($doted_paths) < $maxchrs ?  $doted_paths : basename($doted_paths);
         };
 
+        
         $GLOBALS['fn:loaddirs'] = static function($cdir, $dir) {
             $fdir =  "{$cdir}{$dir}/*";
             $scanned_directory = array_diff(glob($fdir, GLOB_ONLYDIR), array('..', '.'));
