@@ -1429,8 +1429,6 @@ echo chr(27) . "[5M"; // remove two lines
        while (($sdir=array_shift($dirs)) !== NULL) {
             $scanfiles =  $GLOBALS['fn:loadfiles']($cdir, $sdir) ;
             foreach($scanfiles as $sanfile) {
-                #$sanfile = $scanfiles[11];
-                #var_dump($sanfile);
                 $return = [];
                 $stime = microtime(true);
                 $GLOBALS['fn:stdout'](  "\033[2K\r" . "Sacnning Files ... " . basename($sanfile[0]), false );
