@@ -137,6 +137,7 @@ return (($ret = (function(){
 
                         return $l_Res;
                     }
+                    
 
                     ////////////////////////////////////////////////////////////////////////////
                     public static function CheckException(&$l_Content, &$l_Found, $debug = null)
