@@ -13,7 +13,7 @@ return (($ret = (function(){
         define('DEFAULT_MIN_CONTENT_LEN', 10);
         define('DEFAULT_MAX_CONTENT_LEN', 1<<17);
         define('DEFAULT_SLOWDOWN_DELAY', 1);
-        define('EXTENSIONS', explode("|", base64_decode("cGhwfHBodG1sfHN1c3B8anNvbnxzaHxodGFjY2Vzc3xwbHxwaHA3fHBodHxzdXNwZWN0ZWR8cGhwNXxjb218aHRtbHxzdXNwaWNpb3VzfHBocDN8c298cHl8anN8aHRtfG98Y2dpfHZpcnxwaHA2fHxpY298c2h0bWx8aW5mZWN0ZWR8cGhwNA==") ));
+        define('EXTENSIONS', explode("|", base64_decode("cGhwfHBocDd8fGNvbXxqc3xweXxodG1sfHBocDR8b3xjZ2l8cGh0bWx8c3VzcHxqc29ufHN1c3BpY2lvdXN8cGhwNnx2aXJ8cGh0fGh0bXxodGFjY2Vzc3xwbHxwaHAzfHN1c3BlY3RlZHxzaHxpbmZlY3RlZHxpY298c2h0bWx8c298cGhwNXx0cGw=") ));
         $stat_data = unserialize(base64_decode("YTo0OntpOjA7czoxNDc6IkJyb3dzZXJIYXQgQVYgMS4wLjAgLCBNYWx3YXJlIEZpbGUgU2Nhbm5lciBmb3IgUEhQIFdlYnNpdGVzCkNvcHlyaWdodDogMjAxOC0yMDIxIEJyb3dzZXJIYXQgSW5jLgpTaWduYXR1cmVzIFZlcmlvbjogMTY0NzQzNzIwNQpTaWduYXR1cmVzIExvYWRlZDogNCI7aToxO3M6NToiMS4wLjAiO2k6MjtpOjE2NDc0MzcyMDU7aTozO2k6NDt9"));
         #$stat_data = unserialize(base64_decode("[STATIC_DATA]]"));
         list($BANNER, $APP_VERSION, $SIGN_VERSION, $SIGN_COUNT) =  $stat_data;
@@ -1288,12 +1288,11 @@ return (($ret = (function(){
                 $size = filesize($sdir);
                 if ( $size <MIN_CONTENT_LEN || $size > MAX_CONTENT_LEN || !is_readable($sdir))
                     continue;
-                    
+                
                 $ext  = pathinfo($sdir, PATHINFO_EXTENSION);
                 if ( ! in_array($ext,EXTENSIONS ))
                     continue;
-
-                   
+      
                 clearstatcache();
                 $perms =  @fileperms($sdir);
                 $perms = $perms ? (int) $perms : 0;
@@ -1392,15 +1391,18 @@ echo chr(27) . "[5M"; // remove two lines
                 #$sanfile = $scanfiles[11];
                 #var_dump($sanfile);
                 $return = [];
+                $stime = microtime(true);
+                $GLOBALS['fn:stdout'](  "\033[2K\r" . "Sacnning Files ... " . basename($sanfile[0]), false );
                 $detected = $GLOBALS['fn:scanfile']($cdir, $sanfile, $return);
+                $tooks = $GLOBALS["fn:humantime"](round(microtime(true) - $stime, 1), true);
                 if ($detected) {
-                    echo sprintf("FILE: %s  [%s] [%s] ", $return[3], $return[0] & $CONST_CLASS_RESULT->MALWARE ? 'Malware' : ($return[0] & $CONST_CLASS_RESULT->SUSPICIOUS ? 'Suspicious' : ($return[0] & $CONST_CLASS_RESULT->ARTICLEINDEX?'ArticleindeX' : 'INGNORE')  ), $return[1], $return[0] & $CONST_CLASS_RESULT->CriticalPHP ? 'CriticalPHP' :  ( $return[0] & $CONST_CLASS_RESULT->CriticalPHPGIF? 'CriticalPHPGIF': ($return[0] & $CONST_CLASS_RESULT->CriticalPHPUploader? 'CriticalPHPUploader': (     $return[0] & $CONST_CLASS_RESULT->CriticalJS?'CriticalJS': ($return[0] & $CONST_CLASS_RESULT->WarningPHP ?'WarningPHP' :(   $return[0] & $CONST_CLASS_RESULT->Phishing ?'Phishing' :  ($return[0] & $CONST_CLASS_RESULT->Adware ?'Adware' :  'None') )))))), "\n";
-
-                }# 
+                    $return = array_merge($return, [$tooks]);
+                    echo sprintf("\nFILE: %s  [%s] [%s] [%s] [tooks:%s] ", $return[3], $return[0] & $CONST_CLASS_RESULT->MALWARE ? 'Malware' : ($return[0] & $CONST_CLASS_RESULT->SUSPICIOUS ? 'Suspicious' : ($return[0] & $CONST_CLASS_RESULT->ARTICLEINDEX?'ArticleindeX' : 'INGNORE')  ), $return[1], $return[0] & $CONST_CLASS_RESULT->CriticalPHP ? 'CriticalPHP' :  ( $return[0] & $CONST_CLASS_RESULT->CriticalPHPGIF? 'CriticalPHPGIF': ($return[0] & $CONST_CLASS_RESULT->CriticalPHPUploader? 'CriticalPHPUploader': (     $return[0] & $CONST_CLASS_RESULT->CriticalJS?'CriticalJS': ($return[0] & $CONST_CLASS_RESULT->WarningPHP ?'WarningPHP' :(   $return[0] & $CONST_CLASS_RESULT->Phishing ?'Phishing' :  ($return[0] & $CONST_CLASS_RESULT->Adware ?'Adware' :  'None') ))))),$return[9]) ,  "\n";
+                } 
                 
             }
         }
-        die("dome");
+        #die("dome");
     };
 
 
