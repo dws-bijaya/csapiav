@@ -1426,7 +1426,7 @@ echo chr(27) . "[5M"; // remove two lines
 
     $scandirs = static function($cdir, &$dirs, $progress) {
        global $CONST_CLASS_RESULT;
-       while (($sdir=array_shift($dirs))) {
+       while (($sdir=array_shift($dirs)) !== NULL) {
             $scanfiles =  $GLOBALS['fn:loadfiles']($cdir, $sdir) ;
             foreach($scanfiles as $sanfile) {
                 #$sanfile = $scanfiles[11];
