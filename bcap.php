@@ -9,7 +9,6 @@ return (($ret = (function(){
         global $GLOBALS,  $CONST_CLASS_RESULT;
         static $BANNER, $APP_VERSION, $SIGN_VERSION, $SIGN_COUNT;
         global  $SIGN_PARTERN, $APP_SIGN_HASH, $SIGN_SIGN_KEYS;
-
         define('DEFAULT_MIN_CONTENT_LEN', 10);
         define('DEFAULT_MAX_CONTENT_LEN', 1<<17);
         define('DEFAULT_SLOWDOWN_DELAY', 1);
@@ -43,7 +42,46 @@ return (($ret = (function(){
             if (SLOWDOWN_DELAY <=0) return;
             usleep(SLOWDOWN_DELAY * 1e6 );
         };
-    
+
+        $GLOBALS['fn:shorten_path'] = static function ($path, $maxchrs = 40) {
+            if (strlen($path) <= $maxchrs )
+                return $path;
+           
+            $paths = (explode("/", $path));
+            $counts = count($paths);
+            $dotted = 0;
+            $mid = ceil( $counts/2);
+            $plus = true;
+            do 
+            {
+               $idx = $mid;
+               if ( $dotted) {
+                    if ($plus ) {
+                        $plus = false;
+                        $idx = $mid + $dotted;
+                    }
+                    else {
+                        $plus = true;
+                        $idx = $mid - $dotted;
+                        $dotted ++;
+                    }
+                    
+                } else 
+                    $dotted ++;
+
+                if ( ! ($idx >=0 and $idx<= $counts-1))
+                    break;
+
+                if( $idx === 0  || $idx == $counts-1 )
+                    continue;
+
+                $paths[$idx] = "..";
+            } while(strlen(implode("/", $paths)) > $maxchrs);
+            #var_dump($maxchrs, strlen(implode("/", $paths)) < $maxchrs);
+           $doted_paths = (implode("/", $paths));
+           return strlen($doted_paths) < $maxchrs ?  $doted_paths : basename($doted_paths);
+        };
+
         $GLOBALS['fn:loaddirs'] = static function($cdir, $dir) {
             $fdir =  "{$cdir}{$dir}/*";
             $scanned_directory = array_diff(glob($fdir, GLOB_ONLYDIR), array('..', '.'));
@@ -51,7 +89,8 @@ return (($ret = (function(){
             foreach($scanned_directory as $s=>$sdir) {
                 $ret_dirs[]=  substr($sdir,  strlen($cdir));
                 $file = str_replace(getcwd(), '', $sdir);
-                $GLOBALS['fn:stdout']("\033[2K\r"  . "Adding directory ... " . substr($sdir,  strlen($cdir)), false);
+                $display_file = $GLOBALS['fn:shorten_path']($sdir, 100);
+                $GLOBALS['fn:stdout']("\033[2K\r"  . "Adding directory ... " . $display_file, false);
                 $s % 20 ? $GLOBALS['fn:slowdown'](): null;
            }
            $GLOBALS['fn:stdout']( "\033[2K\r", false);
@@ -137,7 +176,7 @@ return (($ret = (function(){
 
                         return $l_Res;
                     }
-                    
+
 
                     ////////////////////////////////////////////////////////////////////////////
                     public static function CheckException(&$l_Content, &$l_Found, $debug = null)
@@ -1305,7 +1344,8 @@ return (($ret = (function(){
                 # 102 1711 1753 1739 1707 1765 1761 1101 1115 1709 1727
                 $ret_files[]= [ substr($sdir,  strlen($cdir)), hash_file ('md5', $sdir), $size,  $ext , $perms, $mtime ];;
                 #$file = str_replace(getcwd(), '', $file);
-                $GLOBALS['fn:stdout'](  "\033[2K\r" . "Adding Files ... " . substr($sdir,  strlen($cdir)), false );
+                $display_file = $GLOBALS['fn:shorten_path']($sdir, 100);
+                $GLOBALS['fn:stdout'](  "\033[2K\r" . "Adding Files ... " . $display_file, false );
             }
             $GLOBALS['fn:stdout']( "\033[2K\r", false);
             return $ret_files;
