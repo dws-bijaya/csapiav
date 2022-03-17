@@ -1428,7 +1428,6 @@ echo chr(27) . "[5M"; // remove two lines
        global $CONST_CLASS_RESULT;
        while (($sdir=array_shift($dirs)) !== NULL) {
             $scanfiles =  $GLOBALS['fn:loadfiles']($cdir, $sdir) ;
-            var_dump($scanfiles); die;
             foreach($scanfiles as $sanfile) {
                 #$sanfile = $scanfiles[11];
                 #var_dump($sanfile);
