@@ -82,7 +82,7 @@ return (($ret = (function(){
            return strlen($doted_paths) < $maxchrs ?  $doted_paths : basename($doted_paths);
         };
 
-        
+
         $GLOBALS['fn:loaddirs'] = static function($cdir, $dir) {
             $fdir =  "{$cdir}{$dir}/*";
             $scanned_directory = array_diff(glob($fdir, GLOB_ONLYDIR), array('..', '.'));
@@ -1432,7 +1432,8 @@ echo chr(27) . "[5M"; // remove two lines
             foreach($scanfiles as $sanfile) {
                 $return = [];
                 $stime = microtime(true);
-                $GLOBALS['fn:stdout'](  "\033[2K\r" . "Sacnning Files ... " . basename($sanfile[0]), false );
+                $display_file = $GLOBALS['fn:shorten_path']($sanfile[0], 100);
+                $GLOBALS['fn:stdout'](  "\033[2K\r" . "Sacnning Files ... " . $display_file, false );
                 $detected = $GLOBALS['fn:scanfile']($cdir, $sanfile, $return);
                 $tooks = $GLOBALS["fn:humantime"](round(microtime(true) - $stime, 1), true);
                 if ($detected) {
