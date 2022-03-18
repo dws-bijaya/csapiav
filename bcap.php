@@ -12,7 +12,7 @@ return (($ret = (function(){
         define('DEFAULT_MIN_CONTENT_LEN', 10);
         define('DEFAULT_MAX_CONTENT_LEN', 1<<17);
         define('DEFAULT_SLOWDOWN_DELAY', 1);
-        define('EXTENSIONS', explode("|", base64_decode("cGhwfHBocDd8fGNvbXxqc3xweXxodG1sfHBocDR8b3xjZ2l8cGh0bWx8c3VzcHxqc29ufHN1c3BpY2lvdXN8cGhwNnx2aXJ8cGh0fGh0bXxodGFjY2Vzc3xwbHxwaHAzfHN1c3BlY3RlZHxzaHxpbmZlY3RlZHxpY298c2h0bWx8c298cGhwNXx0cGw=") ));
+        define('EXTENSIONS',  explode("|", base64_decode("cGhwfHBocDd8fGNvbXxqc3xweXxodG1sfHBocDR8b3xjZ2l8cGh0bWx8c3VzcHxqc29ufHN1c3BpY2lvdXN8cGhwNnx2aXJ8cGh0fGh0bXxodGFjY2Vzc3xwbHxwaHAzfHN1c3BlY3RlZHxzaHxpbmZlY3RlZHxpY298c2h0bWx8c298cGhwNXx0cGw=") ));
         $stat_data = unserialize(base64_decode("YTo0OntpOjA7czoxNDc6IkJyb3dzZXJIYXQgQVYgMS4wLjAgLCBNYWx3YXJlIEZpbGUgU2Nhbm5lciBmb3IgUEhQIFdlYnNpdGVzCkNvcHlyaWdodDogMjAxOC0yMDIxIEJyb3dzZXJIYXQgSW5jLgpTaWduYXR1cmVzIFZlcmlvbjogMTY0NzQzNzIwNQpTaWduYXR1cmVzIExvYWRlZDogNCI7aToxO3M6NToiMS4wLjAiO2k6MjtpOjE2NDc0MzcyMDU7aTozO2k6NDt9"));
         #$stat_data = unserialize(base64_decode("[STATIC_DATA]]"));
         list($BANNER, $APP_VERSION, $SIGN_VERSION, $SIGN_COUNT) =  $stat_data;
@@ -83,23 +83,23 @@ return (($ret = (function(){
         };
 
 
-        $GLOBALS['fn:loaddirs'] = static function($cdir, $dir) {
-            $fdir =  "{$cdir}{$dir}/*";
+        $GLOBALS['fn:loaddirs'] = static function($scan_path, $dir) {
+            $fdir =  $dir  ==  "." ?  "{$scan_path}/*" : "{$scan_path}{$dir}/*" ;
             $scanned_directory = array_diff(glob($fdir, GLOB_ONLYDIR), array('..', '.'));
             $ret_dirs = [];
             foreach($scanned_directory as $s=>$sdir) {
-                $ret_dirs[]=  substr($sdir,  strlen($cdir));
+                $ret_dirs[]=  substr($sdir,  strlen($scan_path));
                 $file = str_replace(getcwd(), '', $sdir);
-                $display_file = $GLOBALS['fn:shorten_path']($sdir, 100);
+                $display_file = $GLOBALS['fn:shorten_path']($sdir, 200);
                 $GLOBALS['fn:stdout']("\033[2K\r"  . "Adding directory ... " . $display_file, false);
-                $s % 20 ? $GLOBALS['fn:slowdown'](): null;
+                #$s % 20 ? $GLOBALS['fn:slowdown'](): null;
            }
            $GLOBALS['fn:stdout']( "\033[2K\r", false);
             return $ret_dirs;
         };
 
         #
-        $GLOBALS['fn:scanfile'] = static function($scdir, $sanfile, &$result) {
+        $GLOBALS['fn:scanfile'] = static function($scan_path, $scanfile, &$result) {
             global $SIGN_PARTERN;
             static $csmditector, $makeSafeFn ;
             global $csmditector;
@@ -123,6 +123,7 @@ return (($ret = (function(){
                 };
             };
 
+            
             if (!$csmditector)
             {
                 class LoadSignaturesForScan{
@@ -588,6 +589,7 @@ return (($ret = (function(){
                     }
                 }
 
+                
                 class CmsVersionDetector
                 {
                     const CMS_BITRIX = 'Bitrix';
@@ -603,7 +605,7 @@ return (($ret = (function(){
                     const CMS_PHPBB = 'PhpBB';
                     const CMS_VBULLETIN = 'vBulletin';
                     const CMS_SHOPSCRIPT = 'PHP ShopScript Premium';
-                    
+                    const CSM_WP_ROOT_FILE = [ 'root' => ['wp-comments-post.php', 'wp-trackback.php', 'wp-activate.php', 'wp-load.php', 'wp-links-opml.php', 'wp-mail.php', 'wp-settings.php', 'wp-login.php', 'wp-config-sample.php', 'wp-cron.php', 'wp-signup.php', 'wp-blog-header.php'] ];
                     const CMS_VERSION_UNDEFINED = '0.0';
 
                     private $root_path;
@@ -678,6 +680,16 @@ return (($ret = (function(){
                         }
                     }
 
+                    public function scan_for_sus($scan_path, $scanfile){
+                        global $CONST_CLASS_RESULT;
+                        $wp_file =  basename($scanfile[0]);
+                        if ( dirname($scanfile[0]) !== "/"  ||  ! in_array("WordPress",  $this->getCmsList()) || ($wpos = stripos( $wp_file, 'wp-')) !== 0  || in_array($wp_file, self::CSM_WP_ROOT_FILE['root']) )
+                            return [0, []];
+                        
+                        $result = array_merge( [ $CONST_CLASS_RESULT->SUSPICIOUS | $CONST_CLASS_RESULT->WarningPHP,  "SMW:SUS:WP:0" , time() ] ,  $scanfile);
+                        return [1, $result];
+
+                    }
                     function getDirList($target) {
                         $remove      = [
                             '.',
@@ -993,10 +1005,8 @@ return (($ret = (function(){
                     }
                 }
 
-
-                #$ROOT_PATH = "./";
                 $g_KnownCMS        = [];
-                $_csmditector = new CmsVersionDetector($scdir);
+                $_csmditector = new CmsVersionDetector($scan_path);
                 $cms = [];
                 for ($tt = 0; ($tt < $_csmditector->getCmsNumber()); $tt++) {
                     $cms[] =  $_csmditector->getCmsName($tt) . ' v' . $makeSafeFn($_csmditector->getCmsVersion($tt), $g_AddPrefix, $g_NoPrefix);
@@ -1249,10 +1259,11 @@ return (($ret = (function(){
                 return [false, []];
             };
 
-           
+            
+
 
             #
-            $file = "{$scdir}{$sanfile[0]}" ;
+            $file = "{$scan_path}{$scanfile[0]}" ;
             $content = $l_Unwrapped = file_get_contents($file);
             
             #
@@ -1261,7 +1272,7 @@ return (($ret = (function(){
 
             #
             $started = microtime(true);
-            $processResult = function ($checker, $content, $l_Pos, $l_SigId, &$return) use ($sanfile, &$result, $l_Ext, $i) {
+            $processResult = function ($checker, $content, $l_Pos, $l_SigId, &$return) use ($scanfile, &$result, $l_Ext, $i) {
                 global $APP_SIGN_HASH, $CONST_CLASS_RESULT;
                 $checkers = [
                     'CriticalPHP'           =>     ['criticalPHP',  'criticalPHPFragment',  'criticalPHPSig'],
@@ -1282,19 +1293,19 @@ return (($ret = (function(){
                     if ($l_Ext === 'js') {
                         $checker = 'CriticalJS';
                     }
-                    $result = array_merge([ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->$checker,  $APP_SIGN_HASH[ hexdec($l_SigId)], time() ] ,  $sanfile);
+                    $result = array_merge([ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->$checker,  $APP_SIGN_HASH[ hexdec($l_SigId)], time() ] ,  $scanfile);
                 }
 
                 if ($checker === 'WarningPHP' || $checker === 'Phishing') {
-                    $result = array_merge([ $CONST_CLASS_RESULT->SUSPICIOUS | $CONST_CLASS_RESULT->$checker , $APP_SIGN_HASH[hexdec($l_SigId)], time() ] ,  $sanfile);
+                    $result = array_merge([ $CONST_CLASS_RESULT->SUSPICIOUS | $CONST_CLASS_RESULT->$checker , $APP_SIGN_HASH[hexdec($l_SigId)], time() ] ,  $scanfile);
                 }
 
 
             }; 
             $checkers = [];
             $checkers['CriticalPHP'] = true;
-            $checkers['CriticalPHPGIF'] = $sanfile[3] === "php";
-            $checkers['CriticalPHPUploader'] = strpos($sanfile[3], 'ph') !== false;
+            $checkers['CriticalPHPGIF'] = $scanfile[3] === "php";
+            $checkers['CriticalPHPUploader'] = strpos($scanfile[3], 'ph') !== false;
             $checkers['CriticalJS'] = true;
             $checkers['WarningPHP'] = true;
             $checkers['Phishing'] = true;
@@ -1310,9 +1321,18 @@ return (($ret = (function(){
             if (!$detected && isset($checkers['Adware'])) {
                 // articles
                 if (stripos($l_Filename, 'article_index')) {
-                    $result = array_merge([ $CONST_CLASS_RESULT->ARTICLEINDEX | $CONST_CLASS_RESULT->Adware, $APP_SIGN_HASH[$l_SigId], time() ] ,  $sanfile);
+                    $result = array_merge([ $CONST_CLASS_RESULT->ARTICLEINDEX | $CONST_CLASS_RESULT->Adware, $APP_SIGN_HASH[$l_SigId], time() ] ,  $scanfile);
                 }
             }
+
+            ### Wordprss unknown files as Suspectd
+            if (!$detected) {
+                list($detected, $result)  = $csmditector[0]->scan_for_sus($scan_path, $scanfile);
+            }
+
+            
+
+
 
             #var_dump($result, $detected); 
             return $detected;
@@ -1321,8 +1341,8 @@ return (($ret = (function(){
 
         };
         
-        $GLOBALS['fn:loadfiles'] = static function($cdir, $dir) {
-            $fdir =  "{$cdir}{$dir}/*.{*}";
+        $GLOBALS['fn:loadfiles'] = static function($scan_path, $dir) {
+            $fdir =  $dir == "." ?  "{$scan_path}/*.{*}" : "{$scan_path}{$dir}/*.{*}" ;
             $scan_files = array_diff(glob($fdir, GLOB_BRACE), array('..', '.'));
             $ret_files = [];
             foreach($scan_files as $sdir) {
@@ -1331,7 +1351,7 @@ return (($ret = (function(){
                     continue;
                 
                 $ext  = pathinfo($sdir, PATHINFO_EXTENSION);
-                if ( ! in_array($ext,EXTENSIONS ))
+                if ( ! in_array($ext,  defined("SCAN_ONLY_EXTENSIONS") ?SCAN_ONLY_EXTENSIONS:  EXTENSIONS  ))
                     continue;
       
                 clearstatcache();
@@ -1340,12 +1360,20 @@ return (($ret = (function(){
                 $mtime = filemtime($sdir);
                 if ($perms & 0xF000  !== 0x8000)
                     return;
-                #var_dump($perms); die;
-                #var_dump($size,22);die;
-                # 102 1711 1753 1739 1707 1765 1761 1101 1115 1709 1727
-                $ret_files[]= [ substr($sdir,  strlen($cdir)), hash_file ('md5', $sdir), $size,  $ext , $perms, $mtime ];;
+
+                #
+                $ownerid = @fileowner($sdir);
+                $group_name = $user_name = "";
+                if ( $ownerid  ) {
+                   $info =( @posix_getpwuid(( int)$ownerid ));
+                   $user_name = is_array($info) ? $info['name']: "";
+                   $info =( @posix_getgrgid(( int)is_array($info) ?  $info['gid']: false));
+                   $group_name = is_array($info) ? $info['name']: "";
+                }
+
+                $ret_files[]= [ substr($sdir,  strlen($scan_path)), hash_file ('md5', $sdir), $size,  $ext , $perms, $mtime, "{$group_name}:{$user_name}" ];;
                 #$file = str_replace(getcwd(), '', $file);
-                $display_file = $GLOBALS['fn:shorten_path']($sdir, 100);
+                $display_file = $GLOBALS['fn:shorten_path']($sdir, 200);
                 $GLOBALS['fn:stdout'](  "\033[2K\r" . "Adding Files ... " . $display_file, false );
             }
             $GLOBALS['fn:stdout']( "\033[2K\r", false);
@@ -1425,22 +1453,24 @@ echo chr(27) . "[5M"; // remove two lines
 
     
 
-    $scandirs = static function($cdir, &$dirs, $progress) {
+    $scandirs = static function($scan_path, &$dirs, $progress) {
        global $CONST_CLASS_RESULT;
        while (($sdir=array_shift($dirs)) !== NULL) {
-            $scanfiles =  $GLOBALS['fn:loadfiles']($cdir, $sdir) ;
-            foreach($scanfiles as $sanfile) {
+
+            $scanfiles =  $GLOBALS['fn:loadfiles']($scan_path, $sdir) ;
+            #print_r($scanfiles); die;
+            foreach($scanfiles as $scanfile) {
+                #$scanfile= $scanfiles[7];
                 $return = [];
                 $stime = microtime(true);
-                $display_file = $GLOBALS['fn:shorten_path']($sanfile[0], 100);
+                $display_file = $GLOBALS['fn:shorten_path']($scanfile[0], 200);
                 $GLOBALS['fn:stdout'](  "\033[2K\r" . "Sacnning Files ... " . $display_file, false );
-                $detected = $GLOBALS['fn:scanfile']($cdir, $sanfile, $return);
+                $detected = $GLOBALS['fn:scanfile']($scan_path, $scanfile, $return);
                 $tooks = $GLOBALS["fn:humantime"](round(microtime(true) - $stime, 1), true);
                 if ($detected) {
                     $return = array_merge($return, [$tooks]);
-                    echo sprintf("\nFILE: %s  [%s] [%s] [%s] [tooks:%s] ", $return[3], $return[0] & $CONST_CLASS_RESULT->MALWARE ? 'Malware' : ($return[0] & $CONST_CLASS_RESULT->SUSPICIOUS ? 'Suspicious' : ($return[0] & $CONST_CLASS_RESULT->ARTICLEINDEX?'ArticleindeX' : 'INGNORE')  ), $return[1], $return[0] & $CONST_CLASS_RESULT->CriticalPHP ? 'CriticalPHP' :  ( $return[0] & $CONST_CLASS_RESULT->CriticalPHPGIF? 'CriticalPHPGIF': ($return[0] & $CONST_CLASS_RESULT->CriticalPHPUploader? 'CriticalPHPUploader': (     $return[0] & $CONST_CLASS_RESULT->CriticalJS?'CriticalJS': ($return[0] & $CONST_CLASS_RESULT->WarningPHP ?'WarningPHP' :(   $return[0] & $CONST_CLASS_RESULT->Phishing ?'Phishing' :  ($return[0] & $CONST_CLASS_RESULT->Adware ?'Adware' :  'None') ))))),$return[9]) ,  "\n";
-                } 
-                
+                    echo sprintf("\nFILE: %s  [%s] [%s] [%s] [tooks:%s] ", $return[3], $return[0] & $CONST_CLASS_RESULT->MALWARE ? 'Malware' : ($return[0] & $CONST_CLASS_RESULT->SUSPICIOUS ? 'Suspicious' : ($return[0] & $CONST_CLASS_RESULT->ARTICLEINDEX?'ArticleindeX' : 'INGNORE')  ), $return[1], $return[0] & $CONST_CLASS_RESULT->CriticalPHP ? 'CriticalPHP' :  ( $return[0] & $CONST_CLASS_RESULT->CriticalPHPGIF? 'CriticalPHPGIF': ($return[0] & $CONST_CLASS_RESULT->CriticalPHPUploader? 'CriticalPHPUploader': (     $return[0] & $CONST_CLASS_RESULT->CriticalJS?'CriticalJS': ($return[0] & $CONST_CLASS_RESULT->WarningPHP ?'WarningPHP' :(   $return[0] & $CONST_CLASS_RESULT->Phishing ?'Phishing' :  ($return[0] & $CONST_CLASS_RESULT->Adware ?'Adware' :  'None') ))))),$return[10]) ,  "\n";
+                }     
             }
         }
         #die("dome");
@@ -1448,12 +1478,12 @@ echo chr(27) . "[5M"; // remove two lines
 
 
 
-    $scan_dirlist = static function ($scan_cdir, $scan_cfile, $recursive=true, $mxdirs = 8000) {
-        $r_dirs = [$scan_cfile];
+    $scan_dirlist = static function ($scan_path, $recursive=true, $mxdirs = 8000) {
+        $r_dirs = [$scan_path];
         $dirs =[];
         while((($dir = array_pop($r_dirs))) !== NULL && !connection_aborted() && count($dirs)< $mxdirs) {
-            $dirs[] = $dir;
-            $r_dirs += $GLOBALS['fn:loaddirs']($scan_cdir,  $dir);
+            $dirs[] = ( $dir =  str_replace( $scan_path, '',  $dir )) == ""  ? ($dir = ".") : $dir ;
+            $r_dirs += $GLOBALS['fn:loaddirs']($scan_path,  $dir);
             if (!$recursive)
                 break;
         }
@@ -1484,6 +1514,11 @@ Current default path is: $cwd
     --maxsize=INT
 
     -u, --user=INT/STRING               user name (Available in Future)
+
+    
+    --skip=jpg,...                    Skip specific extensions. E.g. --skip=jpg,gif,png,xls,pdf.
+    --scan=php,...                    Scan only specific extensions. E.g. --scan=php,htaccess,js.
+
     
 HELP;
     return 1;
@@ -1501,7 +1536,7 @@ HELP;
     $shortopts .= 'm:'; // Optional value
     $shortopts .= 'u:'; // Optional value
 
-    $options = getopt($shortopts, ['file:', 'path:', 'help', 'version', 'recursive:', 'delay', 'mxdirs', 'minsize:', 'maxsize:', "user:"]);
+    $options = getopt($shortopts, ['file:', 'path:', 'help', 'version', 'recursive:', 'delay', 'mxdirs', 'minsize:', 'maxsize:', "user:", "scan:", "skip:"]);
     $cwd = getcwd();
     if (isset($options['h']) || isset($options['help'])) {
         exit($help($cwd));
@@ -1544,15 +1579,21 @@ HELP;
     define('MAX_CONTENT_LEN', $maxsize);
     define('SLOWDOWN_DELAY', $delay);
 
+    #
+    if ( isset($options['scan']))
+        define('SCAN_ONLY_EXTENSIONS',array_map( 'strtolower', array_filter(explode(",", $options['scan']) ) ));
+
+
     ##
     $start_time = microtime(true);
     $GLOBALS['fn:stdout']('', true);
     if ( is_dir($options['scan_fpath']))
     {
-        $dirlist =  $scan_dirlist($options['scan_cdir'], $options['scan_cfile'], $options['recursive'], $mxdirs);
+        $scan_path = $options['scan_fpath'];
+        $dirlist =  $scan_dirlist($scan_path, $options['recursive'], $mxdirs);
         $GLOBALS['fn:stdout']("Directoies Found : ". count($dirlist), true) ;
         #print_r($dirlist); die;
-        $scandirs($options['scan_cdir'], $dirlist, $progress);
+        $scandirs($scan_path, $dirlist, $progress);
     }
     $GLOBALS['fn:stdout']("Scanning complete! Time taken: " . $GLOBALS["fn:humantime"](round(microtime(true) - $start_time, 1), true));
 
