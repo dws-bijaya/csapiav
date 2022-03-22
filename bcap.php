@@ -22,7 +22,472 @@ return (($ret = (function(){
         #list($SIGN_PARTERN, $APP_SIGN_HASH, $SIGN_SIGN_KEYS) = [ unserialize(gzinflate(base64_decode(("[SIGN_PATTERN]]")))), unserialize(gzinflate(base64_decode(("[SIGN_HASH]]")))), unserialize(gzinflate(base64_decode(("[SIGN_KEY]]"))))];
         define('BHAT_FILECURRUPTED', 123455 !== filesize(__FILE__) ) ;
         $CONST_CLASS_RESULT =  json_decode(json_encode(['MALWARE'=>1, 'SUSPICIOUS' => 2, 'ARTICLEINDEX'=> 4, 'CriticalPHP' =>  8, 'CriticalPHPGIF' => 16, 'CriticalPHPUploader'=> 32, 'CriticalJS' => 64 , 'WarningPHP' => 128, 'Phishing'=> 256 , 'Adware' => 512] )  );
-        
+        global $gCmsVersionDetector;
+
+        class CmsVersionDetector
+        {
+            const CMS_BITRIX = 'Bitrix';
+            const CMS_WORDPRESS = 'WordPress';
+            const CMS_JOOMLA = 'Joomla';
+            const CMS_DLE = 'Data Life Engine';
+            const CMS_IPB = 'Invision Power Board';
+            const CMS_WEBASYST = 'WebAsyst';
+            const CMS_OSCOMMERCE = 'OsCommerce';
+            const CMS_DRUPAL = 'Drupal';
+            const CMS_MODX = 'MODX';
+            const CMS_INSTANTCMS = 'Instant CMS';
+            const CMS_PHPBB = 'PhpBB';
+            const CMS_VBULLETIN = 'vBulletin';
+            const CMS_SHOPSCRIPT = 'PHP ShopScript Premium';
+            const CSM_WP_ROOT_FILE = [ 'root' => ['wp-comments-post.php', 'wp-trackback.php', 'wp-activate.php', 'wp-load.php', 'wp-links-opml.php', 'wp-mail.php', 'wp-settings.php', 'wp-login.php', 'wp-config-sample.php', 'wp-config.php', 'wp-cron.php', 'wp-signup.php', 'wp-blog-header.php'] ];
+            const CMS_VERSION_UNDEFINED = '0.0';
+
+            private $root_path;
+            private $versions;
+            private $types;
+
+            public function __construct($root_path = '.') {
+                $this->root_path = $root_path;
+                $this->versions  = [];
+                $this->types     = [];
+
+                $version = '';
+
+                $dir_list   = $this->getDirList($root_path);
+                $dir_list[] = $root_path;
+
+
+                foreach ($dir_list as $dir) {
+                    if ($this->checkBitrix($dir, $version)) {
+                        $this->addCms(self::CMS_BITRIX, $version);
+                    }
+
+                    if ($this->checkWordpress($dir, $version)) {
+                        $this->addCms(self::CMS_WORDPRESS, $version);
+                    }
+
+                    if ($this->checkJoomla($dir, $version)) {
+                        $this->addCms(self::CMS_JOOMLA, $version);
+                    }
+
+                    if ($this->checkDle($dir, $version)) {
+                        $this->addCms(self::CMS_DLE, $version);
+                    }
+
+                    if ($this->checkIpb($dir, $version)) {
+                        $this->addCms(self::CMS_IPB, $version);
+                    }
+
+                    if ($this->checkWebAsyst($dir, $version)) {
+                        $this->addCms(self::CMS_WEBASYST, $version);
+                    }
+
+                    if ($this->checkOsCommerce($dir, $version)) {
+                        $this->addCms(self::CMS_OSCOMMERCE, $version);
+                    }
+
+                    if ($this->checkDrupal($dir, $version)) {
+                        $this->addCms(self::CMS_DRUPAL, $version);
+                    }
+
+                    if ($this->checkMODX($dir, $version)) {
+                        $this->addCms(self::CMS_MODX, $version);
+                    }
+
+                    if ($this->checkInstantCms($dir, $version)) {
+                        $this->addCms(self::CMS_INSTANTCMS, $version);
+                    }
+
+                    if ($this->checkPhpBb($dir, $version)) {
+                        $this->addCms(self::CMS_PHPBB, $version);
+                    }
+
+                    if ($this->checkVBulletin($dir, $version)) {
+                        $this->addCms(self::CMS_VBULLETIN, $version);
+                    }
+
+                    if ($this->checkPhpShopScript($dir, $version)) {
+                        $this->addCms(self::CMS_SHOPSCRIPT, $version);
+                    }
+
+                }
+
+            
+            }
+
+            public function scan_for_sus($scan_path, $scanfile){
+                global $CONST_CLASS_RESULT;
+                $wp_file =  basename($scanfile[0]);
+                if ( dirname($scanfile[0]) !== "/"  ||  ! in_array("WordPress",  $this->getCmsList()) || ($wpos = stripos( $wp_file, 'wp-')) !== 0  || in_array($wp_file, self::CSM_WP_ROOT_FILE['root']) )
+                    return [0, []];
+                
+                $result = array_merge( [ $CONST_CLASS_RESULT->SUSPICIOUS | $CONST_CLASS_RESULT->WarningPHP,  "SMW:SUS:WP:0" , time() ] ,  $scanfile);
+                return [1, $result];
+
+            }
+            function getDirList($target) {
+                $remove      = [
+                    '.',
+                    '..'
+                ];
+
+                $directories = array_diff(scandir($target), $remove);
+
+                $res = [];
+
+                foreach ($directories as $value) {
+                    if (is_dir($target . '/' . $value)) {
+                        $res[] = $target . '/' . $value;
+                    }
+                }
+
+                return $res;
+            }
+
+            function isCms($name, $version) {
+                for ($i = 0, $iMax = count($this->types); $i < $iMax; $i++) {
+                    if ((strpos($this->types[$i], $name) !== false) && (strpos($this->versions[$i], $version) !== false)) {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
+
+            function getCmsList() {
+                return $this->types;
+            }
+
+            function getCmsVersions() {
+                return $this->versions;
+            }
+
+            function getCmsNumber() {
+                return count($this->types);
+            }
+
+            function getCmsName($index = 0) {
+                return $this->types[$index];
+            }
+
+            function getCmsVersion($index = 0) {
+                return $this->versions[$index];
+            }
+
+            private function addCms($type, $version) {
+                $this->types[]    = $type;
+                $this->versions[] = $version;
+            }
+
+            private function checkBitrix($dir, &$version) {
+                $version = self::CMS_VERSION_UNDEFINED;
+                $res     = false;
+
+                if (file_exists($dir . '/bitrix')) {
+                    $res = true;
+
+                    $tmp_content = @file_get_contents($this->root_path . '/bitrix/modules/main/classes/general/version.php');
+                    if (preg_match('|define\("SM_VERSION","(.+?)"\)|smi', $tmp_content, $tmp_ver)) {
+                        $version = $tmp_ver[1];
+                    }
+
+                }
+
+                return $res;
+            }
+
+            private function checkWordpress($dir, &$version) {
+                $version = self::CMS_VERSION_UNDEFINED;
+                $res     = false;
+
+                if (file_exists($dir . '/wp-admin')) {
+                    $res = true;
+                    $tmp_content = @file_get_contents($dir . '/wp-admin/wp-includes/version.php');
+                   
+                    if (preg_match('|\$wp_version\s*=\s*\'(.+?)\'|smi', $tmp_content, $tmp_ver)) {
+                        $version = $tmp_ver[1];
+                    }
+                    #var_dump($res); die;
+                }
+
+                return $res;
+            }
+
+            private function checkJoomla($dir, &$version) {
+                $version = self::CMS_VERSION_UNDEFINED;
+                $res     = false;
+
+                if (file_exists($dir . '/libraries/joomla')) {
+                    $res = true;
+
+                    // for 1.5.x
+                    $tmp_content = @file_get_contents($dir . '/libraries/joomla/version.php');
+                    if (preg_match('|var\s+\$RELEASE\s*=\s*\'(.+?)\'|smi', $tmp_content, $tmp_ver)) {
+                        $version = $tmp_ver[1];
+
+                        if (preg_match('|var\s+\$DEV_LEVEL\s*=\s*\'(.+?)\'|smi', $tmp_content, $tmp_ver)) {
+                            $version .= '.' . $tmp_ver[1];
+                        }
+                    }
+
+                    // for 1.7.x
+                    $tmp_content = @file_get_contents($dir . '/includes/version.php');
+                    if (preg_match('|public\s+\$RELEASE\s*=\s*\'(.+?)\'|smi', $tmp_content, $tmp_ver)) {
+                        $version = $tmp_ver[1];
+
+                        if (preg_match('|public\s+\$DEV_LEVEL\s*=\s*\'(.+?)\'|smi', $tmp_content, $tmp_ver)) {
+                            $version .= '.' . $tmp_ver[1];
+                        }
+                    }
+
+
+                    // for 2.5.x and 3.x
+                    $tmp_content = @file_get_contents($dir . '/libraries/cms/version/version.php');
+
+                    if (preg_match('|const\s+RELEASE\s*=\s*\'(.+?)\'|smi', $tmp_content, $tmp_ver)) {
+                        $version = $tmp_ver[1];
+
+                        if (preg_match('|const\s+DEV_LEVEL\s*=\s*\'(.+?)\'|smi', $tmp_content, $tmp_ver)) {
+                            $version .= '.' . $tmp_ver[1];
+                        }
+                    }
+
+                }
+
+                return $res;
+            }
+
+            private function checkDle($dir, &$version) {
+                $version = self::CMS_VERSION_UNDEFINED;
+                $res     = false;
+
+                if (file_exists($dir . '/engine/engine.php')) {
+                    $res = true;
+
+                    $tmp_content = @file_get_contents($dir . '/engine/data/config.php');
+                    if (preg_match('|\'version_id\'\s*=>\s*"(.+?)"|smi', $tmp_content, $tmp_ver)) {
+                        $version = $tmp_ver[1];
+                    }
+
+                    $tmp_content = @file_get_contents($dir . '/install.php');
+                    if (preg_match('|\'version_id\'\s*=>\s*"(.+?)"|smi', $tmp_content, $tmp_ver)) {
+                        $version = $tmp_ver[1];
+                    }
+
+                }
+
+                return $res;
+            }
+
+            private function checkIpb($dir, &$version) {
+                $version = self::CMS_VERSION_UNDEFINED;
+                $res     = false;
+
+                if (file_exists($dir . '/ips_kernel')) {
+                    $res = true;
+
+                    $tmp_content = @file_get_contents($dir . '/ips_kernel/class_xml.php');
+                    if (preg_match('|IP.Board\s+v([0-9\.]+)|si', $tmp_content, $tmp_ver)) {
+                        $version = $tmp_ver[1];
+                    }
+
+                }
+
+                return $res;
+            }
+
+            private function checkWebAsyst($dir, &$version) {
+                $version = self::CMS_VERSION_UNDEFINED;
+                $res     = false;
+
+                if (file_exists($dir . '/wbs/installer')) {
+                    $res = true;
+
+                    $tmp_content = @file_get_contents($dir . '/license.txt');
+                    if (preg_match('|v([0-9\.]+)|si', $tmp_content, $tmp_ver)) {
+                        $version = $tmp_ver[1];
+                    }
+
+                }
+
+                return $res;
+            }
+
+            private function checkOsCommerce($dir, &$version) {
+                $version = self::CMS_VERSION_UNDEFINED;
+                $res     = false;
+
+                if (file_exists($dir . '/includes/version.php')) {
+                    $res = true;
+
+                    $tmp_content = @file_get_contents($dir . '/includes/version.php');
+                    if (preg_match('|([0-9\.]+)|smi', $tmp_content, $tmp_ver)) {
+                        $version = $tmp_ver[1];
+                    }
+
+                }
+
+                return $res;
+            }
+
+            private function checkDrupal($dir, &$version) {
+                $version = self::CMS_VERSION_UNDEFINED;
+                $res     = false;
+
+                if (file_exists($dir . '/sites/all')) {
+                    $res = true;
+
+                    $tmp_content = @file_get_contents($dir . '/CHANGELOG.txt');
+                    if (preg_match('|Drupal\s+([0-9\.]+)|smi', $tmp_content, $tmp_ver)) {
+                        $version = $tmp_ver[1];
+                    }
+
+                }
+
+                if (file_exists($dir . '/core/lib/Drupal.php')) {
+                    $res = true;
+
+                    $tmp_content = @file_get_contents($dir . '/core/lib/Drupal.php');
+                    if (preg_match('|VERSION\s*=\s*\'(\d+\.\d+\.\d+)\'|smi', $tmp_content, $tmp_ver)) {
+                        $version = $tmp_ver[1];
+                    }
+
+                }
+
+                if (file_exists($dir . 'modules/system/system.info')) {
+                    $res = true;
+
+                    $tmp_content = @file_get_contents($dir . 'modules/system/system.info');
+                    if (preg_match('|version\s*=\s*"\d+\.\d+"|smi', $tmp_content, $tmp_ver)) {
+                        $version = $tmp_ver[1];
+                    }
+
+                }
+
+                return $res;
+            }
+
+            private function checkMODX($dir, &$version) {
+                $version = self::CMS_VERSION_UNDEFINED;
+                $res     = false;
+
+                if (file_exists($dir . '/manager/assets')) {
+                    $res = true;
+
+                    // no way to pick up version
+                }
+
+                return $res;
+            }
+
+            private function checkInstantCms($dir, &$version) {
+                $version = self::CMS_VERSION_UNDEFINED;
+                $res     = false;
+
+                if (file_exists($dir . '/plugins/p_usertab')) {
+                    $res = true;
+
+                    $tmp_content = @file_get_contents($dir . '/index.php');
+                    if (preg_match('|InstantCMS\s+v([0-9\.]+)|smi', $tmp_content, $tmp_ver)) {
+                        $version = $tmp_ver[1];
+                    }
+
+                }
+
+                return $res;
+            }
+
+            private function checkPhpBb($dir, &$version) {
+                $version = self::CMS_VERSION_UNDEFINED;
+                $res     = false;
+
+                if (file_exists($dir . '/includes/acp')) {
+                    $res = true;
+
+                    $tmp_content = @file_get_contents($dir . '/config.php');
+                    if (preg_match('|phpBB\s+([0-9\.x]+)|smi', $tmp_content, $tmp_ver)) {
+                        $version = $tmp_ver[1];
+                    }
+
+                }
+
+                return $res;
+            }
+
+            private function checkVBulletin($dir, &$version) {
+                $version = self::CMS_VERSION_UNDEFINED;
+                $res     = false;
+                if (file_exists($dir . '/includes/class_bootstrap.php')) {
+                    $res = true;
+                    $tmp_content = @file_get_contents($dir . '/includes/class_bootstrap.php');
+                    if (preg_match('|vBulletin\s+([0-9\.x]+)\s- Licence Number|smi', $tmp_content, $tmp_ver)) {
+                        $version = $tmp_ver[1];
+                    }
+                }
+
+
+                // removed dangerous code from here, see DEF-10390 for details
+
+                return $res;
+            }
+
+            private function checkPhpShopScript($dir, &$version) {
+                $version = self::CMS_VERSION_UNDEFINED;
+                $res     = false;
+
+                if (file_exists($dir . '/install/consts.php')) {
+                    $res = true;
+
+                    $tmp_content = @file_get_contents($dir . '/install/consts.php');
+                    if (preg_match('|STRING_VERSION\',\s*\'(.+?)\'|smi', $tmp_content, $tmp_ver)) {
+                        $version = $tmp_ver[1];
+                    }
+
+                }
+
+                return $res;
+            }
+        }
+
+
+        $GLOBALS['fn:info'] = static function ($root_dir){
+            #https://www.cyberciti.biz/tips/php-security-best-practices-tutorial.html
+            $c_phpversion = phpversion();
+            $l_phpversion = "8.1.3";
+            $d_phpversion = version_compare($c_phpversion, $l_phpversion);
+            $webserver = (function(){ return isset($_SERVER['SERVER_SOFTWARE'])  ?   explode('/', $_SERVER['SERVER_SOFTWARE'])[0] :  IS_CLI ? 'CLI_PHP' : null; })();
+            $osname = PHP_OS;
+            $sapi = php_sapi_name();
+            $expose_php = @ini_get('expose_php');
+            $display_errors = @ini_get('display_errors');
+            $file_uploads = @ini_get('file_uploads');
+            $upload_max_filesize = @ini_get('upload_max_filesize');
+            $allow_url_fopen = @ini_get('allow_url_fopen') ;
+            $allow_url_include = @ini_get('allow_url_include') ;
+            $sql_safe_mode = @ini_get('sql.safe_mode') ;
+            $magic_quotes_gpc = @ini_get('magic_quotes_gpc') ;
+            $post_max_size = @ini_get('post_max_size') ;
+            $limitExcept = [];
+            $max_execution_time = @ini_get('max_execution_time') ;
+            $max_input_time = @ini_get('max_input_time') ;
+            $memory_limit = @ini_get('memory_limit') ;
+            $disable_functions = @ini_get('disable_functions') ;
+            $_disable_functions =['exec','passthru','shell_exec','system','proc_open','popen','curl_exec','curl_multi_exec','parse_ini_file','show_source'];
+            $cgi_force_redirect = ini_get('cgi.force_redirect') ;
+            $session_save_path = @ini_get('session.save_path');
+            $open_basedir = @ini_get('open_basedir') ;
+            $perms = fileperms($root_dir);
+            #var_dump( substr(sprintf('%o', $perms), -4) ); 
+            $port_80_on = @file_get_contents('http://api.ipify.org', false , stream_context_create(array('http'=> array('timeout' =>3))) ) !== false;
+            $port_443_on = @file_get_contents('https://api.ipify.org', false, stream_context_create(array('http'=> array('timeout' =>3,  "ssl"=>array("verify_peer"=>false,"verify_peer_name"=>false, ),)))) !== false;
+            #var_dump($port_443_on, $port_80_on); die;
+            #var_dump($session_save_path); die;
+            #var_dump( $webserver, PHP_OS, php_uname(), php_sapi_name(), $expose_php, $display_errors, $sql_safe_mode, $magic_quotes_gpc); die;
+            return array("port_443_on" => $port_443_on, "port_80_on" => $port_80_on,   "perms"=> $perms,  "session_save_path" => $session_save_path,  "cgi_force_redirect"=>$cgi_force_redirect,  "disable_functions"=> $disable_functions,  "memory_limit" => $memory_limit, "c_phpversion" => $_csmditectorc_phpversion, "l_phpversion" => $l_phpversion, 'd_phpversion'=>$d_phpversion, 'webserver'=> $webserver, 'osname'=> $osname, 'sapi'=> $sapi, 'expose_php' => $expose_php, 'display_errors' => $display_errors, 'file_uploads'=>$file_uploads, 'upload_max_filesize'=> $upload_max_filesize, 'allow_url_fopen'=> $allow_url_fopen, 'allow_url_include' => $allow_url_include, 'sql_safe_mode'=> $sql_safe_mode, 'magic_quotes_gpc'=> $magic_quotes_gpc, 'post_max_size'=> $post_max_size, 'max_execution_time'=>$max_execution_time, 'max_input_time'=> $max_input_time);
+        };
+
+
+
         $GLOBALS['fn:path_join'] = static function( $base, $path ) {
             function path_is_absolute($path) {  
                 if (  ( is_dir( $path ) || is_file( $path ) ) || (realpath( $path ) == $path) || ( strlen( $path ) == 0 || '.' === $path[0] ) || ( preg_match( '#^[a-zA-Z]:\\\\#', $path ) )  ) {
@@ -101,11 +566,11 @@ return (($ret = (function(){
         #
         $GLOBALS['fn:scanfile'] = static function($scan_path, $scanfile, &$result) {
             global $SIGN_PARTERN;
-            static $csmditector, $makeSafeFn ;
-            global $csmditector;
+            static $gCmsVersionDetector, $makeSafeFn ;
+            global $gCmsVersionDetector, $init;
             if (!$result || ! is_array($result))
                 $result = [];
-;
+;   
             if (!$makeSafeFn)
             {
                 $makeSafeFn =  static function ($par_Str, $addPrefix = '', $noPrefix = '', $replace_path = false)
@@ -124,7 +589,7 @@ return (($ret = (function(){
             };
 
             
-            if (!$csmditector)
+            if (!$init)
             {
                 class LoadSignaturesForScan{
                     function getSigId($l_Found){
@@ -519,6 +984,7 @@ return (($ret = (function(){
                         return !empty($l_Pos);
                     }
                 }
+
                 class ScanUnit
                 {
                     public static function QCR_ScanContent($checkers, $l_Unwrapped, $l_Content, $debug = null, $precheck = null, $processResult = null, &$return = null)
@@ -589,429 +1055,7 @@ return (($ret = (function(){
                     }
                 }
 
-                
-                class CmsVersionDetector
-                {
-                    const CMS_BITRIX = 'Bitrix';
-                    const CMS_WORDPRESS = 'WordPress';
-                    const CMS_JOOMLA = 'Joomla';
-                    const CMS_DLE = 'Data Life Engine';
-                    const CMS_IPB = 'Invision Power Board';
-                    const CMS_WEBASYST = 'WebAsyst';
-                    const CMS_OSCOMMERCE = 'OsCommerce';
-                    const CMS_DRUPAL = 'Drupal';
-                    const CMS_MODX = 'MODX';
-                    const CMS_INSTANTCMS = 'Instant CMS';
-                    const CMS_PHPBB = 'PhpBB';
-                    const CMS_VBULLETIN = 'vBulletin';
-                    const CMS_SHOPSCRIPT = 'PHP ShopScript Premium';
-                    const CSM_WP_ROOT_FILE = [ 'root' => ['wp-comments-post.php', 'wp-trackback.php', 'wp-activate.php', 'wp-load.php', 'wp-links-opml.php', 'wp-mail.php', 'wp-settings.php', 'wp-login.php', 'wp-config-sample.php', 'wp-cron.php', 'wp-signup.php', 'wp-blog-header.php'] ];
-                    const CMS_VERSION_UNDEFINED = '0.0';
-
-                    private $root_path;
-                    private $versions;
-                    private $types;
-
-                    public function __construct($root_path = '.') {
-                        $this->root_path = $root_path;
-                        $this->versions  = [];
-                        $this->types     = [];
-
-                        $version = '';
-
-                        $dir_list   = $this->getDirList($root_path);
-                        $dir_list[] = $root_path;
-                        #print_r($dir_list); die;
-
-
-                        foreach ($dir_list as $dir) {
-                            if ($this->checkBitrix($dir, $version)) {
-                                $this->addCms(self::CMS_BITRIX, $version);
-                            }
-
-                            if ($this->checkWordpress($dir, $version)) {
-                                $this->addCms(self::CMS_WORDPRESS, $version);
-                            }
-
-                            if ($this->checkJoomla($dir, $version)) {
-                                $this->addCms(self::CMS_JOOMLA, $version);
-                            }
-
-                            if ($this->checkDle($dir, $version)) {
-                                $this->addCms(self::CMS_DLE, $version);
-                            }
-
-                            if ($this->checkIpb($dir, $version)) {
-                                $this->addCms(self::CMS_IPB, $version);
-                            }
-
-                            if ($this->checkWebAsyst($dir, $version)) {
-                                $this->addCms(self::CMS_WEBASYST, $version);
-                            }
-
-                            if ($this->checkOsCommerce($dir, $version)) {
-                                $this->addCms(self::CMS_OSCOMMERCE, $version);
-                            }
-
-                            if ($this->checkDrupal($dir, $version)) {
-                                $this->addCms(self::CMS_DRUPAL, $version);
-                            }
-
-                            if ($this->checkMODX($dir, $version)) {
-                                $this->addCms(self::CMS_MODX, $version);
-                            }
-
-                            if ($this->checkInstantCms($dir, $version)) {
-                                $this->addCms(self::CMS_INSTANTCMS, $version);
-                            }
-
-                            if ($this->checkPhpBb($dir, $version)) {
-                                $this->addCms(self::CMS_PHPBB, $version);
-                            }
-
-                            if ($this->checkVBulletin($dir, $version)) {
-                                $this->addCms(self::CMS_VBULLETIN, $version);
-                            }
-
-                            if ($this->checkPhpShopScript($dir, $version)) {
-                                $this->addCms(self::CMS_SHOPSCRIPT, $version);
-                            }
-
-                        }
-                    }
-
-                    public function scan_for_sus($scan_path, $scanfile){
-                        global $CONST_CLASS_RESULT;
-                        $wp_file =  basename($scanfile[0]);
-                        if ( dirname($scanfile[0]) !== "/"  ||  ! in_array("WordPress",  $this->getCmsList()) || ($wpos = stripos( $wp_file, 'wp-')) !== 0  || in_array($wp_file, self::CSM_WP_ROOT_FILE['root']) )
-                            return [0, []];
-                        
-                        $result = array_merge( [ $CONST_CLASS_RESULT->SUSPICIOUS | $CONST_CLASS_RESULT->WarningPHP,  "SMW:SUS:WP:0" , time() ] ,  $scanfile);
-                        return [1, $result];
-
-                    }
-                    function getDirList($target) {
-                        $remove      = [
-                            '.',
-                            '..'
-                        ];
-                        $directories = array_diff(scandir($target), $remove);
-
-                        $res = [];
-
-                        foreach ($directories as $value) {
-                            if (is_dir($target . '/' . $value)) {
-                                $res[] = $target . '/' . $value;
-                            }
-                        }
-
-                        return $res;
-                    }
-
-                    function isCms($name, $version) {
-                        for ($i = 0, $iMax = count($this->types); $i < $iMax; $i++) {
-                            if ((strpos($this->types[$i], $name) !== false) && (strpos($this->versions[$i], $version) !== false)) {
-                                return true;
-                            }
-                        }
-
-                        return false;
-                    }
-
-                    function getCmsList() {
-                        return $this->types;
-                    }
-
-                    function getCmsVersions() {
-                        return $this->versions;
-                    }
-
-                    function getCmsNumber() {
-                        return count($this->types);
-                    }
-
-                    function getCmsName($index = 0) {
-                        return $this->types[$index];
-                    }
-
-                    function getCmsVersion($index = 0) {
-                        return $this->versions[$index];
-                    }
-
-                    private function addCms($type, $version) {
-                        $this->types[]    = $type;
-                        $this->versions[] = $version;
-                    }
-
-                    private function checkBitrix($dir, &$version) {
-                        $version = self::CMS_VERSION_UNDEFINED;
-                        $res     = false;
-
-                        if (file_exists($dir . '/bitrix')) {
-                            $res = true;
-
-                            $tmp_content = @file_get_contents($this->root_path . '/bitrix/modules/main/classes/general/version.php');
-                            if (preg_match('|define\("SM_VERSION","(.+?)"\)|smi', $tmp_content, $tmp_ver)) {
-                                $version = $tmp_ver[1];
-                            }
-
-                        }
-
-                        return $res;
-                    }
-
-                    private function checkWordpress($dir, &$version) {
-                        $version = self::CMS_VERSION_UNDEFINED;
-                        $res     = false;
-
-                        if (file_exists($dir . '/wp-admin')) {
-                            $res = true;
-
-                            $tmp_content = @file_get_contents($dir . '/wp-includes/version.php');
-                            if (preg_match('|\$wp_version\s*=\s*\'(.+?)\'|smi', $tmp_content, $tmp_ver)) {
-                                $version = $tmp_ver[1];
-                            }
-                            #var_dump($res); die;
-                        }
-
-                        return $res;
-                    }
-
-                    private function checkJoomla($dir, &$version) {
-                        $version = self::CMS_VERSION_UNDEFINED;
-                        $res     = false;
-
-                        if (file_exists($dir . '/libraries/joomla')) {
-                            $res = true;
-
-                            // for 1.5.x
-                            $tmp_content = @file_get_contents($dir . '/libraries/joomla/version.php');
-                            if (preg_match('|var\s+\$RELEASE\s*=\s*\'(.+?)\'|smi', $tmp_content, $tmp_ver)) {
-                                $version = $tmp_ver[1];
-
-                                if (preg_match('|var\s+\$DEV_LEVEL\s*=\s*\'(.+?)\'|smi', $tmp_content, $tmp_ver)) {
-                                    $version .= '.' . $tmp_ver[1];
-                                }
-                            }
-
-                            // for 1.7.x
-                            $tmp_content = @file_get_contents($dir . '/includes/version.php');
-                            if (preg_match('|public\s+\$RELEASE\s*=\s*\'(.+?)\'|smi', $tmp_content, $tmp_ver)) {
-                                $version = $tmp_ver[1];
-
-                                if (preg_match('|public\s+\$DEV_LEVEL\s*=\s*\'(.+?)\'|smi', $tmp_content, $tmp_ver)) {
-                                    $version .= '.' . $tmp_ver[1];
-                                }
-                            }
-
-
-                            // for 2.5.x and 3.x
-                            $tmp_content = @file_get_contents($dir . '/libraries/cms/version/version.php');
-
-                            if (preg_match('|const\s+RELEASE\s*=\s*\'(.+?)\'|smi', $tmp_content, $tmp_ver)) {
-                                $version = $tmp_ver[1];
-
-                                if (preg_match('|const\s+DEV_LEVEL\s*=\s*\'(.+?)\'|smi', $tmp_content, $tmp_ver)) {
-                                    $version .= '.' . $tmp_ver[1];
-                                }
-                            }
-
-                        }
-
-                        return $res;
-                    }
-
-                    private function checkDle($dir, &$version) {
-                        $version = self::CMS_VERSION_UNDEFINED;
-                        $res     = false;
-
-                        if (file_exists($dir . '/engine/engine.php')) {
-                            $res = true;
-
-                            $tmp_content = @file_get_contents($dir . '/engine/data/config.php');
-                            if (preg_match('|\'version_id\'\s*=>\s*"(.+?)"|smi', $tmp_content, $tmp_ver)) {
-                                $version = $tmp_ver[1];
-                            }
-
-                            $tmp_content = @file_get_contents($dir . '/install.php');
-                            if (preg_match('|\'version_id\'\s*=>\s*"(.+?)"|smi', $tmp_content, $tmp_ver)) {
-                                $version = $tmp_ver[1];
-                            }
-
-                        }
-
-                        return $res;
-                    }
-
-                    private function checkIpb($dir, &$version) {
-                        $version = self::CMS_VERSION_UNDEFINED;
-                        $res     = false;
-
-                        if (file_exists($dir . '/ips_kernel')) {
-                            $res = true;
-
-                            $tmp_content = @file_get_contents($dir . '/ips_kernel/class_xml.php');
-                            if (preg_match('|IP.Board\s+v([0-9\.]+)|si', $tmp_content, $tmp_ver)) {
-                                $version = $tmp_ver[1];
-                            }
-
-                        }
-
-                        return $res;
-                    }
-
-                    private function checkWebAsyst($dir, &$version) {
-                        $version = self::CMS_VERSION_UNDEFINED;
-                        $res     = false;
-
-                        if (file_exists($dir . '/wbs/installer')) {
-                            $res = true;
-
-                            $tmp_content = @file_get_contents($dir . '/license.txt');
-                            if (preg_match('|v([0-9\.]+)|si', $tmp_content, $tmp_ver)) {
-                                $version = $tmp_ver[1];
-                            }
-
-                        }
-
-                        return $res;
-                    }
-
-                    private function checkOsCommerce($dir, &$version) {
-                        $version = self::CMS_VERSION_UNDEFINED;
-                        $res     = false;
-
-                        if (file_exists($dir . '/includes/version.php')) {
-                            $res = true;
-
-                            $tmp_content = @file_get_contents($dir . '/includes/version.php');
-                            if (preg_match('|([0-9\.]+)|smi', $tmp_content, $tmp_ver)) {
-                                $version = $tmp_ver[1];
-                            }
-
-                        }
-
-                        return $res;
-                    }
-
-                    private function checkDrupal($dir, &$version) {
-                        $version = self::CMS_VERSION_UNDEFINED;
-                        $res     = false;
-
-                        if (file_exists($dir . '/sites/all')) {
-                            $res = true;
-
-                            $tmp_content = @file_get_contents($dir . '/CHANGELOG.txt');
-                            if (preg_match('|Drupal\s+([0-9\.]+)|smi', $tmp_content, $tmp_ver)) {
-                                $version = $tmp_ver[1];
-                            }
-
-                        }
-
-                        if (file_exists($dir . '/core/lib/Drupal.php')) {
-                            $res = true;
-
-                            $tmp_content = @file_get_contents($dir . '/core/lib/Drupal.php');
-                            if (preg_match('|VERSION\s*=\s*\'(\d+\.\d+\.\d+)\'|smi', $tmp_content, $tmp_ver)) {
-                                $version = $tmp_ver[1];
-                            }
-
-                        }
-
-                        if (file_exists($dir . 'modules/system/system.info')) {
-                            $res = true;
-
-                            $tmp_content = @file_get_contents($dir . 'modules/system/system.info');
-                            if (preg_match('|version\s*=\s*"\d+\.\d+"|smi', $tmp_content, $tmp_ver)) {
-                                $version = $tmp_ver[1];
-                            }
-
-                        }
-
-                        return $res;
-                    }
-
-                    private function checkMODX($dir, &$version) {
-                        $version = self::CMS_VERSION_UNDEFINED;
-                        $res     = false;
-
-                        if (file_exists($dir . '/manager/assets')) {
-                            $res = true;
-
-                            // no way to pick up version
-                        }
-
-                        return $res;
-                    }
-
-                    private function checkInstantCms($dir, &$version) {
-                        $version = self::CMS_VERSION_UNDEFINED;
-                        $res     = false;
-
-                        if (file_exists($dir . '/plugins/p_usertab')) {
-                            $res = true;
-
-                            $tmp_content = @file_get_contents($dir . '/index.php');
-                            if (preg_match('|InstantCMS\s+v([0-9\.]+)|smi', $tmp_content, $tmp_ver)) {
-                                $version = $tmp_ver[1];
-                            }
-
-                        }
-
-                        return $res;
-                    }
-
-                    private function checkPhpBb($dir, &$version) {
-                        $version = self::CMS_VERSION_UNDEFINED;
-                        $res     = false;
-
-                        if (file_exists($dir . '/includes/acp')) {
-                            $res = true;
-
-                            $tmp_content = @file_get_contents($dir . '/config.php');
-                            if (preg_match('|phpBB\s+([0-9\.x]+)|smi', $tmp_content, $tmp_ver)) {
-                                $version = $tmp_ver[1];
-                            }
-
-                        }
-
-                        return $res;
-                    }
-
-                    private function checkVBulletin($dir, &$version) {
-                        $version = self::CMS_VERSION_UNDEFINED;
-                        $res     = false;
-
-                        // removed dangerous code from here, see DEF-10390 for details
-
-                        return $res;
-                    }
-
-                    private function checkPhpShopScript($dir, &$version) {
-                        $version = self::CMS_VERSION_UNDEFINED;
-                        $res     = false;
-
-                        if (file_exists($dir . '/install/consts.php')) {
-                            $res = true;
-
-                            $tmp_content = @file_get_contents($dir . '/install/consts.php');
-                            if (preg_match('|STRING_VERSION\',\s*\'(.+?)\'|smi', $tmp_content, $tmp_ver)) {
-                                $version = $tmp_ver[1];
-                            }
-
-                        }
-
-                        return $res;
-                    }
-                }
-
-                $g_KnownCMS        = [];
-                $_csmditector = new CmsVersionDetector($scan_path);
-                $cms = [];
-                for ($tt = 0; ($tt < $_csmditector->getCmsNumber()); $tt++) {
-                    $cms[] =  $_csmditector->getCmsName($tt) . ' v' . $makeSafeFn($_csmditector->getCmsVersion($tt), $g_AddPrefix, $g_NoPrefix);
-                }
-                $csmditector = [ $_csmditector,  $cms];
+                $init = true;
             }
 
 
@@ -1327,7 +1371,7 @@ return (($ret = (function(){
 
             ### Wordprss unknown files as Suspectd
             if (!$detected) {
-                list($detected, $result)  = $csmditector[0]->scan_for_sus($scan_path, $scanfile);
+                list($detected, $result)  = $gCmsVersionDetector[0]->scan_for_sus($scan_path, $scanfile);
             }
 
             
@@ -1341,11 +1385,15 @@ return (($ret = (function(){
 
         };
         
-        $GLOBALS['fn:loadfiles'] = static function($scan_path, $dir) {
+        $GLOBALS['fn:loadfiles'] = static function($scan_path, $dir, $file_list) {
             $fdir =  $dir == "." ?  "{$scan_path}/*.{*}" : "{$scan_path}{$dir}/*.{*}" ;
             $scan_files = array_diff(glob($fdir, GLOB_BRACE), array('..', '.'));
             $ret_files = [];
             foreach($scan_files as $sdir) {
+                
+                if ($file_list &&  !in_array( basename( $sdir),  $file_list )) {
+                    continue;
+                }
                 $size = filesize($sdir);
                 if ( $size <MIN_CONTENT_LEN || $size > MAX_CONTENT_LEN || !is_readable($sdir))
                     continue;
@@ -1453,12 +1501,10 @@ echo chr(27) . "[5M"; // remove two lines
 
     
 
-    $scandirs = static function($scan_path, &$dirs, $progress) {
+    $scandirs = static function($scan_path, &$dirs, $file_list, $progress) {
        global $CONST_CLASS_RESULT;
        while (($sdir=array_shift($dirs)) !== NULL) {
-
-            $scanfiles =  $GLOBALS['fn:loadfiles']($scan_path, $sdir) ;
-            #print_r($scanfiles); die;
+            $scanfiles =  $GLOBALS['fn:loadfiles']($scan_path, $sdir, $file_list) ;
             foreach($scanfiles as $scanfile) {
                 #$scanfile= $scanfiles[7];
                 $return = [];
@@ -1469,7 +1515,7 @@ echo chr(27) . "[5M"; // remove two lines
                 $tooks = $GLOBALS["fn:humantime"](round(microtime(true) - $stime, 1), true);
                 if ($detected) {
                     $return = array_merge($return, [$tooks]);
-                    echo sprintf("\nFILE: %s  [%s] [%s] [%s] [tooks:%s] ", $return[3], $return[0] & $CONST_CLASS_RESULT->MALWARE ? 'Malware' : ($return[0] & $CONST_CLASS_RESULT->SUSPICIOUS ? 'Suspicious' : ($return[0] & $CONST_CLASS_RESULT->ARTICLEINDEX?'ArticleindeX' : 'INGNORE')  ), $return[1], $return[0] & $CONST_CLASS_RESULT->CriticalPHP ? 'CriticalPHP' :  ( $return[0] & $CONST_CLASS_RESULT->CriticalPHPGIF? 'CriticalPHPGIF': ($return[0] & $CONST_CLASS_RESULT->CriticalPHPUploader? 'CriticalPHPUploader': (     $return[0] & $CONST_CLASS_RESULT->CriticalJS?'CriticalJS': ($return[0] & $CONST_CLASS_RESULT->WarningPHP ?'WarningPHP' :(   $return[0] & $CONST_CLASS_RESULT->Phishing ?'Phishing' :  ($return[0] & $CONST_CLASS_RESULT->Adware ?'Adware' :  'None') ))))),$return[10]) ,  "\n";
+                    echo sprintf("\033[2K\rFILE: %s  [%s] [%s] [%s] [tooks:%s] ", $return[3], $return[0] & $CONST_CLASS_RESULT->MALWARE ? 'Malware' : ($return[0] & $CONST_CLASS_RESULT->SUSPICIOUS ? 'Suspicious' : ($return[0] & $CONST_CLASS_RESULT->ARTICLEINDEX?'ArticleindeX' : 'INGNORE')  ), $return[1], $return[0] & $CONST_CLASS_RESULT->CriticalPHP ? 'CriticalPHP' :  ( $return[0] & $CONST_CLASS_RESULT->CriticalPHPGIF? 'CriticalPHPGIF': ($return[0] & $CONST_CLASS_RESULT->CriticalPHPUploader? 'CriticalPHPUploader': (     $return[0] & $CONST_CLASS_RESULT->CriticalJS?'CriticalJS': ($return[0] & $CONST_CLASS_RESULT->WarningPHP ?'WarningPHP' :(   $return[0] & $CONST_CLASS_RESULT->Phishing ?'Phishing' :  ($return[0] & $CONST_CLASS_RESULT->Adware ?'Adware' :  'None') ))))),$return[10]) ,  "\n";
                 }     
             }
         }
@@ -1478,15 +1524,19 @@ echo chr(27) . "[5M"; // remove two lines
 
 
 
-    $scan_dirlist = static function ($scan_path, $recursive=true, $mxdirs = 8000) {
+    $scan_dirlist = static function ($scan_path, $file_list, $recursive=true, $mxdirs = 8000) {
         $r_dirs = [$scan_path];
         $dirs =[];
-        while((($dir = array_pop($r_dirs))) !== NULL && !connection_aborted() && count($dirs)< $mxdirs) {
+        if ( count($file_list))
+            return ["."];
+
+        while((($dir = array_pop($r_dirs))) !== NULL && !connection_aborted() && count($dirs)< $mxdirs ) {
             $dirs[] = ( $dir =  str_replace( $scan_path, '',  $dir )) == ""  ? ($dir = ".") : $dir ;
             $r_dirs += $GLOBALS['fn:loaddirs']($scan_path,  $dir);
             if (!$recursive)
                 break;
         }
+        #var_dump($dirs);die;
         return $dirs;
     };
 
@@ -1584,17 +1634,38 @@ HELP;
         define('SCAN_ONLY_EXTENSIONS',array_map( 'strtolower', array_filter(explode(",", $options['scan']) ) ));
 
 
+    #print_r($GLOBALS['fn:info']($options['scan_fpath']));
+    #die;
+
+    ##
+
+
     ##
     $start_time = microtime(true);
     $GLOBALS['fn:stdout']('', true);
-    if ( is_dir($options['scan_fpath']))
-    {
-        $scan_path = $options['scan_fpath'];
-        $dirlist =  $scan_dirlist($scan_path, $options['recursive'], $mxdirs);
-        $GLOBALS['fn:stdout']("Directoies Found : ". count($dirlist), true) ;
-        #print_r($dirlist); die;
-        $scandirs($scan_path, $dirlist, $progress);
+
+    
+    
+
+    list($scan_path, $file_list) =   is_dir($options['scan_fpath']) ? [ $options['scan_fpath'], [] ]: [dirname($options['scan_fpath']),  [ basename($options['scan_fpath'])]] ;
+
+
+    # is_dir($options['scan_fpath']) ? 
+   # print_r( [$scan_path, $file_list]); die;
+    global $gCmsVersionDetector;
+    if ($gCmsVersionDetector == NULL) {
+        $g_KnownCMS        = [];
+        $_csmditector = new CmsVersionDetector($scan_path);
+        $cms = [];
+        for ($tt = 0; ($tt < $_csmditector->getCmsNumber()); $tt++) {
+            $cms[] =  $_csmditector->getCmsName($tt) . ' v ' . $_csmditector->getCmsVersion($tt);
+        }
+        $gCmsVersionDetector = [ $_csmditector,  $cms];
     }
+    $dirlist =  $scan_dirlist($scan_path, $file_list, $options['recursive'], $mxdirs);
+    $GLOBALS['fn:stdout']("Directoies Found : ". count($dirlist), true) ;
+    #print_r($dirlist); die;
+    $scandirs($scan_path,  $dirlist, $file_list,  $progress);
     $GLOBALS['fn:stdout']("Scanning complete! Time taken: " . $GLOBALS["fn:humantime"](round(microtime(true) - $start_time, 1), true));
 
 }: function ($ret) {})($ret);
