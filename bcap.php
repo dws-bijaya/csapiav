@@ -24,7 +24,6 @@ return (($ret = (function(){
         $CONST_CLASS_RESULT =  json_decode(json_encode(['MALWARE'=>1, 'SUSPICIOUS' => 2, 'ARTICLEINDEX'=> 4, 'CriticalPHP' =>  8, 'CriticalPHPGIF' => 16, 'CriticalPHPUploader'=> 32, 'CriticalJS' => 64 , 'WarningPHP' => 128, 'Phishing'=> 256 , 'Adware' => 512, 'CriticalURL'=> 1024, 'SecurityISSUE'=> 2048, 'SecurityGIT'=> 2048*2  ] )  );
         global $gCmsVersionDetector;
 
-        
         $GLOBALS['context'] = array(
             'browser' =>  stream_context_create(array(
                 'http'=>array(
@@ -82,12 +81,12 @@ return (($ret = (function(){
                 $wfile->setFlags(SplFileObject::READ_AHEAD | SplFileObject::SKIP_EMPTY | SplFileObject::DROP_NEW_LINE);
                 foreach ($bfile as $url) {
                     $url = explode('-', $url, 2);
-                    $this->urls[self::BLACK][]= [$url[0]] = strpos($url[1],'//') === 0 ? substr_replace($url[1],'//(www\.)?',0,2) : $url[1];
+                    $this->urls[self::BLACK][$url[0]]=  strpos($url[1],'//') === 0 ? substr_replace($url[1],'//(www\.)?',0,2) : $url[1];
                 }
 
                 foreach ($wfile as $url) {
                     $url = explode('-', $url, 2);
-                    $this->urls[self::WHITE][]= [$url[0]] = strpos($url[1],'//') === 0 ? substr_replace($url[1],'//(www\.)?',0,2) : $url[1];
+                    $this->urls[self::WHITE][$url[0]] = strpos($url[1],'//') === 0 ? substr_replace($url[1],'//(www\.)?',0,2) : $url[1];
                 }
 
                 $this->optSig($this->urls[self::BLACK]);
@@ -108,8 +107,8 @@ return (($ret = (function(){
 
                 while (preg_match(ScanCheckers::URL_GRAB, $l_Content, $l_Found, PREG_OFFSET_CAPTURE, $offset)) {        
                     $l_Found[2][0] = str_replace('\/', '/', $l_Found[2][0]);
-                    #var_dump(ScanCheckers::isOwnUrl($l_Found[2][0], $this->getOwnUrl() ), ScanCheckers::isUrlInList($l_Found[2][0], $this->getDb(seLf::WHITE)), ScanCheckers::isUrlInList( 'hello.dgridcash.js', $this->getDb(self::BLACK)),  $this->getSig($id)  );die;
-                    if (!ScanCheckers::isOwnUrl($l_Found[2][0], $this->getOwnUrl())
+                    #var_dump( ScanCheckers::isOwnUrl($l_Found[2][0], $this->getOwnUrl()[1] )); #, ScanCheckers::isUrlInList($l_Found[2][0], $this->getDb(seLf::WHITE)), ScanCheckers::isUrlInList( 'hello.dgridcash.js', $this->getDb(self::BLACK)),  $this->getSig($id)  );die;
+                    if (!ScanCheckers::isOwnUrl($l_Found[2][0], $this->getOwnUrl()[1])
                         && (  !ScanCheckers::isUrlInList($l_Found[2][0], $this->getDb(self::WHITE)))
                     ) {
                         if ($id = ScanCheckers::isUrlInList($l_Found[2][0], $this->getDb(self::BLACK))) {
@@ -140,13 +139,12 @@ return (($ret = (function(){
                 
                 foreach ($this->getDb(self::BLACK) as $black) {
                     if (preg_match('~' . $black . '~msi', $url)) {
-                        $this->ownUrl = null;
+                        $this->ownUrl = ['', null];
                         return;
                     }
                 }
-                
-
-                $this->ownUrl = $url;
+                $this->ownUrl = [  $url, @parse_url($url, PHP_URL_HOST) ];
+               
                 
             }
             function getOwnUrl() {
@@ -840,18 +838,31 @@ return (($ret = (function(){
 
 
         $GLOBALS['fn:loaddirs'] = static function($scan_path, $dir) {
-            $fdir =  $dir  ==  "." ?  "{$scan_path}/*" : "{$scan_path}{$dir}/*" ;
-            $scanned_directory = array_diff(glob($fdir, GLOB_ONLYDIR), array('..', '.'));
+            $fdir =  $dir  ==  "." ?  "{$scan_path}/{*,.*}" : "{$scan_path}{$dir}/{*,.*}" ;
+
+            #$fdir ="/Applications/XAMPP/xamppfiles/htdocs/vdie/malwares_samples/d1/{*,.*}";
+
+            #var_dump($fdir);
+
+            $scanned_directory = (glob($fdir, GLOB_ONLYDIR|GLOB_BRACE)); #, array('..', '.'));
+            #var_dump($scanned_directory); die;
             $ret_dirs = [];
             foreach($scanned_directory as $s=>$sdir) {
-                $ret_dirs[]=  substr($sdir,  strlen($scan_path));
-                $file = str_replace(getcwd(), '', $sdir);
+                $xdir =  substr($sdir,  strlen($scan_path));
+                #var_dump( basename( $xdir));
+                if (in_array(basename($xdir), [ ".",".."] ))
+                    continue;
+;
+
+                $file = str_replace($scan_path, '', $sdir);
                 $display_file = $GLOBALS['fn:shorten_path']($sdir, 200);
                 $GLOBALS['fn:stdout']("\033[2K\r"  . "Adding directory ... " . $display_file, false);
                 #$s % 20 ? $GLOBALS['fn:slowdown'](): null;
+                $ret_dirs[] = $xdir;
            }
-           $GLOBALS['fn:stdout']( "\033[2K\r", false);
-            return $ret_dirs;
+           $GLOBALS['fn:stdout']( "\033[2K\r", false);   
+           #print_r($ret_dirs);   die;
+           return $ret_dirs;
         };
 
         #
@@ -1260,7 +1271,7 @@ return (($ret = (function(){
 
                         while (preg_match(self::URL_GRAB, $l_Content, $l_Found, PREG_OFFSET_CAPTURE, $offset)) {
                             $l_Found[2][0] = str_replace('\/', '/', $l_Found[2][0]);
-                            if (!self::isOwnUrl($l_Found[2][0], $signs->getOwnUrl())
+                            if (!self::isOwnUrl($l_Found[2][0], $signs->getOwnUrl()[1])
                                 && (isset($signs->whiteUrls) && !self::isUrlInList($l_Found[2][0], $signs->whiteUrls->getDb()))
                             ) {
                                 if ($id = self::isUrlInList($l_Found[2][0], $signs->blackUrls->getDb())) {
@@ -1350,6 +1361,23 @@ return (($ret = (function(){
                 }
 
                 $init = true;
+            }
+
+
+            $flag = $scanfile[7];
+            if ( $flag & 2 )
+            {
+                global $CONST_CLASS_RESULT;
+                $x = @get_headers( sprintf("%s/.git/", $gBlackAndWhiteURLs->getOwnUrl()[0] ), true, $GLOBALS['context']['browser']);
+                if ( $x && is_array($x) && isset($x[0]) && preg_match('~HTTP/\d\.\d (\d+) (.*)~', $x[0], $statuscode))
+                {
+                    ($statuscode = (int)$statuscode[1]);
+                    if ($statuscode !== 200 )
+                        list($detected, $result)  = [1, array_merge( [ $CONST_CLASS_RESULT->SecurityISSUE | $CONST_CLASS_RESULT->SecurityGIT,  "SCR:ISU:GIT:". $statuscode , time() ] ,  $scanfile)];                       
+                    }
+                $gitchecked = TRUE;
+                return $detected;
+                
             }
 
 
@@ -1598,6 +1626,10 @@ return (($ret = (function(){
             };
 
             
+            
+             
+            
+
 
 
             #
@@ -1688,8 +1720,39 @@ return (($ret = (function(){
 
 
         };
+        $GLOBALS['fn:filestats'] = static function($file) {
+            #var_dump((file_exists($file)), $file); die;
+            if (!file_exists($file))
+                return ['', 0, 0, 0, 0, '', '', '', 333];
+
+            
+            clearstatcache();
+            $perms =  @fileperms($file);
+            $perms = $perms ? (int) $perms : 0;
+            $mtime = filemtime($file);
         
+
+            #
+            $ownerid = @fileowner($file);
+            $group_name = $user_name = "";
+            if ( $ownerid  ) {
+                $info =( @posix_getpwuid(( int)$ownerid ));
+                $user_name = is_array($info) ? $info['name']: "";
+                $info =( @posix_getgrgid(( int)is_array($info) ?  $info['gid']: false));
+                $group_name = is_array($info) ? $info['name']: "";
+            }
+
+            $size = @filesize($file);
+            $ext  = @pathinfo($file, PATHINFO_EXTENSION);
+            $hashfile = hash_file('md5', $file);
+            return [$ext, $perms, $mtime, $size, $ownerid, $hashfile, $user_name, $group_name, 0 ];
+
+        };
+
+
         $GLOBALS['fn:loadfiles'] = static function($scan_path, $dir, $file_list) {
+
+
             $fdir =  $dir == "." ?  "{$scan_path}/*.{*}" : "{$scan_path}{$dir}/*.{*}" ;
             $scan_files = array_diff(glob($fdir, GLOB_BRACE), array('..', '.'));
             $ret_files = [];
@@ -1698,37 +1761,40 @@ return (($ret = (function(){
                 if ($file_list &&  !in_array( basename( $sdir),  $file_list )) {
                     continue;
                 }
-                $size = filesize($sdir);
+
+
+                list($ext, $perms, $mtime, $size, $ownerid, $hashfile, $user_name, $group_name, $flag) = $GLOBALS['fn:filestats']($sdir);
+
+                #var_dump($ext, $perms, $mtime, $size, $ownerid, $user_name, $group_name, $sdir); die;
+
+                #$size = filesize($sdir);
                 if ( $size <MIN_CONTENT_LEN || $size > MAX_CONTENT_LEN || !is_readable($sdir))
                     continue;
                 
-                $ext  = pathinfo($sdir, PATHINFO_EXTENSION);
+                #$ext  = pathinfo($sdir, PATHINFO_EXTENSION);
                 if ( ! in_array($ext,  defined("SCAN_ONLY_EXTENSIONS") ?SCAN_ONLY_EXTENSIONS:  EXTENSIONS  ))
                     continue;
       
-                clearstatcache();
-                $perms =  @fileperms($sdir);
-                $perms = $perms ? (int) $perms : 0;
-                $mtime = filemtime($sdir);
                 if ($perms & 0xF000  !== 0x8000)
                     return;
 
-                #
-                $ownerid = @fileowner($sdir);
-                $group_name = $user_name = "";
-                if ( $ownerid  ) {
-                   $info =( @posix_getpwuid(( int)$ownerid ));
-                   $user_name = is_array($info) ? $info['name']: "";
-                   $info =( @posix_getgrgid(( int)is_array($info) ?  $info['gid']: false));
-                   $group_name = is_array($info) ? $info['name']: "";
-                }
+                
 
-                $ret_files[]= [ substr($sdir,  strlen($scan_path)), hash_file ('md5', $sdir), $size,  $ext , $perms, $mtime, "{$group_name}:{$user_name}" ];;
+
+                $ret_files[]= [ substr($sdir,  strlen($scan_path)), $hashfile, $size,  $ext , $perms, $mtime, "{$group_name}:{$user_name}" , $flag ];;
                 #$file = str_replace(getcwd(), '', $file);
                 $display_file = $GLOBALS['fn:shorten_path']($sdir, 200);
                 $GLOBALS['fn:stdout'](  "\033[2K\r" . "Adding File ... " . $display_file, false );
             }
             $GLOBALS['fn:stdout']( "\033[2K\r", false);
+
+            if ( $dir === "/.git") {
+                $gitdir = sprintf("%s%s", $scan_path, $dir);
+                list($ext, $perms, $mtime, $size, $ownerid, $hashfile , $user_name, $group_name, $flag) = $GLOBALS['fn:filestats']($gitdir);
+                $flag =  $flag | 2;
+                $ret_files[]= [ $dir , $hashfile, 0,  $size , $perms, $mtime, "{$group_name}:{$user_name}",$flag  ];
+
+            }
             return $ret_files;
         };
 
@@ -1829,13 +1895,14 @@ echo chr(27) . "[5M"; // remove two lines
             var_dump($detected, $result);
         }
         */
-        
+
 
 
 
 
 
        while (($sdir=array_shift($dirs)) !== NULL) {
+ 
             $scanfiles =  $GLOBALS['fn:loadfiles']($scan_path, $sdir, $file_list) ;
             foreach($scanfiles as $scanfile) {
                 #$scanfile= $scanfiles[7];
@@ -1844,19 +1911,13 @@ echo chr(27) . "[5M"; // remove two lines
                 $display_file = $GLOBALS['fn:shorten_path']($scanfile[0], 200);
                 $GLOBALS['fn:stdout'](  "\033[2K\r" . "Scaning File ... " . $display_file, false );
                 $detected = $GLOBALS['fn:scanfile']($scan_path, $scanfile, $return);
-
-                
-
-
-
-
                 $tooks = $GLOBALS["fn:humantime"](round(microtime(true) - $stime, 2), true);
                 if ($detected) {
                     $return = array_merge($return, [$tooks]);
-                    echo sprintf("\033[2K\rFILE: %s  [%s] [%s] [%s] [tooks:%s] ", $return[3], $return[0] & $CONST_CLASS_RESULT->MALWARE ? 'Malware' : ($return[0] & $CONST_CLASS_RESULT->SUSPICIOUS ? 'Suspicious' : ($return[0] & $CONST_CLASS_RESULT->ARTICLEINDEX?'ArticleindeX' : 'INGNORE')  ), $return[1], $return[0] & $CONST_CLASS_RESULT->CriticalPHP ? 'CriticalPHP' :  ( $return[0] & $CONST_CLASS_RESULT->CriticalPHPGIF? 'CriticalPHPGIF': ($return[0] & $CONST_CLASS_RESULT->CriticalPHPUploader? 'CriticalPHPUploader': (     $return[0] & $CONST_CLASS_RESULT->CriticalJS?'CriticalJS': ($return[0] & $CONST_CLASS_RESULT->WarningPHP ?'WarningPHP' :(   $return[0] & $CONST_CLASS_RESULT->Phishing ?'Phishing' :  ($return[0] & $CONST_CLASS_RESULT->Adware ?'Adware' :  ( $return[0] & $CONST_CLASS_RESULT->CriticalURL ? 'CriticalURL': 'None') ) ))))),$return[10]) ,  "\n";
+                    echo sprintf("\033[2K\rFILE: %s  [%s] [%s] [%s] [tooks:%s] ", $return[3], $return[0] & $CONST_CLASS_RESULT->MALWARE ? 'Malware' : ($return[0] & $CONST_CLASS_RESULT->SUSPICIOUS ? 'Suspicious' : ($return[0] & $CONST_CLASS_RESULT->ARTICLEINDEX?'ArticleindeX' : ($return[0] & $CONST_CLASS_RESULT->SecurityISSUE? 'SecurityISSUE' : 'INGNORE'))  ), $return[1], $return[0] & $CONST_CLASS_RESULT->CriticalPHP ? 'CriticalPHP' :  ( $return[0] & $CONST_CLASS_RESULT->CriticalPHPGIF? 'CriticalPHPGIF': ($return[0] & $CONST_CLASS_RESULT->CriticalPHPUploader? 'CriticalPHPUploader': (     $return[0] & $CONST_CLASS_RESULT->CriticalJS?'CriticalJS': ($return[0] & $CONST_CLASS_RESULT->WarningPHP ?'WarningPHP' :(   $return[0] & $CONST_CLASS_RESULT->Phishing ?'Phishing' :  ($return[0] & $CONST_CLASS_RESULT->Adware ?'Adware' :  ( $return[0] & $CONST_CLASS_RESULT->CriticalURL ? 'CriticalURL': ( $return[0] & $CONST_CLASS_RESULT->SecurityGIT ? 'SecurityGIT' : 'None') ) ) ))))),$return[10]) ,  "\n";
                 }     
             }
-        }
+        } 
         #die("dome");
     };
 
@@ -1867,14 +1928,12 @@ echo chr(27) . "[5M"; // remove two lines
         $dirs =[];
         if ( count($file_list))
             return ["."];
-
         while((($dir = array_pop($r_dirs))) !== NULL && !connection_aborted() && count($dirs)< $mxdirs ) {
-            $dirs[] = ( $dir =  str_replace( $scan_path, '',  $dir )) == ""  ? ($dir = ".") : $dir ;
-            $r_dirs += $GLOBALS['fn:loaddirs']($scan_path,  $dir);
+            $dirs[] =  ( $dir =  str_replace( $scan_path, '',  $dir )) == ""  ? ($dir = ".") : $dir ;
+            $r_dirs  =  array_merge($r_dirs , $GLOBALS['fn:loaddirs']($scan_path,  $dir));
             if (!$recursive)
                 break;
         }
-        #var_dump($dirs);die;
         return $dirs;
     };
 
@@ -2162,7 +2221,6 @@ INFOIUT;
     }
     $dirlist =  $scan_dirlist($scan_path, $file_list, $options['recursive'], $mxdirs);
     $GLOBALS['fn:stdout']("Directories Found : ". count($dirlist), true) ;
-    #print_r($dirlist); die;
     $scandirs($scan_path,  $dirlist, $file_list,  $progress);
     $GLOBALS['fn:stdout']("Scanning complete! Time taken: " . $GLOBALS["fn:humantime"](round(microtime(true) - $start_time, 1), true));
 
