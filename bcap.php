@@ -21,8 +21,32 @@ return (($ret = (function(){
         $SIGN_PARTERN = json_decode( json_encode(['_FlexDBShe'=> $SIGN_PARTERN['M'], '_SusDB'=> $SIGN_PARTERN['S'], '_AdwareSig'=> $SIGN_PARTERN['A'], '_ExceptFlex'=> $SIGN_PARTERN['E'], '_JSVirSig'=> $SIGN_PARTERN['J'], '_PhishingSig'=> $SIGN_PARTERN['F'] ]));
         #list($SIGN_PARTERN, $APP_SIGN_HASH, $SIGN_SIGN_KEYS) = [ unserialize(gzinflate(base64_decode(("[SIGN_PATTERN]]")))), unserialize(gzinflate(base64_decode(("[SIGN_HASH]]")))), unserialize(gzinflate(base64_decode(("[SIGN_KEY]]"))))];
         define('BHAT_FILECURRUPTED', 123455 !== filesize(__FILE__) ) ;
-        $CONST_CLASS_RESULT =  json_decode(json_encode(['MALWARE'=>1, 'SUSPICIOUS' => 2, 'ARTICLEINDEX'=> 4, 'CriticalPHP' =>  8, 'CriticalPHPGIF' => 16, 'CriticalPHPUploader'=> 32, 'CriticalJS' => 64 , 'WarningPHP' => 128, 'Phishing'=> 256 , 'Adware' => 512, 'CriticalURL'=> 1024] )  );
+        $CONST_CLASS_RESULT =  json_decode(json_encode(['MALWARE'=>1, 'SUSPICIOUS' => 2, 'ARTICLEINDEX'=> 4, 'CriticalPHP' =>  8, 'CriticalPHPGIF' => 16, 'CriticalPHPUploader'=> 32, 'CriticalJS' => 64 , 'WarningPHP' => 128, 'Phishing'=> 256 , 'Adware' => 512, 'CriticalURL'=> 1024, 'SecurityISSUE'=> 2048, 'SecurityGIT'=> 2048*2  ] )  );
         global $gCmsVersionDetector;
+
+        
+        $GLOBALS['context'] = array(
+            'browser' =>  stream_context_create(array(
+                'http'=>array(
+                  'method'=>"GET",
+                  'header'=> join("\r\n", ["Accept-Language: en-GB,en-US;q=0.9,en;q=0.8", "accept: */*",  "Accept-Encoding: gzip, deflate, br" ]),
+                  'user_agent'=>  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36 OPR/84.0.4316.42",
+                  'timeout' => 5000,
+                  'follow_location' => true,
+                  'max_redirects' => 5
+                  )
+                )),
+            'googlebot' => stream_context_create( array(
+                'http'=>array(
+                    'method'=>"GET",
+                    'header'=> join("\r\n", ["Accept-Language: en-GB,en-US;q=0.9,en;q=0.8", "accept: */*",  "Accept-Encoding: gzip, deflate, br", "User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36 OPR/84.0.4316.42" ])
+                )
+            ))
+        );
+
+        #print_r($GLOBALS['context']); die;
+
+
 
         class BlackAndWhiteURLs
         {
@@ -101,7 +125,7 @@ return (($ret = (function(){
                     }
                     $offset = $l_Found[2][1] + strlen($l_Found[2][0]);
                 }  
-                return  !empty($l_SigId)  && isset($l_SigId['black']) ? [ 1 , array_merge( [ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->CriticalURL,  "CHK:BALCK:URL:1" , time() ] ,  $scanfile) ] : [0, []];
+                return  !empty($l_SigId)  && isset($l_SigId['black']) ? [ 1 , array_merge( [ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->CriticalURL,  $l_SigId['black'][0] , time() ] ,  $scanfile) ] : [0, []];
 
             }
 
@@ -267,7 +291,7 @@ return (($ret = (function(){
             {
                 foreach ($l_Found as $key => &$v) {
                     if (is_string($key) && $v[1] !== -1 && strlen($key) > 1) {
-                        return 'CMW-URL-' . substr($key, 1);
+                        return 'CHK:BALCK:URL-' . substr($key, 1);
                     }
                 }
                 return null;
@@ -720,6 +744,12 @@ return (($ret = (function(){
             $expose_php = @ini_get('expose_php');
             $display_errors = @ini_get('display_errors');
             $file_uploads = @ini_get('file_uploads');
+
+
+            $log_errors = @ini_get('log_errors');
+            $error_reporting = error_reporting();
+            $sess_cookiehttponly = @ini_get('session.cookie_httponly');
+
             $upload_max_filesize = @ini_get('upload_max_filesize');
             $allow_url_fopen = @ini_get('allow_url_fopen') ;
             $allow_url_include = @ini_get('allow_url_include') ;
@@ -736,13 +766,15 @@ return (($ret = (function(){
             $session_save_path = @ini_get('session.save_path');
             $open_basedir = @ini_get('open_basedir') ;
             $perms = fileperms($root_dir);
+            
             #var_dump( substr(sprintf('%o', $perms), -4) ); 
-            $port_80_on = @file_get_contents('http://api.ipify.org', false , stream_context_create(array('http'=> array('timeout' =>3))) ) !== false;
-            $port_443_on = @file_get_contents('https://api.ipify.org', false, stream_context_create(array('http'=> array('timeout' =>3,  "ssl"=>array("verify_peer"=>false,"verify_peer_name"=>false, ),)))) !== false;
+            #$port_80_on = @file_get_contents('http://api.ipify.org', false , stream_context_create(array('http'=> array('timeout' =>3))) ) !== false;
+            #$port_443_on = @file_get_contents('https://api.ipify.org', false, stream_context_create(array('http'=> array('timeout' =>3,  "ssl"=>array("verify_peer"=>false,"verify_peer_name"=>false, ),)))) !== false;
+            $port_80_on = $port_80_on = true;
             #var_dump($port_443_on, $port_80_on); die;
             #var_dump($session_save_path); die;
             #var_dump( $webserver, PHP_OS, php_uname(), php_sapi_name(), $expose_php, $display_errors, $sql_safe_mode, $magic_quotes_gpc); die;
-            return array("port_443_on" => $port_443_on, "port_80_on" => $port_80_on,   "perms"=> $perms,  "session_save_path" => $session_save_path,  "cgi_force_redirect"=>$cgi_force_redirect,  "disable_functions"=> $disable_functions,  "memory_limit" => $memory_limit, "c_phpversion" => $_csmditectorc_phpversion, "l_phpversion" => $l_phpversion, 'd_phpversion'=>$d_phpversion, 'webserver'=> $webserver, 'osname'=> $osname, 'sapi'=> $sapi, 'expose_php' => $expose_php, 'display_errors' => $display_errors, 'file_uploads'=>$file_uploads, 'upload_max_filesize'=> $upload_max_filesize, 'allow_url_fopen'=> $allow_url_fopen, 'allow_url_include' => $allow_url_include, 'sql_safe_mode'=> $sql_safe_mode, 'magic_quotes_gpc'=> $magic_quotes_gpc, 'post_max_size'=> $post_max_size, 'max_execution_time'=>$max_execution_time, 'max_input_time'=> $max_input_time);
+            return array("log_errors" => $log_errors, "error_reporting"=> $error_reporting, "sess_cookiehttponly" => $sess_cookiehttponly,  "port_443_on" => $port_443_on, "port_80_on" => $port_80_on,   "perms"=> $perms,  "session_save_path" => $session_save_path,  "cgi_force_redirect"=>$cgi_force_redirect,  "disable_functions"=> $disable_functions,  "memory_limit" => $memory_limit, "c_phpversion" => $c_phpversion, "l_phpversion" => $l_phpversion, 'd_phpversion'=>$d_phpversion, 'webserver'=> $webserver, 'osname'=> $osname, 'sapi'=> $sapi, 'expose_php' => $expose_php, 'display_errors' => $display_errors, 'file_uploads'=>$file_uploads, 'upload_max_filesize'=> $upload_max_filesize, 'allow_url_fopen'=> $allow_url_fopen, 'allow_url_include' => $allow_url_include, 'sql_safe_mode'=> $sql_safe_mode, 'magic_quotes_gpc'=> $magic_quotes_gpc, 'post_max_size'=> $post_max_size, 'max_execution_time'=>$max_execution_time, 'max_input_time'=> $max_input_time);
         };
 
 
@@ -1640,6 +1672,12 @@ return (($ret = (function(){
             if (!$detected) {
                 list($detected, $result)  =  $gBlackAndWhiteURLs->scan($content, $scanfile);
             }
+           
+           
+
+
+
+
             
 
 
@@ -1768,7 +1806,35 @@ echo chr(27) . "[5M"; // remove two lines
     
 
     $scandirs = static function($scan_path, &$dirs, $file_list, $progress) {
-       global $CONST_CLASS_RESULT;
+       global $CONST_CLASS_RESULT, $gBlackAndWhiteURLs;
+
+        # .git folder security issue
+
+        /*
+        static $gitchecked;
+        if ( false && $gitchecked === NULL && is_dir(sprintf("%s/.git", $scan_path))  ) {
+            
+            $display_file = sprintf("%s/.git", $scan_path);
+            $display_file = $GLOBALS['fn:shorten_path']($scanfile[0], 200);
+            GLOBALS['fn:stdout'](  "\033[2K\r" . "Scaning File ... " . $display_file, false );
+            $stime = microtime(true);
+            $x = @get_headers( sprintf("%s/.git/FETCH_HEAD", $gBlackAndWhiteURLs->getOwnUrl() ), true, $GLOBALS['context']['browser']);
+            if ( $x && is_array($x) && isset($x[0]) && preg_match('~HTTP/\d\.\d (\d+) (.*)~', $x[0], $statuscode))
+            {
+                ($statuscode = (int)$statuscode[1]);
+                if ($statuscode !== 200 )
+                    list($detected, $result)  = [1, array_merge( [ $CONST_CLASS_RESULT->SecurityISSUE | $CONST_CLASS_RESULT->SecurityGIT,  "SCR:ISU:GIT:0" , time() ] ,  $scanfile)];                       
+            }
+            $gitchecked = TRUE;
+            var_dump($detected, $result);
+        }
+        */
+        
+
+
+
+
+
        while (($sdir=array_shift($dirs)) !== NULL) {
             $scanfiles =  $GLOBALS['fn:loadfiles']($scan_path, $sdir, $file_list) ;
             foreach($scanfiles as $scanfile) {
@@ -1778,6 +1844,12 @@ echo chr(27) . "[5M"; // remove two lines
                 $display_file = $GLOBALS['fn:shorten_path']($scanfile[0], 200);
                 $GLOBALS['fn:stdout'](  "\033[2K\r" . "Scaning File ... " . $display_file, false );
                 $detected = $GLOBALS['fn:scanfile']($scan_path, $scanfile, $return);
+
+                
+
+
+
+
                 $tooks = $GLOBALS["fn:humantime"](round(microtime(true) - $stime, 2), true);
                 if ($detected) {
                     $return = array_merge($return, [$tooks]);
@@ -1851,7 +1923,7 @@ HELP;
     $shortopts .= 'd:'; // Optional value
     $shortopts .= 'm:'; // Optional value
     $shortopts .= 'u:'; // Optional value
-
+    
     $options = getopt($shortopts, ['file:', 'path:', 'help', 'version', 'recursive:', 'delay', 'mxdirs', 'minsize:', 'maxsize:', "user:", "scan:", "skip:", "own_url:"]);
     $cwd = getcwd();
     if (isset($options['h']) || isset($options['help'])) {
@@ -1881,7 +1953,6 @@ HELP;
     global $gBlackAndWhiteURLs;
     $gBlackAndWhiteURLs = (new BlackAndWhiteURLs());
 
-   
     #
     $delay = ((isset($options['delay']) && !empty($options['delay']) && ($delay = $options['delay']) !== false) || (isset($options['d']) && !empty($options['d']) && ($delay = $options['d']) !== false)) ?  min((int)$delay, 5) : DEFAULT_SLOWDOWN_DELAY;
     $mxdirs = ((isset($options['mxdirs']) && !empty($options['mxdirs']) && ($mxdirs = $options['mxdirs']) !== false) || (isset($options['m']) && !empty($options['m']) && ($mxdirs = $options['m']) !== false)) ? (int)$mxdirs : 8000;
@@ -1903,7 +1974,7 @@ HELP;
     #
     if ( isset($options['scan']))
         define('SCAN_ONLY_EXTENSIONS',array_map( 'strtolower', array_filter(explode(",", $options['scan']) ) ));
-
+    
 
     #print_r($GLOBALS['fn:info']($options['scan_fpath']));
     #die;
@@ -1920,6 +1991,162 @@ HELP;
 
     list($scan_path, $file_list) =   is_dir($options['scan_fpath']) ? [ $options['scan_fpath'], [] ]: [dirname($options['scan_fpath']),  [ basename($options['scan_fpath'])]] ;
 
+    $info =  $GLOBALS['fn:info']($scan_path);
+    (function(&$info){
+
+    
+    $mwidth =100;
+    $vpad = ceil(($mwidth -4)/3);
+    $label = str_pad("NAME", $vpad, " ", STR_PAD_BOTH);
+    $v_clabel = str_pad('Current Value', $vpad, " ", STR_PAD_BOTH); 
+    $v_llabel = str_pad('Recomend Value', $vpad, " ", STR_PAD_BOTH); 
+
+    
+    $l_phpv = str_pad("PHP Version", $vpad, " ", STR_PAD_LEFT);
+    $v_cphpv = str_pad($info['c_phpversion'], $vpad, " ", STR_PAD_BOTH); 
+    $v_lphpv = str_pad($info['l_phpversion'], $vpad, " ", STR_PAD_BOTH); 
+    $c_cphpv = $d_phpversion == 0 ? ["", ""] : $d_phpversion < 0?["\033[31m", "\033[0m"]:["\033[33", "\033[0m"];
+    $T1 = str_pad('Common PHP Security Issue', $mwidth, "-", STR_PAD_BOTH);
+    $T2 = str_pad('', $mwidth-2, "-", STR_PAD_BOTH);
+
+    $l_websvr = str_pad("Web Server", $vpad, " ", STR_PAD_LEFT);
+    $v_websvr = str_pad($info['webserver'], $vpad*2+1, " ", STR_PAD_BOTH);
+    
+    $l_osname = str_pad("OS Name", $vpad, " ", STR_PAD_LEFT);
+    $v_osname = str_pad($info['osname'], $vpad*2+1, " ", STR_PAD_BOTH);
+    #var_dump( strlen($l_websvr), strlen($l_osname)); die;
+
+    $l_xposephp = str_pad("PHP Header Expose", $vpad, " ", STR_PAD_LEFT);
+    $v_xposephp = str_pad($info['expose_php'] ? "Yes" : 'No' , $vpad*2+1, " ", STR_PAD_BOTH);
+    $c_xposephp = $info['expose_php'] ? ["\033[31m", "\033[0m"] :["", ""];
+    
+
+    $display_errors = @ini_get('display_errors');
+    $l_dsplerr = str_pad("Display Error", $vpad, " ", STR_PAD_LEFT);
+    $v_dsplerr = str_pad($info['display_errors'] ? "\033[31mYes\033[0m" : 'No' , $vpad*2+1, " ", STR_PAD_BOTH);
+    
+    $l_dsplerr = str_pad("Dispaly Error", $vpad, " ", STR_PAD_LEFT);
+    $v_dsplerr = str_pad($info['display_errors'] ? "Yes" : 'No' , $vpad*2+1, " ", STR_PAD_BOTH);
+    $c_dsplerr = $info['display_errors'] ? ["\033[31m", "\033[0m"] :["", ""];
+    
+    #
+    $l_fuploads = str_pad("File Upload", $vpad, " ", STR_PAD_LEFT);
+    $v_fuploads = str_pad($info['file_uploads'] ? "Yes With Size " . $info['upload_max_filesize'] : 'No'  , $vpad*2+1, " ", STR_PAD_BOTH);
+
+    $l_urlfopen = str_pad("Allow url fopen", $vpad, " ", STR_PAD_LEFT);
+    $v_urlfopen = str_pad($info['allow_url_fopen'] ?  'Yes' : 'No'  , $vpad*2+1, " ", STR_PAD_BOTH);
+
+    $l_urlinc = str_pad("Allow url Include", $vpad, " ", STR_PAD_LEFT);
+    $v_urlinc = str_pad($info['allow_url_include'] ?  'Yes' : 'No'  , $vpad*2+1, " ", STR_PAD_BOTH);
+
+
+    $sql_safe_mode = @ini_get('sql.safe_mode') ;
+    $l_sqlsafemode = str_pad("SQL Safe Mode", $vpad, " ", STR_PAD_LEFT);
+    $v_sqlsafemode = str_pad($info['sql_safe_mode'] ?  'On' : 'Off'  , $vpad*2+1, " ", STR_PAD_BOTH);
+
+    $l_magicqgpc = str_pad("Magic Quotes GPC", $vpad, " ", STR_PAD_LEFT);
+    $v_magicqgpc = str_pad($info['magic_quotes_gpc'] ?  'On' : 'Off'  , $vpad*2+1, " ", STR_PAD_BOTH);
+
+    
+    $l_postmxsize = str_pad("Post Max Size", $vpad, " ", STR_PAD_LEFT);
+    $v_postmxsize = str_pad($info['post_max_size'] ?   $info['post_max_size']  : 'N/a'  , $vpad*2+1, " ", STR_PAD_BOTH);
+
+
+
+    #
+    $l_mxexectime = str_pad("Max Execution Time", $vpad, " ", STR_PAD_LEFT);
+    $v_mxexectime = str_pad($info['max_execution_time']>=0 ?   $info['max_execution_time'] . " Seconds" : 'N/a'  , $vpad, " ", STR_PAD_BOTH);
+    $r_mxexectime = str_pad("5 Seconds", $vpad, " ", STR_PAD_BOTH);
+    $c_mxexectime = $info['max_execution_time'] <6 ? ["\033[31m", "\033[0m"] :["", ""];
+
+
+    $l_mxinputtime = str_pad("Max Input Time", $vpad, " ", STR_PAD_LEFT);
+    $v_mxinputtime = str_pad($info['max_input_time']>=-1 ?   $info['max_input_time'] . " Seconds" : 'N/a'  , $vpad, " ", STR_PAD_BOTH);
+    $r_mxinputtime = str_pad("5 Seconds", $vpad, " ", STR_PAD_BOTH);
+    $c_mxinputtime = $info['max_input_time'] < 5 ? ["\033[31m", "\033[0m"] :["", ""];
+
+    $memory_limit = @ini_get('memory_limit') ;
+    $l_mxmemlimt = str_pad("Max Memory Limit", $vpad, " ", STR_PAD_LEFT);
+    $v_mxmemlimt = str_pad($info['memory_limit']>=-1 ?   $info['memory_limit'] . " " : 'N/a'  , $vpad, " ", STR_PAD_BOTH);
+    $r_mxmemlimt = str_pad("128M", $vpad, " ", STR_PAD_BOTH);
+    $c_mxmemlimt = $info['memory_limit'] < 5 ? ["\033[31m", "\033[0m"] :["", ""];
+
+    $l_disablefun = str_pad("Disable Functions", $vpad, " ", STR_PAD_LEFT);
+    $v_disablefun = str_pad($info['disable_functions'] == "" ? "Not Set": $info['disable_functions'] , $vpad, " ", STR_PAD_BOTH);
+    $r_disablefun = str_pad("exec,shell_exec,system", $vpad, " ", STR_PAD_BOTH);
+    $c_disablefun = $info['disable_functions']  == "" ? ["\033[31m", "\033[0m"] :["", ""];
+
+
+    $l_logerr = str_pad("Log Errors", $vpad, " ", STR_PAD_LEFT);
+    $v_logerr = str_pad($info['log_errors'] ==  "1" ? "On": "Off" , $vpad, " ", STR_PAD_BOTH);
+    $r_logerr = str_pad("On", $vpad, " ", STR_PAD_BOTH);
+    $c_logerr = $info['log_errors']  == "0" ? ["\033[31m", "\033[0m"] :["", ""];
+
+    #
+    $l_sescookiehhtponly = str_pad("Session Cookie Http Only", $vpad, " ", STR_PAD_LEFT);
+    $v_sescookiehhtponly = str_pad($info['sess_cookiehttponly'] ==  "1" ? "On": "Off" , $vpad, " ", STR_PAD_BOTH);
+    $r_sescookiehhtponly = str_pad("On", $vpad, " ", STR_PAD_BOTH);
+    $c_sescookiehhtponly = $info['sess_cookiehttponly']  == "0" ? ["\033[31m", "\033[0m"] :["", ""];
+
+
+    #
+    $l_errreport = str_pad("Error Reporting", $vpad, " ", STR_PAD_LEFT);
+    $v_errreport = str_pad($info['error_reporting'] >=0  ? $info['error_reporting'] . sprintf("[%s%s]", $info['error_reporting'] & E_ALL ? 'E_ALL ' : '', $info['error_reporting'] & E_WARNING ? 'E_WARNING' : ''  ) : "N/a" , $vpad, " ", STR_PAD_BOTH);
+    $r_errreport = str_pad("0", $vpad, " ", STR_PAD_BOTH);
+    $c_errreport = $info['error_reporting']  != "0" ? ["\033[31m", "\033[0m"] :["", ""];
+
+
+
+
+
+
+    echo  <<<INFOIUT
+    {$T1}
+    |{$label}|{$v_clabel}|{$v_llabel}|
+    |{$T2}|
+    |{$l_phpv}|{$c_cphpv[0]}{$v_cphpv}{$c_cphpv[1]}|{$v_lphpv}|
+    |{$T2}|
+    |{$l_osname}|{$v_osname}|
+    |{$T2}|
+    |{$l_websvr}|{$v_websvr}|
+    |{$T2}|
+    |{$l_xposephp}|{$c_xposephp[0]}{$v_xposephp}{$c_xposephp[1]}|
+    |{$T2}|
+    |{$l_dsplerr}|{$c_dsplerr[0]}{$v_dsplerr}{$c_dsplerr[1]}|
+    |{$T2}|
+    |{$l_fuploads}|{$v_fuploads}|
+    |{$T2}|
+    |{$l_urlfopen}|{$v_urlfopen}|
+    |{$T2}|
+    |{$l_urlinc}|{$v_urlinc}|
+    |{$T2}|
+    |{$l_sqlsafemode}|{$v_sqlsafemode}|
+    |{$T2}|
+    |{$l_magicqgpc}|{$v_magicqgpc}|
+    |{$T2}|
+    |{$l_postmxsize}|{$v_postmxsize}|
+    |{$T2}|
+    |{$l_mxexectime}|{$c_mxexectime[0]}{$v_mxexectime}{$c_mxexectime[1]}|{$r_mxexectime}|
+    |{$T2}|
+    |{$l_mxinputtime}|{$c_mxinputtime[0]}{$v_mxinputtime}{$c_mxinputtime[1]}|{$r_mxinputtime}|
+    |{$T2}|
+    |{$l_mxmemlimt}|{$c_mxmemlimt[0]}{$v_mxmemlimt}{$c_mxmemlimt[1]}|{$r_mxmemlimt}|
+    |{$T2}|
+    |{$l_disablefun}|{$c_disablefun[0]}{$v_disablefun}{$c_disablefun[1]}|{$r_disablefun}|
+    |{$T2}|
+    |{$l_logerr}|{$c_logerr[0]}{$v_logerr}{$c_logerr[1]}|{$r_logerr}|
+    |{$T2}|
+    |{$l_sescookiehhtponly}|{$c_sescookiehhtponly[0]}{$v_sescookiehhtponly}{$c_sescookiehhtponly[1]}|{$r_sescookiehhtponly}|
+    |{$T2}|
+    |{$l_errreport}|{$c_errreport[0]}{$v_errreport}{$c_errreport[1]}|{$r_errreport}|
+    |{$T2}|
+    $c_cphpv[0]$str{$c_cphpv[1]}
+INFOIUT;  
+
+
+    })($info);
+
+   
 
     # is_dir($options['scan_fpath']) ? 
    # print_r( [$scan_path, $file_list]); die;
@@ -1938,6 +2165,7 @@ HELP;
     #print_r($dirlist); die;
     $scandirs($scan_path,  $dirlist, $file_list,  $progress);
     $GLOBALS['fn:stdout']("Scanning complete! Time taken: " . $GLOBALS["fn:humantime"](round(microtime(true) - $start_time, 1), true));
+
 
 }: function ($ret) {})($ret);
 #fff
