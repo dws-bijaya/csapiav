@@ -132,7 +132,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
             if (  $this->ownUrl !== null )
                 return FALSE;
 
-            $url  = defined('SITE_OWN_URL') ? SITE_OWN_URL : NULL;
+            $url  = isset($GLOBALS['OPTIONS']['SITE_OWN_URL']) ? $GLOBALS['OPTIONS']['SITE_OWN_URL'] : NULL;
             if (!$url)
                 return FALSE;
             
@@ -845,9 +845,8 @@ define('IS_CLI', PHP_SAPI == 'cli');
             if (in_array(basename($xdir), [ ".",".."] ))
                 continue;
 
-
             $file = str_replace($scan_path, '', $sdir);
-            $display_file = $GLOBALS['fn:shorten_path']($file, 200);
+            $display_file = $GLOBALS['fn:shorten_path']($file, 100);
             $GLOBALS['fn:stdout']("\033[2K\r"  . "Adding directory ... " . $display_file, false);
             #$s % 20 ? $GLOBALS['fn:slowdown'](): null;
             $ret_dirs[] = $xdir;
@@ -1745,6 +1744,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
         $fdir =  $dir == "." ?  "{$scan_path}/*.{*}" : "{$scan_path}{$dir}/*.{*}" ;
         $scan_files = array_diff(glob($fdir, GLOB_BRACE), array('..', '.'));
         $ret_files = [];
+
         foreach($scan_files as $sdir) {
             
             if ($file_list &&  !in_array( basename( $sdir),  $file_list )) {
@@ -1761,7 +1761,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
                 continue;
             
             #$ext  = pathinfo($sdir, PATHINFO_EXTENSION);
-            if ( ! in_array($ext,  defined("SCAN_ONLY_EXTENSIONS") ?SCAN_ONLY_EXTENSIONS:  EXTENSIONS  ))
+            if ( ! in_array($ext,  isset($GLOBALS['OPTIONS']["SCAN_ONLY_EXTENSIONS"]) ?$GLOBALS['OPTIONS']['SCAN_ONLY_EXTENSIONS']:  EXTENSIONS  ))
                 continue;
   
             if ($perms & 0xF000  !== 0x8000)
@@ -1771,8 +1771,8 @@ define('IS_CLI', PHP_SAPI == 'cli');
 
 
             $ret_files[]= [ substr($sdir,  strlen($scan_path)), $hashfile, $size,  $ext , $perms, $mtime, "{$group_name}:{$user_name}" , $flag ];;
-            #$file = str_replace(getcwd(), '', $file);
-            $display_file = $GLOBALS['fn:shorten_path']($sdir, 200);
+            $file = str_replace(getcwd(), '', $file);
+            $display_file = $GLOBALS['fn:shorten_path']($sdir, 100);
             $GLOBALS['fn:stdout'](  "\033[2K\r" . "Adding File ... " . $display_file, false );
         }
         $GLOBALS['fn:stdout']( "\033[2K\r", false);
@@ -1782,6 +1782,11 @@ define('IS_CLI', PHP_SAPI == 'cli');
             list($ext, $perms, $mtime, $size, $ownerid, $hashfile , $user_name, $group_name, $flag) = $GLOBALS['fn:filestats']($gitdir);
             $flag =  $flag | 2;
             $ret_files[]= [ $dir , $hashfile, 0,  $size , $perms, $mtime, "{$group_name}:{$user_name}",$flag  ];
+        }
+        if ( $dir === ".") {
+
+
+
 
         }
         return $ret_files;
@@ -1859,7 +1864,7 @@ PROGRESS;
                 #$scanfile= $scanfiles[7];
                 $return = [];
                 $stime = microtime(true);
-                $display_file = $GLOBALS['fn:shorten_path']($scanfile[0], 200);
+                $display_file = $GLOBALS['fn:shorten_path']($scanfile[0], 100);
                 $GLOBALS['fn:stdout'](  "\033[2K\r" . "Scaning File ... " . $display_file, false );
                 $detected = $GLOBALS['fn:scanfile']($scan_path, $scanfile, $return);
                 $tooks = $GLOBALS["fn:humantime"](round(microtime(true) - $stime, 2), true);
@@ -1957,7 +1962,7 @@ HELP;
     #
     $options['recursive'] = in_array( (isset($options['r']) ? $options['r']: (isset($options['recursive'])? $options['recursive']: 'yes') ) , ['Y', 'y','yes', 'Yes', 'YES', 'YEs', '1', 'on'] )  ;
     $options['own_url'] =  isset($options['own_url']) ? $options['own_url']: null ;
-    define('SITE_OWN_URL', $options['own_url']);
+    $GLOBALS['OPTIONS']['SITE_OWN_URL'] = $options['own_url'];
     global $gBlackAndWhiteURLs;
     $gBlackAndWhiteURLs = (new BlackAndWhiteURLs());
 
@@ -1975,13 +1980,13 @@ HELP;
     $maxsize = ((isset($options['maxsize']) && !empty($options['maxsize']) && ($maxsize = $options['maxsize']) !== false)) ?  (int)$maxsize : $GLOBALS['OPTIONS']['DEFAULT_MAX_CONTENT_LEN'];
 
     #
-    define('MIN_CONTENT_LEN', $minsize);
-    define('MAX_CONTENT_LEN', $maxsize);
-    define('SLOWDOWN_DELAY', $delay);
+    $GLOBALS['OPTIONS']['MIN_CONTENT_LEN'] = $minsize;
+    $GLOBALS['OPTIONS']['MAX_CONTENT_LEN'] = $maxsize;
+    $GLOBALS['OPTIONS']['SLOWDOWN_DELAY'] = $delay;
 
     #
     if ( isset($options['scan']))
-        define('SCAN_ONLY_EXTENSIONS',array_map( 'strtolower', array_filter(explode(",", $options['scan']) ) ));
+    $GLOBALS['OPTIONS']['SCAN_ONLY_EXTENSIONS'] = array_map( 'strtolower', array_filter(explode(",", $options['scan']) ) );
     
 
     #print_r($GLOBALS['fn:info']($options['scan_fpath']));
