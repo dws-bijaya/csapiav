@@ -847,7 +847,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
 
 
             $file = str_replace($scan_path, '', $sdir);
-            $display_file = $GLOBALS['fn:shorten_path']($sdir, 200);
+            $display_file = $GLOBALS['fn:shorten_path']($file, 200);
             $GLOBALS['fn:stdout']("\033[2K\r"  . "Adding directory ... " . $display_file, false);
             #$s % 20 ? $GLOBALS['fn:slowdown'](): null;
             $ret_dirs[] = $xdir;
