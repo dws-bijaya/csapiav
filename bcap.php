@@ -1761,7 +1761,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
                 continue;
             
             #$ext  = pathinfo($sdir, PATHINFO_EXTENSION);
-            if ( ! in_array($ext,  isset($GLOBALS['OPTIONS']["SCAN_ONLY_EXTENSIONS"]) ?$GLOBALS['OPTIONS']['SCAN_ONLY_EXTENSIONS']:  EXTENSIONS  ))
+            if ( ! in_array($ext,  isset($GLOBALS['OPTIONS']["SCAN_ONLY_EXTENSIONS"]) ?$GLOBALS['OPTIONS']['SCAN_ONLY_EXTENSIONS']:  $GLOBALS['OPTIONS']['EXTENSIONS']  ))
                 continue;
   
             if ($perms & 0xF000  !== 0x8000)
