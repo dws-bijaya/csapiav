@@ -1757,7 +1757,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
             #var_dump($ext, $perms, $mtime, $size, $ownerid, $user_name, $group_name, $sdir); die;
 
             #$size = filesize($sdir);
-            if ( $size <MIN_CONTENT_LEN || $size > MAX_CONTENT_LEN || !is_readable($sdir))
+            if ( $size <$GLOBALS['OPTIONS']['MIN_CONTENT_LEN'] || $size > $GLOBALS['OPTIONS']['MAX_CONTENT_LEN'] || !is_readable($sdir))
                 continue;
             
             #$ext  = pathinfo($sdir, PATHINFO_EXTENSION);
