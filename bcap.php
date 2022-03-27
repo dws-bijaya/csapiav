@@ -1584,12 +1584,12 @@ define('IS_CLI', PHP_SAPI == 'cli');
             if ( preg_match('~php(\d+)?$~', $scanfile[3]) )
             {
                 $file = "{$scan_path}{$scanfile[0]}" ;
-                #$scanfile[0] = "./malwares_samples/large-line-in-php.php";
+                #$file = "./malwares_samples/large-line-in-php.php";
                 $bfile = new SplFileObject($file, 'r');
                 $bfile->setFlags(SplFileObject::READ_AHEAD | SplFileObject::SKIP_EMPTY );
                 while (!$bfile->eof()) {
                     $line  =  $bfile->fgets();
-                    if ($line < $GLOBALS['OPTIONS']['PHPLINE_LEN'] )
+                    if ( strlen($line) < $GLOBALS['OPTIONS']['PHPLINE_LEN'] )
                         continue;
                     unset($line);
                     return  [1, array_merge( [ $CONST_CLASS_RESULT->SUSPICIOUS | $CONST_CLASS_RESULT->WarningPHP,  "SUS:FLE:PHP:MXLINE", time() ] ,  $scanfile)];
