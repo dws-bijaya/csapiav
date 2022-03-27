@@ -133,6 +133,9 @@ define('IS_CLI', PHP_SAPI == 'cli');
                 return FALSE;
 
             $url  = isset($GLOBALS['OPTIONS']['SITE_OWN_URL']) ? $GLOBALS['OPTIONS']['SITE_OWN_URL'] : NULL;
+            var_dump($url); die;
+            
+            
             if (!$url)
                 return FALSE;
             
@@ -860,6 +863,8 @@ define('IS_CLI', PHP_SAPI == 'cli');
         static $ch;
         global $gBlackAndWhiteURLs;
 
+        
+
 
         $headers = [
             'Accept-Encoding: gzip, deflate',
@@ -935,10 +940,6 @@ define('IS_CLI', PHP_SAPI == 'cli');
         else if ( $l_botbody < $l_livebody )
             $diff =  (($l_livebody - $l_botbody)/$l_livebody)*100;
         
-
-        return [ 1,  array_merge( [ $CONST_CLASS_RESULT->SUSPICIOUS | $CONST_CLASS_RESULT->WarningGBOT,  "CWL:GBOT:CHG:ttl" , time() ] ,  $scanfile) ];
-
-
         if ($diff == 0  ) {
             unset($botbody, $livebody);
             return [0, []];
@@ -964,25 +965,8 @@ define('IS_CLI', PHP_SAPI == 'cli');
             return [ 1,  array_merge( [ $CONST_CLASS_RESULT->SUSPICIOUS | $CONST_CLASS_RESULT->WarningGBOT,  "CWL:GBOT:CHG:ttl" , time() ] ,  $scanfile) ];
         }
 
-
-        die('here');
-
-
-
-
-
-
-        
-
-        $result = array_merge( [ $CONST_CLASS_RESULT->SUSPICIOUS | $CONST_CLASS_RESULT->WarningGBOT,  "CWL:GBOT:CHG:0" , time() ] ,  $scanfile);
-        return [1, $result];
-
-
-            
-        
-
-
-
+        unset($botbody, $livebody);
+        return [0, []];
 
     };
 
