@@ -1262,10 +1262,12 @@ define('IS_CLI', PHP_SAPI == 'cli');
 
                 public static function CriticalPHPUploader($l_Content, &$l_Pos, &$l_SigId, $signs, $debug = null)
                 {
+
+                    
                     // detect uploaders / droppers
                     $l_Found = null;
-                    if ((strlen($l_Content) < 2048) && ((($l_Pos = strpos($l_Content, 'multipart/form-data')) > 0) || (($l_Pos = strpos($l_Content, '$_FILE[') > 0)) || (($l_Pos = strpos($l_Content, 'move_uploaded_file')) > 0) || (preg_match('|\bcopy\s*\(|smi', $l_Content, $l_Found, PREG_OFFSET_CAPTURE)))) {
-                        if ($l_Found != null) {
+                    if ((strlen($l_Content) < 2048) && ((($l_Pos = strpos($l_Content, 'multipart/form-data')) > 0) && (($l_Pos = strpos($l_Content, '$_FILE[') > 0)) && (($l_Pos = strpos($l_Content, 'move_uploaded_file')) > 0) && (preg_match('|\bcopy\s*\(|smi', $l_Content, $l_Found, PREG_OFFSET_CAPTURE)))) {
+                        if ($l_Found != null  ) {
                             $l_Pos = $l_Found[0][1];
                             $l_SigId = 'uploader';
                         }
@@ -1853,6 +1855,10 @@ define('IS_CLI', PHP_SAPI == 'cli');
             if (strpos($checker, 'Critical') !== false) {
                 if ($l_Ext === 'js') {
                     $checker = 'CriticalJS';
+                }
+
+                if ($checker == "CriticalPHPUploader") {
+                    print_r($scanfile[0]); die;
                 }
                 $result = array_merge([ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->$checker,  $APP_SIGN_HASH[ hexdec($l_SigId)], time() ] ,  $scanfile);
             }
