@@ -12,6 +12,8 @@ define('IS_CLI', PHP_SAPI == 'cli');
     $GLOBALS['OPTIONS'] = array();
     $GLOBALS['OPTIONS']['DEFAULT_MIN_CONTENT_LEN'] = 10;
     $GLOBALS['OPTIONS']['DEFAULT_MAX_CONTENT_LEN'] = 1<<17;
+    $GLOBALS['OPTIONS']['DEFAULT_PHPLINE_LEN'] = 500;
+    $GLOBALS['OPTIONS']['PHPLINE_LEN'] = 500;
     $GLOBALS['OPTIONS']['DEFAULT_SLOWDOWN_DELAY'] =  1;
     $GLOBALS['OPTIONS']['EXTENSIONS'] =  explode("|", base64_decode("cGhwfHBocDd8fGNvbXxqc3xweXxodG1sfHBocDR8b3xjZ2l8cGh0bWx8c3VzcHxqc29ufHN1c3BpY2lvdXN8cGhwNnx2aXJ8cGh0fGh0bXxodGFjY2Vzc3xwbHxwaHAzfHN1c3BlY3RlZHxzaHxpbmZlY3RlZHxpY298c2h0bWx8c298cGhwNXx0cGw=") );
     $stat_data = unserialize(base64_decode("YTo0OntpOjA7czoxNDc6IkJyb3dzZXJIYXQgQVYgMS4wLjAgLCBNYWx3YXJlIEZpbGUgU2Nhbm5lciBmb3IgUEhQIFdlYnNpdGVzCkNvcHlyaWdodDogMjAxOC0yMDIxIEJyb3dzZXJIYXQgSW5jLgpTaWduYXR1cmVzIFZlcmlvbjogMTY0NzQzNzIwNQpTaWduYXR1cmVzIExvYWRlZDogNCI7aToxO3M6NToiMS4wLjAiO2k6MjtpOjE2NDc0MzcyMDU7aTozO2k6NDt9"));
@@ -23,7 +25,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
     #list($SIGN_PARTERN, $APP_SIGN_HASH, $SIGN_SIGN_KEYS) = [ unserialize(gzinflate(base64_decode(("[SIGN_PATTERN]]")))), unserialize(gzinflate(base64_decode(("[SIGN_HASH]]")))), unserialize(gzinflate(base64_decode(("[SIGN_KEY]]"))))];
     $GLOBALS['OPTIONS']['BHAT_FILECURRUPTED'] =  123455 !== filesize(__FILE__);
     $GLOBALS['OPTIONS']['SELF_FILE'] =  realpath(__FILE__);
-    $CONST_CLASS_RESULT =  json_decode(json_encode(array('MALWARE'=>1, 'SUSPICIOUS' => 2, 'ARTICLEINDEX'=> 4, 'CriticalPHP' =>  8, 'CriticalPHPGIF' => 16, 'CriticalPHPUploader'=> 32, 'CriticalJS' => 64 , 'WarningPHP' => 128, 'Phishing'=> 256 , 'Adware' => 512, 'CriticalURL'=> 1024, 'SecurityISSUE'=> 2048, 'SecurityGIT'=> 2048*2 , 'WarningGBOT' => 2048*2*2  ) )  );
+    $CONST_CLASS_RESULT =  json_decode(json_encode(array('MALWARE'=>1, 'SUSPICIOUS' => 2, 'ARTICLEINDEX'=> 4, 'CriticalPHP' =>  8, 'CriticalPHPGIF' => 16, 'CriticalPHPUploader'=> 32, 'CriticalJS' => 64 , 'WarningPHP' => 128, 'Phishing'=> 256 , 'Adware' => 512, 'CriticalURL'=> 1024, 'SecurityISSUE'=> 2048, 'SecurityGIT'=> 2048*2 , 'GoogleBOT' => 2048*2*2 , 'WarningGCache'=>  2048*2*2*2 , 'GoogleCache'=> 2048*2*2*2*2, 'CRITICAL'=> 2048*2*2*2*2*2  ) )  );
     global $gCmsVersionDetector;
     
     $GLOBALS['context'] = array(
@@ -133,21 +135,19 @@ define('IS_CLI', PHP_SAPI == 'cli');
                 return FALSE;
 
             $url  = isset($GLOBALS['OPTIONS']['SITE_OWN_URL']) ? $GLOBALS['OPTIONS']['SITE_OWN_URL'] : NULL;
-            var_dump($url); die;
-            
-            
-            if (!$url)
+            $own_domain = (  @parse_url($url, PHP_URL_HOST)  );
+
+            if (!$url || !$own_domain)
                 return FALSE;
             
             foreach ($this->getDb(self::BLACK) as $black) {
-                if (preg_match('~' . $black . '~msi', $url)) {
+                if (preg_match('~' . $black . '~msi', $own_domain)) {
                     $this->ownUrl = ['', null];
                     return;
                 }
             }
-            $this->ownUrl = [  $url, @parse_url($url, PHP_URL_HOST) ];
+            $this->ownUrl = [  $url, $own_domain  ? $own_domain :'' ];
            
-            
         }
         function getOwnUrl() {
             return $this->ownUrl;
@@ -863,9 +863,6 @@ define('IS_CLI', PHP_SAPI == 'cli');
         static $ch;
         global $gBlackAndWhiteURLs;
 
-        
-
-
         $headers = [
             'Accept-Encoding: gzip, deflate',
             'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -874,31 +871,30 @@ define('IS_CLI', PHP_SAPI == 'cli');
         ];
 
         $botbody = null; $livebody = null;
-        if ( !function_exists('curl_init')) {
+        if ( function_exists('curl_init')) {
             $ch =  curl_init();
             curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)');
-            #curl_setopt($ch, CURLOPT_ENCODING, "gzip, deflate");
-            curl_setopt($ch, CURLOPT_URL,$gBlackAndWhiteURLs->getOwnUrl()[0]);
+            curl_setopt($ch, CURLOPT_URL, $gBlackAndWhiteURLs->getOwnUrl()[0]);
             curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
             curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
             curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5); 
             curl_setopt($ch, CURLOPT_TIMEOUT, 5); 
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-            curl_setopt( $ch, CURLOPT_MAXREDIRS, 2);
+            curl_setopt($ch, CURLOPT_MAXREDIRS, 2);
             $botbody = @curl_exec ($ch);
             curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36 OPR/84.0.4316.42');
-            curl_setopt($ch, CURLOPT_URL,$gBlackAndWhiteURLs->getOwnUrl()[0]);
+            curl_setopt($ch, CURLOPT_URL, $gBlackAndWhiteURLs->getOwnUrl()[0]);
             $livebody = @curl_exec ($ch);
-            @curl_close(ch);
+            @curl_close($ch);
         } else {
             $botbody = @file_get_contents($gBlackAndWhiteURLs->getOwnUrl()[0], true, $GLOBALS['context']['googlebot'] );
             $livebody = @file_get_contents($gBlackAndWhiteURLs->getOwnUrl()[0], true, $GLOBALS['context']['browser'] );
         }
 
-        if ( !$botbody ||  !$livebody)
+        if ( !$botbody ||  !$livebody || !is_string($botbody) || !is_string($livebody)  || !strlen($botbody) || !strlen($livebody))
             return [0, []];
         
         $_livebody  = @gzdecode($livebody);
@@ -914,6 +910,13 @@ define('IS_CLI', PHP_SAPI == 'cli');
             return [0, []];
         }
 
+        /* Scan for virus */
+        #$livebody = file_get_contents('./malwares_samples/collabx.html');
+        list($detected, $result) = $gBlackAndWhiteURLs->scan($livebody, $scanfile);
+        if ($detected){
+            return [$detected, $result];
+        }
+        #var_dump($detected, $result); die;
         unset($_livebody);
 
         $_botbody  = @gzdecode($botbody);
@@ -930,8 +933,6 @@ define('IS_CLI', PHP_SAPI == 'cli');
             return [0, []];
         }
 
-
-
         $l_botbody = strlen($botbody) ;
         $l_livebody = strlen($livebody) ;
         $diff = 0;
@@ -940,7 +941,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
         else if ( $l_botbody < $l_livebody )
             $diff =  (($l_livebody - $l_botbody)/$l_livebody)*100;
         
-        if ($diff == 0  ) {
+        if ($diff == 0  && false ) {
             unset($botbody, $livebody);
             return [0, []];
         }
@@ -962,10 +963,73 @@ define('IS_CLI', PHP_SAPI == 'cli');
         #
         if (  ($title_live !== null  &&  $title_gbot !== null  && $title_live !== $title_gbot) || $diff>5) {
             unset($botbody, $livebody);
-            return [ 1,  array_merge( [ $CONST_CLASS_RESULT->SUSPICIOUS | $CONST_CLASS_RESULT->WarningGBOT,  "CWL:GBOT:CHG:ttl" , time() ] ,  $scanfile) ];
+            return [ 1,  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->GoogleBOT,  "CWL:GBOT:CHG:ttl" , time() ] ,  $scanfile) ];
         }
 
-        unset($botbody, $livebody);
+        // Fetch random Google address.
+        $googleAddresses = array("webcache.googleusercontent.com");
+        $submit_url = 'http://' . $googleAddresses[mt_rand(0, count($googleAddresses)-1)];
+        
+        $submit_vars["hl"]    = "en";
+        $submit_vars["q"]     = 'cache:'.urlencode($gBlackAndWhiteURLs->getOwnUrl()[0]);  // max length is 2048
+        $submit_vars["strip"] = 1;
+        $query = '';
+        foreach ($submit_vars as $var => $val) {
+          $query .= '&' . $var . '=' . $val;
+        };
+        $submit_url           = $submit_url . '/search?' . $query;
+        
+        $cache_content =  null;
+        if ( function_exists('curl_init')) {
+            
+
+            $ch =  curl_init();
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.109 Safari/537.36 OPR/84.0.4316.42');
+            curl_setopt($ch, CURLOPT_URL, $submit_url);
+            curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+            curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5); 
+            curl_setopt($ch, CURLOPT_TIMEOUT, 5); 
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt( $ch, CURLOPT_MAXREDIRS, 2);
+            $cache_content = @curl_exec ($ch);
+            @curl_close($ch);
+        } else {
+            $cache_content = @file_get_contents($submit_url, true, $GLOBALS['context']['browser'] );
+            #$cache_content = file_get_contents('gcache.html');
+        }
+
+        $_cache_content  = @gzdecode($cache_content);
+        if ( !$_cache_content )
+            $_cache_content  = @gzinflate($cache_content);
+        if (!$_cache_content)
+            $_cache_content  = @gzuncompress($cache_content);
+        if ($_cache_content)
+            $cache_content = $_cache_content;
+
+        unset($_cache_content);
+        if (!$cache_content){
+            unset($botbody, $livebody);
+            return  [0, []];
+        }
+        $pattern = '/(\d{1,2}\s[a-zA-Z]{3}\s\d{4}\s\d{2}:\d{2}:\d{2}.*?)\./ims';
+        preg_match($pattern, $cache_content, $matches);
+        if (isset($matches[1])) {
+            $cache_time = strtotime($matches[1]);
+            $title_cache = null;
+            if (preg_match('~(<title[^>]*>)(.*)(</title>)~imUs', $cache_content, $matches)) {
+                $title_cache = $matches[2];
+            } 
+            if ( (time() - $cache_time) > 10 * ( 60 * 60 * 24 ) || ($title_cache!==null  && $title_live !== null &&  $title_cache !== $title_live  ) )
+            {
+                unset($cache_content);
+                return [ 1,  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->GoogleCache,  ($title_cache!==null  && $title_live !== null &&  $title_cache !== $title_live  ) ?  "CWL:GCache:TTL:0" :   "CWL:GCache:EXP:0"  , time() ] ,  $scanfile) ];
+            }     
+        }
+        
         return [0, []];
 
     };
@@ -978,6 +1042,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
         if (!$result || ! is_array($result))
             $result = [];
 
+        #sleep(1);
         if (!$makeSafeFn)
         {
             $makeSafeFn =  static function ($par_Str, $addPrefix = '', $noPrefix = '', $replace_path = false)
@@ -1434,9 +1499,9 @@ define('IS_CLI', PHP_SAPI == 'cli');
                             return true;
                         }
                     }
-                    if (!$flag && $smart_skipped) {
-                        $return = [RapidScanStorageRecord::RX_SKIPPED_SMART, '', ''];
-                    }
+                    
+
+
                     return false;
                 }
 
@@ -1470,7 +1535,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
 
 
         $flag = $scanfile[7];
-        if ( $flag & 2 )
+        if (  $flag & 2 )
         {
             
             $x = @get_headers( sprintf("%s/.git/", $gBlackAndWhiteURLs->getOwnUrl()[0] ), true, $GLOBALS['context']['browser']);
@@ -1495,8 +1560,44 @@ define('IS_CLI', PHP_SAPI == 'cli');
         #9560744925 pankaj
         #die("dome");
        
-        $CheckVulnerability = static function($par_Filename, $par_Content, $vars)
+        $CheckVulnerability = static function($scan_path, $scanfile, $par_Content, $vars)
         {
+            global $CONST_CLASS_RESULT;
+            
+            $_basename = basename( $scanfile[0]);
+            $_dirname = dirname( $scanfile[0]);
+            if ($_dirname == "/" ) {
+                #$filename = [ "test.php", "test1.php", "test2.php", "test.php1", "test.php2", "phpinfo.php", "phpinfo1.php"];
+                $regex = ['^(test|phpinfo)(\d+)?\.php(\d+)?'];
+                foreach($regex as $re) {
+                    $matches = [];
+                    if ( preg_match( sprintf("~%s~ims", $re),   $_basename, $matches)) {
+                        return  [1, array_merge( [ $CONST_CLASS_RESULT->SUSPICIOUS | $CONST_CLASS_RESULT->WarningPHP,  "SUS:FLE:PHP:". strtoupper($matches[1]) , time() ] ,  $scanfile)];
+                    }
+                }
+                
+            }
+
+           
+            if ( preg_match('~php(\d+)?$~', $scanfile[3]) )
+            {
+                $file = "{$scan_path}{$scanfile[0]}" ;
+                #$scanfile[0] = "./malwares_samples/large-line-in-php.php";
+                $bfile = new SplFileObject($file, 'r');
+                $bfile->setFlags(SplFileObject::READ_AHEAD | SplFileObject::SKIP_EMPTY );
+                while (!$bfile->eof()) {
+                    $line  =  $bfile->fgets();
+                    if ($line < $GLOBALS['OPTIONS']['PHPLINE_LEN'] )
+                        continue;
+                    unset($line);
+                    return  [1, array_merge( [ $CONST_CLASS_RESULT->SUSPICIOUS | $CONST_CLASS_RESULT->WarningPHP,  "SUS:FLE:PHP:MXLINE", time() ] ,  $scanfile)];
+                }
+            }
+            
+            #
+            return  [0, []];
+
+
             global $csmditector;
             $l_Vuln =  $vulnerable = [];
             $par_Filename = strtolower($par_Filename);
@@ -1737,33 +1838,18 @@ define('IS_CLI', PHP_SAPI == 'cli');
         };
 
 
+
+
         #
         $file = "{$scan_path}{$scanfile[0]}" ;
         $content = $l_Unwrapped = file_get_contents($file);
         
-        #
-        list($ret, $vulnerability) = $CheckVulnerability($file, 0, $content);
-        #var_dump($ret, $vulnerability); die;
-
+        
         #
         $started = microtime(true);
         $processResult = function ($checker, $content, $l_Pos, $l_SigId, &$return) use ($scanfile, &$result, $l_Ext, $i) {
             global $APP_SIGN_HASH, $CONST_CLASS_RESULT;
-            $checkers = [
-                'CriticalPHP'           =>     ['criticalPHP',  'criticalPHPFragment',  'criticalPHPSig'],
-                'CriticalPHP_2'         =>     ['criticalPHP',  'criticalPHPFragment',  'criticalPHPSig'],
-                'CriticalPHP_3'         =>     ['criticalPHP',  'criticalPHPFragment',  'criticalPHPSig'],
-                'CriticalPHP_4'         =>     ['criticalPHP',  'criticalPHPFragment',  'criticalPHPSig'],
-                'CriticalPHP_5'         =>     ['criticalPHP',  'criticalPHPFragment',  'criticalPHPSig'],
-                'CriticalPHPGIF'        =>     ['criticalPHP',  'criticalPHPFragment',  'criticalPHPSig'],
-                'CriticalPHPUploader'   =>     ['criticalPHP',  'criticalPHPFragment',  'criticalPHPSig'],
-                'CriticalJS'            =>     ['criticalJS',   'criticalJSFragment',   'criticalJSSig'],
-                'CriticalJS_PARA'       =>     ['criticalJS',   'criticalJSFragment',   'criticalJSSig'],
-                'WarningPHP'            =>     ['warningPHP',   'warningPHPFragment',   'warningPHPSig'],
-                'Phishing'              =>     ['phishing',     'phishingFragment',     'phishingSigFragment'],
-                'Adware'                =>     ['adwareList',   'adwareListFragment'],
-            ];
-
+            
             if (strpos($checker, 'Critical') !== false) {
                 if ($l_Ext === 'js') {
                     $checker = 'CriticalJS';
@@ -1777,6 +1863,8 @@ define('IS_CLI', PHP_SAPI == 'cli');
 
 
         }; 
+
+
         $checkers = [];
         $checkers['CriticalPHP'] = true;
         $checkers['CriticalPHPGIF'] = $scanfile[3] === "php";
@@ -1810,8 +1898,15 @@ define('IS_CLI', PHP_SAPI == 'cli');
             list($detected, $result)  =  $gBlackAndWhiteURLs->scan($content, $scanfile);
         }
        
-       
-
+        ### Versions ans sus files check
+        if (!$detected) {
+            list($detected, $result) = $CheckVulnerability($scan_path, $scanfile, 0, $content);
+           
+        }
+        ### Malware in PHP
+        if (!$detected) {
+            list($detected, $result) = $CheckVulnerability($scan_path, $scanfile, 0, $content);
+        }
 
 
 
@@ -1856,6 +1951,13 @@ define('IS_CLI', PHP_SAPI == 'cli');
     };
 
     $GLOBALS['fn:loadfiles'] = static function($scan_path, $dir, $file_list) {
+
+        
+
+
+
+
+
         $fdir =  $dir == "." ?  "{$scan_path}/*.{*}" : "{$scan_path}{$dir}/*.{*}" ;
         $scan_files = array_diff(glob($fdir, GLOB_BRACE), array('..', '.'));
         $ret_files = [];
@@ -1986,7 +2088,7 @@ PROGRESS;
                 $tooks = $GLOBALS["fn:humantime"](round(microtime(true) - $stime, 2), true);
                 if ($detected) {
                     $return = array_merge($return, [$tooks]);
-                    echo sprintf("\033[2K\rFILE: %s  [%s] [%s] [%s] [tooks:%s] ", $return[3], $return[0] & $CONST_CLASS_RESULT->MALWARE ? 'Malware' : ($return[0] & $CONST_CLASS_RESULT->SUSPICIOUS ? 'Suspicious' : ($return[0] & $CONST_CLASS_RESULT->ARTICLEINDEX?'ArticleindeX' : ($return[0] & $CONST_CLASS_RESULT->SecurityISSUE? 'SecurityISSUE' : 'INGNORE'))  ), $return[1], $return[0] & $CONST_CLASS_RESULT->CriticalPHP ? 'CriticalPHP' :  ( $return[0] & $CONST_CLASS_RESULT->CriticalPHPGIF? 'CriticalPHPGIF': ($return[0] & $CONST_CLASS_RESULT->CriticalPHPUploader? 'CriticalPHPUploader': (     $return[0] & $CONST_CLASS_RESULT->CriticalJS?'CriticalJS': ($return[0] & $CONST_CLASS_RESULT->WarningPHP ?'WarningPHP' :(   $return[0] & $CONST_CLASS_RESULT->Phishing ?'Phishing' :  ($return[0] & $CONST_CLASS_RESULT->Adware ?'Adware' :  ( $return[0] & $CONST_CLASS_RESULT->CriticalURL ? 'CriticalURL': ( $return[0] & $CONST_CLASS_RESULT->SecurityGIT ? 'SecurityGIT' : (  $return[0] & $CONST_CLASS_RESULT->WarningGBOT ?  'WarningGBOT' :  'None')) ) ) ))))),$return[10]) ,  "\n";
+                    echo sprintf("\033[2K\rFILE: %s  [%s] [%s] [%s] [tooks:%s] ", $return[3], $return[0] & $CONST_CLASS_RESULT->MALWARE ? 'Malware' : ($return[0] & $CONST_CLASS_RESULT->SUSPICIOUS ? 'Suspicious' : ($return[0] & $CONST_CLASS_RESULT->ARTICLEINDEX?'ArticleindeX' : ($return[0] & $CONST_CLASS_RESULT->SecurityISSUE? 'SecurityISSUE' : ($return[0] & $CONST_CLASS_RESULT->CRITICAL ? 'CRITICAL' :'INGNORE'))) ), $return[1], $return[0] & $CONST_CLASS_RESULT->CriticalPHP ? 'CriticalPHP' :  ( $return[0] & $CONST_CLASS_RESULT->CriticalPHPGIF? 'CriticalPHPGIF': ($return[0] & $CONST_CLASS_RESULT->CriticalPHPUploader? 'CriticalPHPUploader': (     $return[0] & $CONST_CLASS_RESULT->CriticalJS?'CriticalJS': ($return[0] & $CONST_CLASS_RESULT->WarningPHP ?'WarningPHP' :(   $return[0] & $CONST_CLASS_RESULT->Phishing ?'Phishing' :  ($return[0] & $CONST_CLASS_RESULT->Adware ?'Adware' :  ( $return[0] & $CONST_CLASS_RESULT->CriticalURL ? 'CriticalURL': ( $return[0] & $CONST_CLASS_RESULT->SecurityGIT ? 'SecurityGIT' : (  $return[0] & $CONST_CLASS_RESULT->GoogleCache ?  'GoogleCache' :  ( 'None' ))) ) ) ))))),$return[10]) ,  "\n";
                 }     
             }
         } 
