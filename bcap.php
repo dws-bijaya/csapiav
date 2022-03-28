@@ -1618,6 +1618,11 @@ define('IS_CLI', PHP_SAPI == 'cli');
             }
         
 
+            $regex = '~^[0-9]{9,}\.php$~ims';
+            if ( preg_match( $regex, $_basename))
+            {
+                return  [1, array_merge( [ $CONST_CLASS_RESULT->SUSPICIOUS | $CONST_CLASS_RESULT->WarningPHP,  "SUS:FLE:PHP:10NUMS" , time() ] ,  $scanfile)];
+            }
                 
                 
 
