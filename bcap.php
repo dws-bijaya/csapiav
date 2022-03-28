@@ -11,7 +11,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
 
     $GLOBALS['OPTIONS'] = array();
     $GLOBALS['OPTIONS']['DEFAULT_MIN_CONTENT_LEN'] = 10;
-    $GLOBALS['OPTIONS']['DEFAULT_MAX_CONTENT_LEN'] = 1<<17;
+    $GLOBALS['OPTIONS']['DEFAULT_MAX_CONTENT_LEN'] = 600000;
     $GLOBALS['OPTIONS']['DEFAULT_PHPLINE_LEN'] = 1000;
     $GLOBALS['OPTIONS']['PHPLINE_LEN'] = 500;
     $GLOBALS['OPTIONS']['DEFAULT_SLOWDOWN_DELAY'] =  1;
@@ -1100,14 +1100,14 @@ define('IS_CLI', PHP_SAPI == 'cli');
                             if (!trim($line))
                                 continue;
                             $lno += 1; 
-                            if ($lno == 1 && stripos($line, '<?php ')!== FALSE && strlen(substr($line, 5)) >= $GLOBALS['OPTIONS']['PHPLINE_LEN'] &&  stripos($line, '<?php ', 10) === FALSE ) {
+                            if ($lno == 1 && stripos($line, '<?php ') === 0 && strlen(substr($line, 5)) >= $GLOBALS['OPTIONS']['PHPLINE_LEN'] &&  stripos($line, '<?php ', 10) === FALSE ) {
                                 $found = true;
                                 break;
                             }
                         }
                         $bfile = null;
                         /* First line Or Last Line injected  */
-                        if ( $found || stripos($line, '<?php ') !== 0 && strlen(substr($line, 5)) >= $GLOBALS['OPTIONS']['PHPLINE_LEN']  &&  stripos($line, '<?php ', 10) === FALSE) {
+                        if ( $found || stripos($line, '<?php ') === 0 && strlen(substr($line, 5)) >= $GLOBALS['OPTIONS']['PHPLINE_LEN']  &&  stripos($line, '<?php ', 10) === FALSE) {
                             unset($line);
                             return  [1, array_merge( [ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->CriticalPHP,  "CRI:FLE:PHP:MXLINE", time() ] ,  $scanfile)];
                         }
@@ -1297,12 +1297,16 @@ define('IS_CLI', PHP_SAPI == 'cli');
                 public static function CriticalPHPUploader($l_Content, &$l_Pos, &$l_SigId, $signs, $debug = null)
                 {
 
-                    
+
+                    #$l_Content = file_get_contents('./malwares_samples/sus-file-uploader.php');
+
                     // detect uploaders / droppers
                     $l_Found = null;
-                    if ((strlen($l_Content) >100) && (((($l_Pos = strpos($l_Content, 'multipart/form-data')) > 0 ) || (($l_Pos = strpos($l_Content, 'multipart/form-data')) === false  ) ) && (($l_Pos = strpos($l_Content, '$_FILE[') > 0)) && (($l_Pos = strpos($l_Content, 'move_uploaded_file')) > 0) && (preg_match('|\bcopy\s*\(|smi', $l_Content, $l_Found, PREG_OFFSET_CAPTURE)))) {
+                    if ((strlen($l_Content) >100) && (((($l_Pos = strpos($l_Content, 'multipart/form-data')) > 0 ) ) && (($l_Pos = strpos($l_Content, '$_FILES[') > 0) &&  strpos($l_Content, 'tmp_name', $l_Pos)>= 0 ) && ( ($l_Pos = strpos($l_Content, 'move_uploaded_file')) >= 0 || ($l_Pos = strpos($l_Content, 'file_get_contents')) >= 0  ) )) {
+                        
+                      
                         if ($l_Found != null  ) {
-                            $l_Pos = $l_Found[0][1];
+                            #$l_Pos = $l_Found[0][1];
                             $l_SigId = 'uploader';
                         }
                         if (is_object($debug) && $debug->getDebugMode() == true) {
@@ -1311,6 +1315,8 @@ define('IS_CLI', PHP_SAPI == 'cli');
 
                         return true;
                     }
+
+                    
                 }
 
                 public static function CriticalPHP_3($l_Content, &$l_Pos, &$l_SigId, $signs, $debug = null)
@@ -1899,7 +1905,8 @@ define('IS_CLI', PHP_SAPI == 'cli');
                 }
 
                 if ($checker == "CriticalPHPUploader") {
-                    print_r($scanfile[0]); die;
+                    $result = array_merge([ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->$checker,  $APP_SIGN_HASH[ hexdec($l_SigId)], time() ] ,  $scanfile);
+                    return;
                 }
                 $result = array_merge([ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->$checker,  $APP_SIGN_HASH[ hexdec($l_SigId)], time() ] ,  $scanfile);
             }
@@ -2125,6 +2132,7 @@ PROGRESS;
         global $CONST_CLASS_RESULT, $gBlackAndWhiteURLs;
         while (($sdir=array_shift($dirs)) !== NULL) {
             $scanfiles =  $GLOBALS['fn:loadfiles']($scan_path, $sdir, $file_list) ;
+            #print_r($scanfiles); die;
             foreach($scanfiles as $scanfile) {
                 #$scanfile= $scanfiles[7];
                 $return = [];
