@@ -1093,7 +1093,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
                         #$file = "./malwares_samples/large-line-in-php.php";
                         $bfile = new SplFileObject($file, 'r');
                         $bfile->setFlags(SplFileObject::READ_AHEAD | SplFileObject::SKIP_EMPTY );
-                        $lno = 0;$found = true;
+                        $lno = 0;$found = false;
                         while (!$bfile->eof()) {
                             $line  =  $bfile->fgets();
                             if (!trim($line))
