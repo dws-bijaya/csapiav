@@ -1096,7 +1096,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
                         $lno = 0;$found = true;
                         while (!$bfile->eof()) {
                             $line  =  $bfile->fgets();
-                            if (!$line)
+                            if (!trim($line))
                                 continue;
                             $lno += 1; 
                             if ($lno == 1 && stripos($line, '<?php ')!== FALSE && strlen(substr($line, 5)) > $GLOBALS['OPTIONS']['PHPLINE_LEN'] ) {
@@ -1112,7 +1112,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
                         }
                         unset($line);
                     }
-                    return  [1, []];
+                    return  [0, []];
                 }
                 public static function WarningPHP($l_Content, &$l_Pos, &$l_SigId, $signs, $debug = null)
                 {
