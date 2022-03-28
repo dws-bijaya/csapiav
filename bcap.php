@@ -1100,14 +1100,14 @@ define('IS_CLI', PHP_SAPI == 'cli');
                             if (!trim($line))
                                 continue;
                             $lno += 1; 
-                            if ($lno == 1 && stripos($line, '<?php ')!== FALSE && strlen(substr($line, 5)) > $GLOBALS['OPTIONS']['PHPLINE_LEN'] ) {
+                            if ($lno == 1 && stripos($line, '<?php ')!== FALSE && strlen(substr($line, 5)) >= $GLOBALS['OPTIONS']['PHPLINE_LEN'] &&  stripos($line, '<?php ', 10) === FALSE ) {
                                 $found = true;
                                 break;
                             }
                         }
                         $bfile = null;
                         /* First line Or Last Line injected  */
-                        if ( $found || stripos($line, '<?php ') !== 0 && strlen(substr($line, 5)) >= $GLOBALS['OPTIONS']['PHPLINE_LEN'] ) {
+                        if ( $found || stripos($line, '<?php ') !== 0 && strlen(substr($line, 5)) >= $GLOBALS['OPTIONS']['PHPLINE_LEN']  &&  stripos($line, '<?php ', 10) === FALSE) {
                             unset($line);
                             return  [1, array_merge( [ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->CriticalPHP,  "CRI:FLE:PHP:MXLINE", time() ] ,  $scanfile)];
                         }
