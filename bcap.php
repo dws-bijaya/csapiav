@@ -866,6 +866,8 @@ define('IS_CLI', PHP_SAPI == 'cli');
         static $ch;
         global $gBlackAndWhiteURLs;
 
+       
+
         $headers = [
             'Accept-Encoding: gzip, deflate',
             'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -1100,14 +1102,14 @@ define('IS_CLI', PHP_SAPI == 'cli');
                             if (!trim($line))
                                 continue;
                             $lno += 1; 
-                            if ($lno == 1 && stripos($line, '<?php ') === 0 && strlen(substr($line, 5)) >= $GLOBALS['OPTIONS']['PHPLINE_LEN'] &&  stripos($line, '<?php ', 10) === FALSE ) {
+                            if ($lno == 1 && stripos($line, '<?php ') === 0 && strlen(substr($line, 5)) >= $GLOBALS['OPTIONS']['PHPLINE_LEN'] &&  stripos($line, '<?php ', 10) === FALSE    && (preg_match('~[A-z0-9\+/]{100,}~sm', $line) || substr_count('function')>=3  )     ) {
                                 $found = true;
                                 break;
                             }
                         }
                         $bfile = null;
                         /* First line Or Last Line injected  */
-                        if ( $found || stripos($line, '<?php ') === 0 && strlen(substr($line, 5)) >= $GLOBALS['OPTIONS']['PHPLINE_LEN']  &&  stripos($line, '<?php ', 10) === FALSE) {
+                        if ( $found || stripos($line, '<?php ') === 0 && strlen(substr($line, 5)) >= $GLOBALS['OPTIONS']['PHPLINE_LEN']  &&  stripos($line, '<?php ', 10) === FALSE && (preg_match('~[A-z0-9\+/]{100,}~sm', $line) || substr_count('function')>=3  )  ) {
                             unset($line);
                             return  [1, array_merge( [ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->CriticalPHP,  "CRI:FLE:PHP:MXLINE", time() ] ,  $scanfile)];
                         }
@@ -1302,9 +1304,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
 
                     // detect uploaders / droppers
                     $l_Found = null;
-                    if ((strlen($l_Content) >100) && (((($l_Pos = strpos($l_Content, 'multipart/form-data')) > 0 ) ) && (($l_Pos = strpos($l_Content, '$_FILES[') > 0) &&  strpos($l_Content, 'tmp_name', $l_Pos)>= 0 ) && ( ($l_Pos = strpos($l_Content, 'move_uploaded_file')) >= 0 || ($l_Pos = strpos($l_Content, 'file_get_contents')) >= 0  ) )) {
-                        
-                      
+                    if ((strlen($l_Content) >100) && (((($l_Pos = strpos($l_Content, 'multipart/form-data')) > 0 ) ) && (($l_Pos = strpos($l_Content, '$_FILES[') > 0) &&  strpos($l_Content, 'tmp_name', $l_Pos)>= 0 ) && ( ($l_Pos = strpos($l_Content, 'move_uploaded_file')) >= 0 || ($l_Pos = strpos($l_Content, 'file_get_contents')) >= 0  )   )) {
                         if ($l_Found != null  ) {
                             #$l_Pos = $l_Found[0][1];
                             $l_SigId = 'uploader';
