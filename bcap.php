@@ -84,11 +84,14 @@ define('IS_CLI', PHP_SAPI == 'cli');
                 $url = explode('-', $url, 2);
                 $this->urls[self::BLACK][$url[0]]=  strpos($url[1],'//') === 0 ? substr_replace($url[1],'//(www\.)?',0,2) : $url[1];
             }
+            $bfile = null;
+
 
             foreach ($wfile as $url) {
                 $url = explode('-', $url, 2);
                 $this->urls[self::WHITE][$url[0]] = strpos($url[1],'//') === 0 ? substr_replace($url[1],'//(www\.)?',0,2) : $url[1];
             }
+            $wfile = null;
 
             $this->optSig($this->urls[self::BLACK]);
             $this->optSig($this->urls[self::WHITE]);
@@ -1081,6 +1084,36 @@ define('IS_CLI', PHP_SAPI == 'cli');
             {
                 const URL_GRAB = '~(?:<(script|iframe|object|embed|img|a)\s*[^<]{0,300}?)?((?:https?:)?\\\\?/\\\\?/(?:www\.)?[-a-zA-Z0-9@:%._\+\~#=]{2,256}\.[a-z]{2,4}\b(?:[-a-zA-Z0-9@:%_\+.\~#?&/=\\\\]*))(.{0,300}?</\1>)?~msi';
 
+                public static function InjectedCodeAtBegOrEnd($scan_path, $scanfile)
+                {
+                    global $CONST_CLASS_RESULT;
+                    if ( preg_match('~php(\d+)?$~', $scanfile[3]) )
+                    {
+                        $file = "{$scan_path}{$scanfile[0]}" ;
+                        #$file = "./malwares_samples/large-line-in-php.php";
+                        $bfile = new SplFileObject($file, 'r');
+                        $bfile->setFlags(SplFileObject::READ_AHEAD | SplFileObject::SKIP_EMPTY );
+                        $lno = 0;$found = true;
+                        while (!$bfile->eof()) {
+                            $line  =  $bfile->fgets();
+                            if (!$line)
+                                continue;
+                            $lno += 1; 
+                            if ($lno == 1 && stripos($line, '<?php ')!== FALSE && strlen(substr($line, 5)) > $GLOBALS['OPTIONS']['PHPLINE_LEN'] ) {
+                                $found = true;
+                                break;
+                            }
+                        }
+                        $bfile = null;
+                        /* First line Or Last Line injected  */
+                        if ( $found || stripos($line, '<?php ') !== 0 && strlen(substr($line, 5)) >= $GLOBALS['OPTIONS']['PHPLINE_LEN'] ) {
+                            unset($line);
+                            return  [1, array_merge( [ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->CriticalPHP,  "CRI:FLE:PHP:MXLINE", time() ] ,  $scanfile)];
+                        }
+                        unset($line);
+                    }
+                    return  [1, []];
+                }
                 public static function WarningPHP($l_Content, &$l_Pos, &$l_SigId, $signs, $debug = null)
                 {
                     foreach ($signs->_SusDB as $l_Item) {
@@ -1266,7 +1299,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
                     
                     // detect uploaders / droppers
                     $l_Found = null;
-                    if ((strlen($l_Content) < 2048) && ((($l_Pos = strpos($l_Content, 'multipart/form-data')) > 0) && (($l_Pos = strpos($l_Content, '$_FILE[') > 0)) && (($l_Pos = strpos($l_Content, 'move_uploaded_file')) > 0) && (preg_match('|\bcopy\s*\(|smi', $l_Content, $l_Found, PREG_OFFSET_CAPTURE)))) {
+                    if ((strlen($l_Content) < 2048) && (((($l_Pos = strpos($l_Content, 'multipart/form-data')) > 0 ) || (($l_Pos = strpos($l_Content, 'multipart/form-data')) === false  ) ) && (($l_Pos = strpos($l_Content, '$_FILE[') > 0)) && (($l_Pos = strpos($l_Content, 'move_uploaded_file')) > 0) && (preg_match('|\bcopy\s*\(|smi', $l_Content, $l_Found, PREG_OFFSET_CAPTURE)))) {
                         if ($l_Found != null  ) {
                             $l_Pos = $l_Found[0][1];
                             $l_SigId = 'uploader';
@@ -1565,7 +1598,6 @@ define('IS_CLI', PHP_SAPI == 'cli');
         $CheckVulnerability = static function($scan_path, $scanfile, $par_Content, $vars)
         {
             global $CONST_CLASS_RESULT;
-            
             $_basename = basename( $scanfile[0]);
             $_dirname = dirname( $scanfile[0]);
             if ($_dirname == "/" ) {
@@ -1581,21 +1613,10 @@ define('IS_CLI', PHP_SAPI == 'cli');
             }
 
            
-            if ( preg_match('~php(\d+)?$~', $scanfile[3]) )
-            {
-                $file = "{$scan_path}{$scanfile[0]}" ;
-                #$file = "./malwares_samples/large-line-in-php.php";
-                $bfile = new SplFileObject($file, 'r');
-                $bfile->setFlags(SplFileObject::READ_AHEAD | SplFileObject::SKIP_EMPTY );
-                while (!$bfile->eof()) {
-                    $line  =  $bfile->fgets();
-                    if ( strlen($line) < $GLOBALS['OPTIONS']['PHPLINE_LEN'] )
-                        continue;
-                    unset($line);
-                    return  [1, array_merge( [ $CONST_CLASS_RESULT->SUSPICIOUS | $CONST_CLASS_RESULT->WarningPHP,  "SUS:FLE:PHP:MXLINE", time() ] ,  $scanfile)];
-                }
-            }
             
+            
+
+
             #
             return  [0, []];
 
@@ -1909,9 +1930,9 @@ define('IS_CLI', PHP_SAPI == 'cli');
             list($detected, $result) = $CheckVulnerability($scan_path, $scanfile, 0, $content);
            
         }
-        ### Malware in PHP
+        ### Custom code in PHP
         if (!$detected) {
-            list($detected, $result) = $CheckVulnerability($scan_path, $scanfile, 0, $content);
+            list($detected, $result) = ScanCheckers::InjectedCodeAtBegOrEnd($scan_path, $scanfile);
         }
 
 
