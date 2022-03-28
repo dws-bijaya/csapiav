@@ -1045,6 +1045,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
         if (!$result || ! is_array($result))
             $result = [];
 
+       
         #sleep(1);
         if (!$makeSafeFn)
         {
@@ -1608,9 +1609,23 @@ define('IS_CLI', PHP_SAPI == 'cli');
                     if ( preg_match( sprintf("~%s~ims", $re),   $_basename, $matches)) {
                         return  [1, array_merge( [ $CONST_CLASS_RESULT->SUSPICIOUS | $CONST_CLASS_RESULT->WarningPHP,  "SUS:FLE:PHP:". strtoupper($matches[1]) , time() ] ,  $scanfile)];
                     }
-                }
+                } 
+
+            $regex = '~^[a-z][a-z]{9}\.php$~ims';
+            if ( preg_match( $regex, $_basename))
+            {
+                return  [1, array_merge( [ $CONST_CLASS_RESULT->SUSPICIOUS | $CONST_CLASS_RESULT->WarningPHP,  "SUS:FLE:PHP:10CHRS" , time() ] ,  $scanfile)];
+            }
+        
+
+                
+                
+
                 
             }
+
+
+
 
            
             
