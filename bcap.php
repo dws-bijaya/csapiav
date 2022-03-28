@@ -1299,7 +1299,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
                     
                     // detect uploaders / droppers
                     $l_Found = null;
-                    if ((strlen($l_Content) < 2048) && (((($l_Pos = strpos($l_Content, 'multipart/form-data')) > 0 ) || (($l_Pos = strpos($l_Content, 'multipart/form-data')) === false  ) ) && (($l_Pos = strpos($l_Content, '$_FILE[') > 0)) && (($l_Pos = strpos($l_Content, 'move_uploaded_file')) > 0) && (preg_match('|\bcopy\s*\(|smi', $l_Content, $l_Found, PREG_OFFSET_CAPTURE)))) {
+                    if ((strlen($l_Content) >100) && (((($l_Pos = strpos($l_Content, 'multipart/form-data')) > 0 ) || (($l_Pos = strpos($l_Content, 'multipart/form-data')) === false  ) ) && (($l_Pos = strpos($l_Content, '$_FILE[') > 0)) && (($l_Pos = strpos($l_Content, 'move_uploaded_file')) > 0) && (preg_match('|\bcopy\s*\(|smi', $l_Content, $l_Found, PREG_OFFSET_CAPTURE)))) {
                         if ($l_Found != null  ) {
                             $l_Pos = $l_Found[0][1];
                             $l_SigId = 'uploader';
