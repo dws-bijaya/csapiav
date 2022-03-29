@@ -847,9 +847,29 @@ define('IS_CLI', PHP_SAPI == 'cli');
         $ret_dirs = [];
         foreach($scanned_directory as $s=>$sdir) {
             $xdir =  substr($sdir,  strlen($scan_path));
-            #var_dump( basename( $xdir));
+           
             if (in_array(basename($xdir), [ ".",".."] ))
                 continue;
+
+            $ignore = false;
+            foreach( $GLOBALS['OPTIONS']['SKIP_PATHS'] as $path) {
+                $re = '~^' . preg_quote(trim($path, '/'), '~') . '~im';
+                if ( preg_match($re, trim( $xdir, '/') )) {
+                    $ignore = true;
+                   break;
+                }
+                if ( preg_match('~' . preg_quote(trim($path, '/'), '~') . '~im', trim( $xdir, '/'))) {
+                    $ignore = true;
+                    break;;
+                }
+
+            }
+            if ($ignore)
+                continue;
+
+            #var_dump($xdir, preg_match('~^' . preg_quote( trim( 'd1/'), '~') . '~im' , 'd1/ggg')); die;
+
+
 
             $file = str_replace($scan_path, '', $sdir);
             $display_file = $GLOBALS['fn:shorten_path']($file, 100);
@@ -1102,14 +1122,14 @@ define('IS_CLI', PHP_SAPI == 'cli');
                             if (!trim($line))
                                 continue;
                             $lno += 1; 
-                            if ($lno == 1 && stripos($line, '<?php ') === 0 && strlen(substr($line, 5)) >= $GLOBALS['OPTIONS']['PHPLINE_LEN'] &&  stripos($line, '<?php ', 10) === FALSE    && (preg_match('~[A-z0-9\+/]{100,}~sm', $line) || substr_count('function')>=3  )     ) {
+                            if ($lno == 1 && stripos($line, '<?php ') === 0 && strlen(substr($line, 5)) >= $GLOBALS['OPTIONS']['PHPLINE_LEN'] &&  stripos($line, '<?php ', 10) === FALSE    && (preg_match('~[A-z0-9\+/]{100,}~sm', $line) || substr_count($line, 'function', )>=3  )     ) {
                                 $found = true;
                                 break;
                             }
                         }
                         $bfile = null;
                         /* First line Or Last Line injected  */
-                        if ( $found || stripos($line, '<?php ') === 0 && strlen(substr($line, 5)) >= $GLOBALS['OPTIONS']['PHPLINE_LEN']  &&  stripos($line, '<?php ', 10) === FALSE && (preg_match('~[A-z0-9\+/]{100,}~sm', $line) || substr_count('function')>=3  )  ) {
+                        if ( $found || stripos($line, '<?php ') === 0 && strlen(substr($line, 5)) >= $GLOBALS['OPTIONS']['PHPLINE_LEN']  &&  stripos($line, '<?php ', 10) === FALSE && (preg_match('~[A-z0-9\+/]{100,}~sm', $line) || substr_count($line, 'function')>=3  )  ) {
                             unset($line);
                             return  [1, array_merge( [ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->CriticalPHP,  "CRI:FLE:PHP:MXLINE", time() ] ,  $scanfile)];
                         }
@@ -1923,10 +1943,10 @@ define('IS_CLI', PHP_SAPI == 'cli');
         $checkers['CriticalPHP'] = true;
         $checkers['CriticalPHPGIF'] = $scanfile[3] === "php";
         $checkers['CriticalPHPUploader'] = strpos($scanfile[3], 'ph') !== false;
-        $checkers['CriticalJS'] = true;
-        $checkers['WarningPHP'] = true;
-        $checkers['Phishing'] = true;
-        $checkers['Adware'] = true;
+        #$checkers['CriticalJS'] = true;
+        #$checkers['WarningPHP'] = true;
+        #$checkers['Phishing'] = true;
+        #$checkers['Adware'] = true;
         $return = [];
 
         #var_dump($l_Unwrapped, $l_Content); die;
@@ -2005,28 +2025,15 @@ define('IS_CLI', PHP_SAPI == 'cli');
     };
 
     $GLOBALS['fn:loadfiles'] = static function($scan_path, $dir, $file_list) {
-
-        
-
-
-
-
-
         $fdir =  $dir == "." ?  "{$scan_path}/*.{*}" : "{$scan_path}{$dir}/*.{*}" ;
         $scan_files = array_diff(glob($fdir, GLOB_BRACE), array('..', '.'));
         $ret_files = [];
-
-        foreach($scan_files as $sdir) {
-            
+        foreach($scan_files as $sdir) {    
             if ($file_list &&  !in_array( basename( $sdir),  $file_list )) {
                 continue;
             }
-
-
             list($ext, $perms, $mtime, $size, $ownerid, $hashfile, $user_name, $group_name, $flag) = $GLOBALS['fn:filestats']($sdir);
-
             #var_dump($ext, $perms, $mtime, $size, $ownerid, $user_name, $group_name, $sdir); die;
-
             #$size = filesize($sdir);
             if ( $size <$GLOBALS['OPTIONS']['MIN_CONTENT_LEN'] || $size > $GLOBALS['OPTIONS']['MAX_CONTENT_LEN'] || !is_readable($sdir))
                 continue;
@@ -2036,16 +2043,13 @@ define('IS_CLI', PHP_SAPI == 'cli');
                 continue;
   
             if ($perms & 0xF000  !== 0x8000)
-                return;
-
-            
+                continue;            
             $ret_files[]= [ substr($sdir,  strlen($scan_path)), $hashfile, $size,  $ext , $perms, $mtime, "{$group_name}:{$user_name}" , $flag ];;
             $file = str_replace(getcwd(), '', $file);
             $display_file = $GLOBALS['fn:shorten_path']($sdir, 100);
             $GLOBALS['fn:stdout'](  "\033[2K\r" . "Adding File ... " . $display_file, false );
         }
         $GLOBALS['fn:stdout']( "\033[2K\r", false);
-
         if ( $dir === "/.git") {
             $gitdir = sprintf("%s%s", $scan_path, $dir);
             list($ext, $perms, $mtime, $size, $ownerid, $hashfile , $user_name, $group_name, $flag) = $GLOBALS['fn:filestats']($gitdir);
@@ -2058,7 +2062,6 @@ define('IS_CLI', PHP_SAPI == 'cli');
             list($ext, $perms, $mtime, $size, $ownerid, $hashfile , $user_name, $group_name, $flag) = [ null, 0, time(), 0, 0, md5($gBlackAndWhiteURLs->getOwnUrl()[0]), '', '', 4  ]; 
             $ret_files[]= [ $gBlackAndWhiteURLs->getOwnUrl()[0] , $hashfile, 0,  $size , $perms, $mtime, "{$group_name}:{$user_name}",$flag  ];
             #print_r($ret_files); die;
-
 
         }
         return $ret_files;
@@ -2195,6 +2198,7 @@ Current default path is: $cwd
     --scan=php,...                    Scan only specific extensions. E.g. --scan=php,htaccess,js.
 
     --own_url=STRING                  Own url of the site
+    --skip-paths=STRING1,STRING1      Ignore paths while scaning
 HELP;
     return 1;
     };
@@ -2210,7 +2214,7 @@ HELP;
     $shortopts .= 'm:'; // Optional value
     $shortopts .= 'u:'; // Optional value
     
-    $options = getopt($shortopts, ['file:', 'path:', 'help', 'version', 'recursive:', 'delay', 'mxdirs', 'minsize:', 'maxsize:', "user:", "scan:", "skip:", "own_url:"]);
+    $options = getopt($shortopts, ['file:', 'path:', 'help', 'version', 'recursive:', 'delay', 'mxdirs', 'minsize:', 'maxsize:', "user:", "scan:", "skip:", "own_url:", "skip-paths:"]);
     $cwd = getcwd();
     if (isset($options['h']) || isset($options['help'])) {
         exit($help($cwd));
@@ -2251,6 +2255,10 @@ HELP;
     # MINSIZE AND MAXSIZE
     $minsize = ((isset($options['minsize']) && !empty($options['minsize']) && ($minsize = $options['minsize']) !== false)) ?  (int)$minsize : $GLOBALS['OPTIONS']['DEFAULT_MIN_CONTENT_LEN'];
     $maxsize = ((isset($options['maxsize']) && !empty($options['maxsize']) && ($maxsize = $options['maxsize']) !== false)) ?  (int)$maxsize : $GLOBALS['OPTIONS']['DEFAULT_MAX_CONTENT_LEN'];
+
+    #skip paths
+    $GLOBALS['OPTIONS']['SKIP_PATHS'] =  array_filter(explode("," , isset($options['skip-paths']) ?  $options['skip-paths'] : '' ));
+    #print_r($GLOBALS['OPTIONS']['SKIP_PATHS']); die;
 
     #
     $GLOBALS['OPTIONS']['MIN_CONTENT_LEN'] = $minsize;
