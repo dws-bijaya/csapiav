@@ -1709,6 +1709,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
 
         if (  $flag & ScanItem::GIT_ACCESS )
         {
+            return 0;
             /*
             $x = @get_headers( sprintf("%s/.git/", $gBlackAndWhiteURLs->getOwnUrl()[0] ), true, $GLOBALS['context']['browser']);
             if ( $x && is_array($x) && isset($x[0]) && preg_match('~HTTP/\d\.\d (\d+) (.*)~', $x[0], $statuscode))
@@ -2194,16 +2195,17 @@ dir_name    = ["Uploads", "Plugins", "Themes", "Includes", "Admin"]
         
         }
         $GLOBALS['fn:stdout']( "\033[2K\r", false);
-        if ( $dir === "/.git") {
+        if ( 0 &&  $dir === "/.git") {
+            
             $gitdir = sprintf("%s%s", $scan_path, $dir);
             list($ext, $perms, $mtime, $size, $ownerid, $hashfile , $user_name, $group_name, $flag) = $GLOBALS['fn:filestats']($gitdir);
             $flag =  $flag | ScanItem::WEBPAGE | ScanItem::GIT_ACCESS;
             $ret_files[]= [ $dir , $hashfile, 0,  $size , $perms, $mtime, "{$group_name}:{$user_name}",$flag  ];
-            die('.git');
+            #die('.git');
         }
         
         
-        if ( $dir === ".") {
+        if ( $dir === "." && 0) {
             global $gBlackAndWhiteURLs;
             #var_dump($gBlackAndWhiteURLs->getOwnUrl()[0] );
             list($ext, $perms, $mtime, $size, $ownerid, $hashfile , $user_name, $group_name, $flag) = [ null, 0, time(), 0, 0, md5($gBlackAndWhiteURLs->getOwnUrl()[0]), '', '', 0]; 
@@ -2225,7 +2227,7 @@ dir_name    = ["Uploads", "Plugins", "Themes", "Includes", "Admin"]
 
         #
        # var_dump( , $dir);
-        sleep(5);
+        #sleep(5);
 
         return $ret_files;
     };
