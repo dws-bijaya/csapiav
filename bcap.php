@@ -2515,11 +2515,6 @@ HELP;
     $start_time = microtime(true);
     $GLOBALS['fn:stdout']('', true);
 
-    echo "-------------------------------------------\n";
-		$mask = "|%50s ||%-30s ||\n";
-		printf($mask, 'ID', '  Users');
-        die;
-    
 
     list($scan_path, $file_list) =   is_dir($options['scan_fpath']) ? [ $options['scan_fpath'], [] ]: [dirname($options['scan_fpath']),  [ basename($options['scan_fpath'])]] ;
 
