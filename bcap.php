@@ -75,6 +75,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
         const GIT_ACCESS = 8;
         const WP_LISTING = 16;
         const HOMEPAGE = 32;
+        const VULNERABLE = 64;
     }
 
     class BlackAndWhiteURLs
@@ -919,10 +920,12 @@ define('IS_CLI', PHP_SAPI == 'cli');
     $GLOBALS['fn:browser_exec'] = static function ($url, $browser = 'browser') {
         $user_agent = $GLOBALS['context'][$browser]['http']['user_agent'] ;
         $accept_enc =  'gzip, deflate';
+        $headers = [];
         if ( function_exists('curl_init')) {
-            $headers = explode("\r\n", $GLOBALS['context'][$browser]['http']['header']);
+            $raw_headers = explode("\r\n", $GLOBALS['context'][$browser]['http']['header']);
+            #$url = "http://collabx.com/test.php";
             $ch =  curl_init();
-            curl_setopt($ch, CURLOPT_HTTPHEADER, $headers );
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $raw_headers );
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_USERAGENT, $user_agent);
             curl_setopt($ch, CURLOPT_URL, $url);
@@ -933,11 +936,22 @@ define('IS_CLI', PHP_SAPI == 'cli');
             curl_setopt($ch, CURLOPT_TIMEOUT, 5); 
             curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
             curl_setopt($ch, CURLOPT_MAXREDIRS, 3);
+            curl_setopt($ch, CURLOPT_HEADER , true );
             curl_setopt($ch,CURLOPT_ENCODING, $accept_enc);
             list($body, $code) = [ @curl_exec ($ch),  curl_getinfo($ch, CURLINFO_HTTP_CODE)];
+            $hsize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
             @curl_close($ch);
-            #var_dump($botbody); die;
-            return [$body, (int)$code];
+            $_headers = explode("\r\n\r\n",  substr($body, 0, $hsize -4));
+            $http_response_header = explode("\r\n", $_headers[count($_headers) - 1]);
+            #print_r($headers); die;
+            foreach($http_response_header as $h) {
+                if ( stripos($h, ": ") === false) {
+                    continue;
+                }
+                list($hkey, $hval) = explode(": ", $h);
+                $headers[strtolower($hkey)] =  $hval;
+            }
+            return [substr($body, $hsize), (int)$code,  $headers];
         } else {
             #$url = "https://collabx.com/test.php";
             $context = $GLOBALS['context'][$browser] ; #[ 'http']['header'];
@@ -945,6 +959,13 @@ define('IS_CLI', PHP_SAPI == 'cli');
             $body = @file_get_contents($url, false, stream_context_create($context));
             $gzip = false; $deflate = false;$zip = false;
             foreach($http_response_header as $h)
+                if ( stripos($h, ": ") === false) {
+                    continue;
+                }
+                list($hkey, $hval) = explode(": ", $h);
+                $headers[strtolower($hkey)] =  $hval;
+                #print_r([$hkey, $hval]); die;
+
                 if (!$gzip && preg_match('~Content-Encoding: gzip~im', $h))
                     $gzip = true;
                 if (!$deflate && preg_match('~Content-Encoding: deflate~im', $h))
@@ -954,7 +975,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
             
             $body  = $gzip ?  @gzdecode($body) : ($deflate ? @gzinflate($body) :( $zip? @gzuncompress($body) : $body)) ;
             $code  = isset($http_response_header, $http_response_header[0]) && preg_match('~^HTTP/\d.\d (\d+)~im', $http_response_header[0], $version) ?  $version[1] : 0; 
-            return [$body, (int)$code];
+            return [$body, (int)$code, $headers];
         }
 
      
@@ -1514,6 +1535,54 @@ define('IS_CLI', PHP_SAPI == 'cli');
 
                 
                 }
+                public static function scan_security_vulnerability($scanfile, $headers) {
+
+
+                    $results = [];
+                    $search = array('Strict-Transport-Security','Content-Security-Policy','X-Frame-Options','X-XSS-Protection',
+			'X-Content-Type-Options','Referrer-Policy');
+
+                    if (!isset($result[strtolower('Strict-Transport-Security')])) 
+                        $results[] = array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->SecurityISSUE,  "SCR:ISU:MITMA:1" , time() ] ,  $scanfile);
+                    #
+                    if (!isset($result[strtolower('Content-Security-Policy')])) 
+                        $results[] =  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->SecurityISSUE,  "SCR:ISU:XSS:PHIS" , time() ] ,  $scanfile);
+
+                    if (!isset($result[strtolower('X-Frame-Options')])) 
+                        $results[] =  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->SecurityISSUE,  "SCR:ISU:CLKJACK:FRMOPT" , time() ] ,  $scanfile);
+
+                    if (!isset($result[strtolower('X-XSS-Protection')])) 
+                        $results[] =  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->SecurityISSUE,  "SCR:ISU:XSS:PRT" , time() ] ,  $scanfile);
+
+                    if (!isset($result[strtolower('X-Content-Type-Options')])) 
+                        $results[] =  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->SecurityISSUE,  "SCR:ISU:CTO:1" , time() ] ,  $scanfile);
+
+                    if (!isset($result[strtolower('Referrer-Policy')])) 
+                        $results[] = array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->SecurityISSUE,  "SCR:ISU:REFPLC:1" , time() ] ,  $scanfile);
+
+                    #if (isset($result[strtolower('X-Php-')])) 
+                    #    $results[] =array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->SecurityISSUE,  "SCR:ISU:CLKJACK:1" , time() ] ,  $scanfile);
+
+                    return [ count($results), $results ];
+                    
+
+
+                }
+                public static function scan_vulnerability($scanfile) {
+
+                    #print_r($scanfile); die;
+                    global $gBlackAndWhiteURLs, $CONST_CLASS_RESULT;
+                    if ( ! $gBlackAndWhiteURLs->getOwnUrl()[0] )
+                        return [0, []];
+                    #
+                    $url = trim($gBlackAndWhiteURLs->getOwnUrl()[0], '/');
+                    $url = sprintf("%s%s/",  $url, $scanfile[0]);
+                    list($data, $code, $headers) = $GLOBALS['fn:browser_exec']($url, 'browser');
+                    unset($data);
+                    if ( $code < 200 ||  $code !== 200 )
+                        return [0, []];
+                    return [ 1,  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->WebpageError,   "VUL:FILE:FUZZ:" . (string)$code  , time() ] ,  $scanfile) ];
+                }
 
                 public static function scan_for_bot($scanfile){
                     static $ch;
@@ -1527,36 +1596,36 @@ define('IS_CLI', PHP_SAPI == 'cli');
                     $url = trim($scanfile[0], '/');
                     $url = sprintf("%s%s/",  $url, '');
                     #var_dump($url); die;
-                    list($data, $code) = $GLOBALS['fn:browser_exec']($url, 'browser');
+                    list($data, $code, $live_headers) = $GLOBALS['fn:browser_exec']($url, 'browser');
                     #print_r([$data, $code]); die;
                     $scanfile[0] = $url ;
                     if ($code !== 200 )
                     {   
                         unset($data);
-                        return [ 1,  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->WebpageError,   "CTR:WPAGE:STS:" . (string)$code  , time() ] ,  $scanfile) ];
+                        return [ 1,  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->WebpageError,   "CTR:WPAGE:STS:" . (string)$code  , time() ] ,  $scanfile), [] ];
                     }
 
                     list($detected, $result) = $gBlackAndWhiteURLs->scan($data, $scanfile, 'WPAGE');
                     #print_r([$detected, $result]); die;
                     if ($detected){
                         unset($data);
-                        return [$detected, $result];
+                        return [$detected, $result, []];
                     }
 
                     #
-                    list($bot_data, $bot_code) = $GLOBALS['fn:browser_exec']($url, 'googlebot');
+                    list($bot_data, $bot_code, $headers) = $GLOBALS['fn:browser_exec']($url, 'googlebot');
                     #print_r([$bot_data, $bot_code]); die;
                     if ($bot_code !== 200 )
                     {
                         unset($data, $bot_data);
-                        return [ 1,  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->WebpageError,   "CTR:WPAGE:GBOT:" . (string)$bot_code  , time() ] ,  $scanfile) ];
+                        return [ 1,  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->WebpageError,   "CTR:WPAGE:GBOT:" . (string)$bot_code  , time() ] ,  $scanfile), [] ];
                     }
 
                     list($detected, $result) = $gBlackAndWhiteURLs->scan($bot_data, $scanfile, 'GBOT');
                     #print_r([$detected, $result]); die;
                     if ($detected){
                         unset($data, $bot_data);
-                        return [$detected, $result];
+                        return [$detected, $result, []];
                     }
 
                     $l_botbody = strlen($bot_data) ;
@@ -1569,7 +1638,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
                     
                     if ($diff > 30 ) {
                         unset($data, $bot_data);
-                        return [ 1,  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->GoogleBOT,  "CWL:GBOT:CHG:BDY" , time() ] ,  $scanfile) ];
+                        return [ 1,  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->GoogleBOT,  "CWL:GBOT:CHG:BDY" , time() ] ,  $scanfile), [] ];
 
                     }
                     $title_live = null ;
@@ -1585,7 +1654,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
                     #
                     if (  ($title_live !== null  &&  $title_gbot !== null  && $title_live !== $title_gbot)) {
                         unset($data, $bot_data);
-                        return [ 1,  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->GoogleBOT,  "CWL:GBOT:CHG:TTL" , time() ] ,  $scanfile) ];
+                        return [ 1,  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->GoogleBOT,  "CWL:GBOT:CHG:TTL" , time() ] ,  $scanfile), [] ];
                     }
 
                     unset($data, $bot_data);
@@ -1601,9 +1670,9 @@ define('IS_CLI', PHP_SAPI == 'cli');
                       $query .= '&' . $var . '=' . $val;
                     };
                     $submit_url           = $submit_url . '/search?' . $query;
-                    list($data, $code) = $GLOBALS['fn:browser_exec']($submit_url, 'browser');
+                    list($data, $code, $headers) = $GLOBALS['fn:browser_exec']($submit_url, 'browser');
                     if ($code !== 200  || !$data)
-                        return [0,  []];
+                        return [0,  [], $live_headers];
 
                     
                     $matches = []; $title_gcache = null;
@@ -1621,7 +1690,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
                     
                     if ($diff > 30 ) {
                         unset($data, $bot_data);
-                        return [ 1,  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->GoogleBOT,  "CWL:GCACHE:CHG:BDY" , time() ] ,  $scanfile) ];
+                        return [ 1,  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->GoogleBOT,  "CWL:GCACHE:CHG:BDY" , time() ] ,  $scanfile), [] ];
 
                     }
 
@@ -1629,7 +1698,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
                      #
                      if (  ($title_live !== null  &&  $title_gcache !== null  && $title_live !== $title_gcache)) {
                         unset($data, $bot_data);
-                        return [ 1,  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->GoogleBOT,  "CWL:GCACHE:CHG:TTL" , time() ] ,  $scanfile) ];
+                        return [ 1,  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->GoogleBOT,  "CWL:GCACHE:CHG:TTL" , time() ] ,  $scanfile) , []];
                     }
 
                     #
@@ -1641,11 +1710,11 @@ define('IS_CLI', PHP_SAPI == 'cli');
                         if ( (time() - $cache_time) > 10 * ( 60 * 60 * 24 )  )
                         {
                             unset($cache_content);
-                            return [ 1,  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->GoogleCache,  "CWL:GCACHE:EXP:". $cache_time  , time() ] ,  $scanfile) ];
+                            return [ 1,  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->GoogleCache,  "CWL:GCACHE:EXP:". $cache_time  , time() ] ,  $scanfile), [] ];
                         }     
                     }
                     
-                    return [0, []];
+                    return [0, [], $live_headers];
                     
             
                 }
@@ -1682,7 +1751,6 @@ define('IS_CLI', PHP_SAPI == 'cli');
         $flag = $scanfile[7];
         if ( $flag & ScanItem::WP_LISTING )
         {
-            #
             list($detected, $result) = ScanUnit::scan_for_listing($scanfile);
             return $detected;
         }
@@ -1690,8 +1758,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
 
         if (  $flag & ScanItem::GIT_ACCESS )
         {
-           
-             #
+          
              list($detected, $result) = ScanUnit::scan_for_gitaccess($scanfile);
              return $detected;
 
@@ -1700,17 +1767,16 @@ define('IS_CLI', PHP_SAPI == 'cli');
 
         if (  $flag & ScanItem::HOMEPAGE )
         {
-            
             #die('Listingfasfas');
-            list($detected, $result)  = ScanUnit::scan_for_bot($scanfile);
+            list($detected, $result, $live_headers)  = ScanUnit::scan_for_bot($scanfile);
+            if(!$detected)
+                list($detected, $result, $live_headers)  = ScanUnit::scan_security_vulnerability($scanfile, $live_headers);
+
             return $detected;
         }
 
 
 
-
-        #9560744925 pankaj
-        #die("dome");
        
         $CheckVulnerability = static function($scan_path, $scanfile, $par_Content, $vars)
         {
@@ -1718,14 +1784,25 @@ define('IS_CLI', PHP_SAPI == 'cli');
             $_basename = basename( $scanfile[0]);
             $_dirname = dirname( $scanfile[0]);
             if ($_dirname == "/" ) {
+               /*
+                die('hello');
+
+
+
+
                 #$filename = [ "test.php", "test1.php", "test2.php", "test.php1", "test.php2", "phpinfo.php", "phpinfo1.php"];
-                $regex = ['^(test|phpinfo)(\d+)?\.php(\d+)?'];
+                $regex = ['^(test|phpinfo|uploadify|php)(\d+)?\.php(\d+)?'];
                 foreach($regex as $re) {
                     $matches = [];
                     if ( preg_match( sprintf("~%s~ims", $re),   $_basename, $matches)) {
                         return  [1, array_merge( [ $CONST_CLASS_RESULT->SUSPICIOUS | $CONST_CLASS_RESULT->WarningPHP,  "SUS:FLE:PHP:". strtoupper($matches[1]) , time() ] ,  $scanfile)];
                     }
-                } 
+                }
+                */
+                
+
+
+
 
             $regex = '~^[a-z][a-z]{9}\.php$~ims';
             if ( preg_match( $regex, $_basename))
@@ -1996,7 +2073,11 @@ define('IS_CLI', PHP_SAPI == 'cli');
             return [false, []];
         };
 
-
+        if (  $flag & ScanItem::VULNERABLE )
+        {
+            list($detected, $result)  = ScanUnit::scan_vulnerability($scanfile);
+            return $detected;
+        }
 
 
         #
@@ -2145,6 +2226,7 @@ dir_name    = ["Uploads", "Plugins", "Themes", "Includes", "Admin"]
         $fdir =  $dir == "." ?  "{$scan_path}/*.{*}" : "{$scan_path}{$dir}/*.{*}" ;
         $scan_files = array_diff(glob($fdir, GLOB_BRACE), array('..', '.'));
         $ret_files = [];
+        $regex = '@^(test(\d+)?|info(\d+)?|index[1-9]?|phpinfo(\d+)?|uploadify|wp-config-backup|php(\d+)?|wp-config)(\.php((\d+)|~|((\.php)?\.swp|\.swo|\.bak|\.tmp|\.save|.orig|\.old|\.original)?)|\.old|\.txt|\.original|\.orig|\.save|\.php_bak|\.bak|\.save)$@ims';
         foreach($scan_files as $sdir) {    
             if ($file_list &&  !in_array( basename( $sdir),  $file_list )) {
                 continue;
@@ -2154,6 +2236,16 @@ dir_name    = ["Uploads", "Plugins", "Themes", "Includes", "Admin"]
             #$size = filesize($sdir);
             if ( $size <$GLOBALS['OPTIONS']['MIN_CONTENT_LEN'] || $size > $GLOBALS['OPTIONS']['MAX_CONTENT_LEN'] || !is_readable($sdir))
                 continue;
+
+            if ( $dir == "." ) {
+                $valfile = basename($sdir);
+                $matches = [];
+                if (preg_match( $regex,   $valfile, $matches) || in_array($valfile, ['swfupload.swf'])) {
+                    $ret_files[]= [ substr($sdir,  strlen($scan_path)), $hashfile, $size,  $ext , $perms, $mtime, "{$group_name}:{$user_name}" , $flag | ScanItem::VULNERABLE | ScanItem::FILE ];;
+                    continue;
+                }
+            }
+           
             
             #$ext  = pathinfo($sdir, PATHINFO_EXTENSION);
             if ( ! in_array($ext,  isset($GLOBALS['OPTIONS']["SCAN_ONLY_EXTENSIONS"]) ?$GLOBALS['OPTIONS']['SCAN_ONLY_EXTENSIONS']:  $GLOBALS['OPTIONS']['EXTENSIONS']  ))
@@ -2229,17 +2321,17 @@ dir_name    = ["Uploads", "Plugins", "Themes", "Includes", "Admin"]
         $ms       = $seconds - $_seconds;
         $seconds  = $_seconds;
         if ($hours = floor($seconds / 3600)) {
-            $r .= $hours . ' h ';
+            $r .= $hours . 'h';
             $seconds %= 3600;
         }
 
         if ($minutes = floor($seconds / 60)) {
-            $r .= $minutes . ' m ';
+            $r .= $minutes . 'm';
             $seconds %= 60;
         }
 
         if ($minutes < 3) {
-            $r .= ' ' . (string)($seconds + ($ms > 0 ? round($ms) : 0)) . ' s';
+            $r .= ' ' . (string)($seconds + ($ms > 0 ? round($ms) : 0)) . 's';
         }
 
         return $r;
@@ -2282,10 +2374,14 @@ PROGRESS;
                 $display_file = $GLOBALS['fn:shorten_path']($scanfile[0], 100);
                 $GLOBALS['fn:stdout'](  "\033[2K\r" . "Scaning File ... " . $display_file, false );
                 $detected = $GLOBALS['fn:scanfile']($scan_path, $scanfile, $return);
-                $tooks = $GLOBALS["fn:humantime"](round(microtime(true) - $stime, 2), true);
+                $tooks = $GLOBALS["fn:humantime"]( microtime(true) - $stime, true);
                 if ($detected) {
-                    $return = array_merge($return, [$tooks]);
-                    echo sprintf("\033[2K\r%s: %s  [%s] [%s] [%s] [tooks:%s] ",  ( $return[10] & ScanItem::FILE ?  'FILE' : ( $return[10] & ScanItem::DIR ? 'DIR' : ( $return[10] & ScanItem::WEBPAGE ? 'WEBPAGE' :  (  'NONE' )  )  )),  $return[3], $return[0] & $CONST_CLASS_RESULT->MALWARE ? 'Malware' : ($return[0] & $CONST_CLASS_RESULT->SUSPICIOUS ? 'Suspicious' : ($return[0] & $CONST_CLASS_RESULT->ARTICLEINDEX?'ArticleindeX' : ($return[0] & $CONST_CLASS_RESULT->SecurityISSUE? 'SecurityISSUE' : ($return[0] & $CONST_CLASS_RESULT->CRITICAL ? 'CRITICAL' :'INGNORE'))) ), $return[1], $return[0] & $CONST_CLASS_RESULT->CriticalPHP ? 'CriticalPHP' :  ( $return[0] & $CONST_CLASS_RESULT->CriticalPHPGIF? 'CriticalPHPGIF': ($return[0] & $CONST_CLASS_RESULT->CriticalPHPUploader? 'CriticalPHPUploader': (     $return[0] & $CONST_CLASS_RESULT->CriticalJS?'CriticalJS': ($return[0] & $CONST_CLASS_RESULT->WarningPHP ?'WarningPHP' :(   $return[0] & $CONST_CLASS_RESULT->Phishing ?'Phishing' :  ($return[0] & $CONST_CLASS_RESULT->Adware ?'Adware' :  ( $return[0] & $CONST_CLASS_RESULT->CriticalURL ? 'CriticalURL': ( $return[0] & $CONST_CLASS_RESULT->SecurityGIT ? 'SecurityGIT' : (  $return[0] & $CONST_CLASS_RESULT->GoogleCache ?  'GoogleCache' :  (  $return[0] & $CONST_CLASS_RESULT->CriticalHTML ? 'CriticalHTML' : ( $return[0] & $CONST_CLASS_RESULT->OpenListing ? 'OpenListing' : ( $return[0] & $CONST_CLASS_RESULT->WebpageError  ? 'WebPageErr': 'None')  )  ))) ) ) ))))),$return[10]) ,  "\n";
+                    if ( !is_array($return[0]))
+                        $return = [$return];
+                    foreach ($return as $result) {
+                        $result = array_merge($result, [microtime(true) - $stime]);
+                        echo sprintf("\033[2K\r%s: %s  [%s] [%s] [%s] [tooks:%s] ",  ( $result[10] & ScanItem::FILE ?  'FILE' : ( $result[10] & ScanItem::DIR ? 'FLDR' : ( $result[10] & ScanItem::WEBPAGE ? 'PAGE' :  (  'NONE' )  )  )),  $result[3], $result[0] & $CONST_CLASS_RESULT->MALWARE ? 'Malware' : ($result[0] & $CONST_CLASS_RESULT->SUSPICIOUS ? 'Suspicious' : ($result[0] & $CONST_CLASS_RESULT->ARTICLEINDEX?'ArticleindeX' : ($result[0] & $CONST_CLASS_RESULT->SecurityISSUE? 'SecurityISSUE' : ($result[0] & $CONST_CLASS_RESULT->CRITICAL ? 'CRITICAL' :'INGNORE'))) ), $result[1], $result[0] & $CONST_CLASS_RESULT->CriticalPHP ? 'CriticalPHP' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalPHPGIF? 'CriticalPHPGIF': ($result[0] & $CONST_CLASS_RESULT->CriticalPHPUploader? 'CriticalPHPUploader': (     $result[0] & $CONST_CLASS_RESULT->CriticalJS?'CriticalJS': ($result[0] & $CONST_CLASS_RESULT->WarningPHP ?'WarningPHP' :(   $result[0] & $CONST_CLASS_RESULT->Phishing ?'Phishing' :  ($result[0] & $CONST_CLASS_RESULT->Adware ?'Adware' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalURL ? 'CriticalURL': ( $result[0] & $CONST_CLASS_RESULT->SecurityGIT ? 'SecurityGIT' : (  $result[0] & $CONST_CLASS_RESULT->GoogleCache ?  'GoogleCache' :  (  $result[0] & $CONST_CLASS_RESULT->CriticalHTML ? 'CriticalHTML' : ( $result[0] & $CONST_CLASS_RESULT->OpenListing ? 'OpenListing' : ( $result[0] & $CONST_CLASS_RESULT->WebpageError  ? 'WebPageErr': 'None')  )  ))) ) ) ))))),$tooks) ,  "\n";
+                    }
                 }     
             }
         } 
@@ -2419,7 +2515,10 @@ HELP;
     $start_time = microtime(true);
     $GLOBALS['fn:stdout']('', true);
 
-    
+    echo "-------------------------------------------\n";
+		$mask = "|%50s ||%-30s ||\n";
+		printf($mask, 'ID', '  Users');
+        die;
     
 
     list($scan_path, $file_list) =   is_dir($options['scan_fpath']) ? [ $options['scan_fpath'], [] ]: [dirname($options['scan_fpath']),  [ basename($options['scan_fpath'])]] ;
