@@ -2238,7 +2238,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
         $regex = '@^(test(\d+)?|info(\d+)?|index[1-9]?|phpinfo(\d+)?|uploadify|wp-config-backup|php(\d+)?|wp-config)(\.php((\d+)|~|((\.php)?\.swp|\.swo|\.bak|\.tmp|\.save|.orig|\.old|\.original)?)|\.old|\.txt|\.original|\.orig|\.save|\.php_bak|\.bak|\.save)$@ims';
         foreach($scan_files as $sdir) {   
             $file = substr($sdir, strlen($scan_path));
-            $display_file = $GLOBALS['fn:shorten_path']($sdir, 100); 
+            $display_file = $GLOBALS['fn:shorten_path']($file, 100); 
             if ($file_list &&  !in_array( basename( $sdir),  $file_list )) {
                 $GLOBALS['fn:stdout'](  "\033[2K\r" . "Skiping File  [FILE-LIST] " . $display_file, false );
                 continue;
