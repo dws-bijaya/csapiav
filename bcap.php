@@ -25,9 +25,8 @@ define('IS_CLI', PHP_SAPI == 'cli');
     #list($SIGN_PARTERN, $APP_SIGN_HASH, $SIGN_SIGN_KEYS) = [ unserialize(gzinflate(base64_decode(("[SIGN_PATTERN]]")))), unserialize(gzinflate(base64_decode(("[SIGN_HASH]]")))), unserialize(gzinflate(base64_decode(("[SIGN_KEY]]"))))];
     $GLOBALS['OPTIONS']['BHAT_FILECURRUPTED'] =  123455 !== filesize(__FILE__);
     $GLOBALS['OPTIONS']['SELF_FILE'] =  realpath(__FILE__);
-    $CONST_CLASS_RESULT =  json_decode(json_encode(array('MALWARE'=>pow(2, 0), 'SUSPICIOUS' => pow(2, 1), 'ARTICLEINDEX'=> pow(2, 2), 'CriticalPHP' =>  pow(2, 3), 'CriticalPHPGIF' => pow(2, 4), 'CriticalPHPUploader'=> pow(2, 5), 'CriticalJS' => pow(2, 6) , 'WarningPHP' => pow(2, 7), 'Phishing'=> pow(2, 8) , 'Adware' => pow(2, 9), 'CriticalURL'=> pow(2, 10), 'SecurityISSUE'=> pow(2, 11), 'SecurityGIT'=> pow(2, 12) , 'GoogleBOT' =>pow(2, 13) , 'WarningGCache'=>  pow(2, 14) , 'GoogleCache'=> pow(2, 15), 'CRITICAL'=> pow(2, 16) ,  'CriticalHTML' => pow(2, 17), 'OpenListing' =>  pow(2, 18), 'WebpageError'=> pow(2, 18)) )  );
+    $CONST_CLASS_RESULT =  json_decode(json_encode(array('MALWARE'=>pow(2, 0), 'SUSPICIOUS' => pow(2, 1), 'ARTICLEINDEX'=> pow(2, 2), 'CriticalPHP' =>  pow(2, 3), 'CriticalPHPGIF' => pow(2, 4), 'CriticalPHPUploader'=> pow(2, 5), 'CriticalJS' => pow(2, 6) , 'WarningPHP' => pow(2, 7), 'Phishing'=> pow(2, 8) , 'Adware' => pow(2, 9), 'CriticalURL'=> pow(2, 10), 'SecurityISSUE'=> pow(2, 11), 'SecurityGIT'=> pow(2, 12) , 'GoogleBOT' =>pow(2, 13) , 'WarningGCache'=>  pow(2, 14) , 'GoogleCache'=> pow(2, 15), 'CRITICAL'=> pow(2, 16) ,  'CriticalHTML' => pow(2, 17), 'OpenListing' =>  pow(2, 18), 'WebpageError'=> pow(2, 18), 'PermissionISSUE' => pow(2, 19), 'SuspiciousPlugins') )  );
     global $gCmsVersionDetector;
-
      
     $GLOBALS['context'] = array(
         'browser' =>  (array(
@@ -1492,7 +1491,27 @@ define('IS_CLI', PHP_SAPI == 'cli');
 
                     return false;
                 }
-                
+                public static function  scan_dir_check($scan_path, $scanfile) {
+                    global $CONST_CLASS_RESULT, $gCmsVersionDetector;
+                    $perms = $scanfile[4];
+                    if (($perms & 0777 ) === 0777 ) {
+                        $scanfile[0] =  $scanfile[4] == "." ? '/': $scanfile[0];
+                        return [ 1,  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->PermissionISSUE,  "CTR:FDR:PERMS:777" , time() ] ,  $scanfile) ]; 
+                    }
+
+                    if (  isset($gCmsVersionDetector[1]['WordPress'])  &&  preg_match('`^\/wp-content\/plugins\/([a-z][-a-z0-9]*)$`imUs', $scanfile[0], $plugin_slug) ) {
+                        $url = sprintf('https://api.wordpress.org/plugins/info/1.0/%s.json', $plugin_slug[1]);
+                        list($data, $code) = $GLOBALS['fn:browser_exec']($url, 'browser');
+                        if ( $code == 404 ) {
+                            return [ 1,  array_merge( [ $CONST_CLASS_RESULT->SUSPICIOUS | $CONST_CLASS_RESULT->SuspiciousPlugins,  "SUS:WP:PLUGIN:1" , time() ] ,  $scanfile) ]; 
+                        }
+                    }
+                    return [ 0,  []];
+
+                    #var_dump($scanfile[0], $x,  $plugin_slug);
+
+                }
+
                 #
                 public static function  scan_for_listing($scanfile) {
                     global $gBlackAndWhiteURLs, $CONST_CLASS_RESULT;
@@ -1536,31 +1555,33 @@ define('IS_CLI', PHP_SAPI == 'cli');
                 
                 }
                 public static function scan_security_vulnerability($scanfile, $headers) {
-
-
                     $results = [];
+                    if ( !count($headers))
+                        return [ count($results), $results ];
+
+                    
                     $search = array('Strict-Transport-Security','Content-Security-Policy','X-Frame-Options','X-XSS-Protection',
 			'X-Content-Type-Options','Referrer-Policy');
 
-                    if (!isset($result[strtolower('Strict-Transport-Security')])) 
+                    if (!isset($headers[strtolower('Strict-Transport-Security')])) 
                         $results[] = array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->SecurityISSUE,  "SCR:ISU:MITMA:1" , time() ] ,  $scanfile);
                     #
-                    if (!isset($result[strtolower('Content-Security-Policy')])) 
+                    if (!isset($headers[strtolower('Content-Security-Policy')])) 
                         $results[] =  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->SecurityISSUE,  "SCR:ISU:XSS:PHIS" , time() ] ,  $scanfile);
 
-                    if (!isset($result[strtolower('X-Frame-Options')])) 
+                    if (!isset($headers[strtolower('X-Frame-Options')])) 
                         $results[] =  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->SecurityISSUE,  "SCR:ISU:CLKJACK:FRMOPT" , time() ] ,  $scanfile);
 
-                    if (!isset($result[strtolower('X-XSS-Protection')])) 
+                    if (!isset($headers[strtolower('X-XSS-Protection')])) 
                         $results[] =  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->SecurityISSUE,  "SCR:ISU:XSS:PRT" , time() ] ,  $scanfile);
 
-                    if (!isset($result[strtolower('X-Content-Type-Options')])) 
+                    if (!isset($headers[strtolower('X-Content-Type-Options')])) 
                         $results[] =  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->SecurityISSUE,  "SCR:ISU:CTO:1" , time() ] ,  $scanfile);
 
-                    if (!isset($result[strtolower('Referrer-Policy')])) 
+                    if (!isset($headers[strtolower('Referrer-Policy')])) 
                         $results[] = array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->SecurityISSUE,  "SCR:ISU:REFPLC:1" , time() ] ,  $scanfile);
 
-                    #if (isset($result[strtolower('X-Php-')])) 
+                    #if (isset($headers[strtolower('X-Php-')])) 
                     #    $results[] =array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->SecurityISSUE,  "SCR:ISU:CLKJACK:1" , time() ] ,  $scanfile);
 
                     return [ count($results), $results ];
@@ -1587,11 +1608,11 @@ define('IS_CLI', PHP_SAPI == 'cli');
                 public static function scan_for_bot($scanfile){
                     static $ch;
                     global $gBlackAndWhiteURLs;
-
                     #
                     if ( ! $gBlackAndWhiteURLs->getOwnUrl()[0] )
-                        return [0, []];
+                        return [0, [], []];
 
+                    
                     #
                     $url = trim($scanfile[0], '/');
                     $url = sprintf("%s%s/",  $url, '');
@@ -1749,6 +1770,12 @@ define('IS_CLI', PHP_SAPI == 'cli');
 
 
         $flag = $scanfile[7];
+        if (  $flag & ScanItem::DIR ) {
+            list($detected, $result) = ScanUnit::scan_dir_check($scan_path, $scanfile);
+            #var_dump($result[10] & ScanItem::DIR);
+            return $detected;    
+        }
+
         if ( $flag & ScanItem::WP_LISTING )
         {
             list($detected, $result) = ScanUnit::scan_for_listing($scanfile);
@@ -1769,9 +1796,9 @@ define('IS_CLI', PHP_SAPI == 'cli');
         {
             #die('Listingfasfas');
             list($detected, $result, $live_headers)  = ScanUnit::scan_for_bot($scanfile);
-            if(!$detected)
+            if(!$detected) {
                 list($detected, $result, $live_headers)  = ScanUnit::scan_security_vulnerability($scanfile, $live_headers);
-
+            }
             return $detected;
         }
 
@@ -2201,42 +2228,29 @@ define('IS_CLI', PHP_SAPI == 'cli');
     $GLOBALS['fn:loadfiles'] = static function($scan_path, $dir, $file_list) {
         global $gCmsVersionDetector;
        
-        /*
-            """
-            name        : is_directory_listing()
-            description : detect if a directory is misconfigured
-            """
-            def is_directory_listing(self):
-directories = ["/wp-content/uploads", "/wp-content/plugins", "/wp-content/themes","/wp-includes", "/wp-admin"]
-dir_name    = ["Uploads", "Plugins", "Themes", "Includes", "Admin"]
-
-                for directory, name in zip(directories,dir_name):
-                    r = requests.get(self.url + directory, headers={"User-Agent":self.agent}, verify=False)
-                    if "Index of" in r.text:
-                        self.files.add(directory)
-                        print warning("%s directory has directory listing enabled : %s" % (name, self.url + directory))
        
-       # https://embed-ssl.wistia.com/deliveries/b7e180b786efb2e3fe595920e7950bda828c1870.mp4
-                                                /76a57ca47a1978a834d82dcf7eeb03a6
-
-                                                https://embed-ssl.wistia.com/deliveries/b7e180b786efb2e3fe595920e7950bda828c1870.mp4
-
-         */                                    
-
         $fdir =  $dir == "." ?  "{$scan_path}/*.{*}" : "{$scan_path}{$dir}/*.{*}" ;
+        
         $scan_files = array_diff(glob($fdir, GLOB_BRACE), array('..', '.'));
+
+        #var_dump($scan_files); die;
         $ret_files = [];
         $regex = '@^(test(\d+)?|info(\d+)?|index[1-9]?|phpinfo(\d+)?|uploadify|wp-config-backup|php(\d+)?|wp-config)(\.php((\d+)|~|((\.php)?\.swp|\.swo|\.bak|\.tmp|\.save|.orig|\.old|\.original)?)|\.old|\.txt|\.original|\.orig|\.save|\.php_bak|\.bak|\.save)$@ims';
-        foreach($scan_files as $sdir) {    
+        foreach($scan_files as $sdir) {   
+            $file = substr($sdir, strlen($scan_path));
+            $display_file = $GLOBALS['fn:shorten_path']($sdir, 100); 
             if ($file_list &&  !in_array( basename( $sdir),  $file_list )) {
+                $GLOBALS['fn:stdout'](  "\033[2K\r" . "Skiping File  [FILE-LIST] " . $display_file, false );
                 continue;
             }
+           
             list($ext, $perms, $mtime, $size, $ownerid, $hashfile, $user_name, $group_name, $flag) = $GLOBALS['fn:filestats']($sdir);
             #var_dump($ext, $perms, $mtime, $size, $ownerid, $user_name, $group_name, $sdir); die;
             #$size = filesize($sdir);
-            if ( $size <$GLOBALS['OPTIONS']['MIN_CONTENT_LEN'] || $size > $GLOBALS['OPTIONS']['MAX_CONTENT_LEN'] || !is_readable($sdir))
+            if ( $size <$GLOBALS['OPTIONS']['MIN_CONTENT_LEN'] || $size > $GLOBALS['OPTIONS']['MAX_CONTENT_LEN'] || !is_readable($sdir)){
+                $GLOBALS['fn:stdout'](  "\033[2K\r" . "Skiping File [MAXLEN] " . $display_file, false );
                 continue;
-
+            }
             if ( $dir == "." ) {
                 $valfile = basename($sdir);
                 $matches = [];
@@ -2249,17 +2263,17 @@ dir_name    = ["Uploads", "Plugins", "Themes", "Includes", "Admin"]
             
             #$ext  = pathinfo($sdir, PATHINFO_EXTENSION);
             if ( ! in_array($ext,  isset($GLOBALS['OPTIONS']["SCAN_ONLY_EXTENSIONS"]) ?$GLOBALS['OPTIONS']['SCAN_ONLY_EXTENSIONS']:  $GLOBALS['OPTIONS']['EXTENSIONS']  ))
+            {
+                $GLOBALS['fn:stdout'](  "\033[2K\r" . "Skiping File [NON-EXTENSION] " . $display_file, false );
                 continue;
-  
-            if ($perms & 0xF000  !== 0x8000)
-                continue;            
+            }   
+            /* Only regular File */
+            if ($perms & 0xF000  !== 0x8000){
+                $GLOBALS['fn:stdout'](  "\033[2K\r" . "Skiping File [NON-REGULAR] " . $display_file, false );
+                continue;
+            }
             $ret_files[]= [ substr($sdir,  strlen($scan_path)), $hashfile, $size,  $ext , $perms, $mtime, "{$group_name}:{$user_name}" , $flag ];;
-            $file = str_replace(getcwd(), '', $file);
-            $display_file = $GLOBALS['fn:shorten_path']($sdir, 100);
             $GLOBALS['fn:stdout'](  "\033[2K\r" . "Adding File ... " . $display_file, false );
-        
-        
-        
         }
         $GLOBALS['fn:stdout']( "\033[2K\r", false);
         if (   $dir === "/.git") {
@@ -2269,8 +2283,15 @@ dir_name    = ["Uploads", "Plugins", "Themes", "Includes", "Admin"]
             $ret_files[]= [ $dir , $hashfile, 0,  $size , $perms, $mtime, "{$group_name}:{$user_name}",$flag  ];
             #die('.git');
         }
+
+        $scan_fdr = dirname($fdir );
+        #$scan_fdr = "./malwares_samples/0777fdlders";
+        list($ext, $perms, $mtime, $size, $ownerid, $hashfile , $user_name, $group_name, $flag) = $GLOBALS['fn:filestats']($scan_fdr); 
+        $flag =  ($flag ^ ScanItem::FILE) | ScanItem::DIR;
+        $ret_files[]= [ $dir  , $hashfile, 0,  $size , $perms, $mtime, "{$group_name}:{$user_name}", $flag  ];
+        #print_r($ret_files);  die;
         
-        
+
         if ( $dir === "." ) {
             global $gBlackAndWhiteURLs;
             #var_dump($gBlackAndWhiteURLs->getOwnUrl()[0] );
@@ -2365,6 +2386,7 @@ PROGRESS;
     $scandirs = static function($scan_path, &$dirs, $file_list, $progress) {
         global $CONST_CLASS_RESULT, $gBlackAndWhiteURLs;
         while (($sdir=array_shift($dirs)) !== NULL) {
+            #var_dump($sdir);
             $scanfiles =  $GLOBALS['fn:loadfiles']($scan_path, $sdir, $file_list) ;
             #print_r($scanfiles); die;
             foreach($scanfiles as $scanfile) {
@@ -2380,7 +2402,8 @@ PROGRESS;
                         $return = [$return];
                     foreach ($return as $result) {
                         $result = array_merge($result, [microtime(true) - $stime]);
-                        echo sprintf("\033[2K\r%s: %s  [%s] [%s] [%s] [tooks:%s] ",  ( $result[10] & ScanItem::FILE ?  'FILE' : ( $result[10] & ScanItem::DIR ? 'FLDR' : ( $result[10] & ScanItem::WEBPAGE ? 'PAGE' :  (  'NONE' )  )  )),  $result[3], $result[0] & $CONST_CLASS_RESULT->MALWARE ? 'Malware' : ($result[0] & $CONST_CLASS_RESULT->SUSPICIOUS ? 'Suspicious' : ($result[0] & $CONST_CLASS_RESULT->ARTICLEINDEX?'ArticleindeX' : ($result[0] & $CONST_CLASS_RESULT->SecurityISSUE? 'SecurityISSUE' : ($result[0] & $CONST_CLASS_RESULT->CRITICAL ? 'CRITICAL' :'INGNORE'))) ), $result[1], $result[0] & $CONST_CLASS_RESULT->CriticalPHP ? 'CriticalPHP' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalPHPGIF? 'CriticalPHPGIF': ($result[0] & $CONST_CLASS_RESULT->CriticalPHPUploader? 'CriticalPHPUploader': (     $result[0] & $CONST_CLASS_RESULT->CriticalJS?'CriticalJS': ($result[0] & $CONST_CLASS_RESULT->WarningPHP ?'WarningPHP' :(   $result[0] & $CONST_CLASS_RESULT->Phishing ?'Phishing' :  ($result[0] & $CONST_CLASS_RESULT->Adware ?'Adware' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalURL ? 'CriticalURL': ( $result[0] & $CONST_CLASS_RESULT->SecurityGIT ? 'SecurityGIT' : (  $result[0] & $CONST_CLASS_RESULT->GoogleCache ?  'GoogleCache' :  (  $result[0] & $CONST_CLASS_RESULT->CriticalHTML ? 'CriticalHTML' : ( $result[0] & $CONST_CLASS_RESULT->OpenListing ? 'OpenListing' : ( $result[0] & $CONST_CLASS_RESULT->WebpageError  ? 'WebPageErr': 'None')  )  ))) ) ) ))))),$tooks) ,  "\n";
+                        #var_dump($result[10] & ScanItem::DIR, $result[10] & ScanItem::FILE);
+                        echo sprintf("\033[2K\r%s: %s  [%s] [%s] [%s] [tooks:%s] ",  ( $result[10] & ScanItem::FILE ?  'FILE' : ( $result[10] & ScanItem::DIR ? 'FLDR' : ( $result[10] & ScanItem::WEBPAGE ? 'PAGE' :  (  'NONE' )  )  )),  $result[3], $result[0] & $CONST_CLASS_RESULT->MALWARE ? 'Malware' : ($result[0] & $CONST_CLASS_RESULT->SUSPICIOUS ? 'Suspicious' : ($result[0] & $CONST_CLASS_RESULT->ARTICLEINDEX?'ArticleindeX' : ($result[0] & $CONST_CLASS_RESULT->SecurityISSUE? 'SecurityISSUE' : ($result[0] & $CONST_CLASS_RESULT->CRITICAL ? 'CRITICAL' :'INGNORE'))) ), $result[1], $result[0] & $CONST_CLASS_RESULT->CriticalPHP ? 'CriticalPHP' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalPHPGIF? 'CriticalPHPGIF': ($result[0] & $CONST_CLASS_RESULT->CriticalPHPUploader? 'CriticalPHPUploader': (     $result[0] & $CONST_CLASS_RESULT->CriticalJS?'CriticalJS': ($result[0] & $CONST_CLASS_RESULT->WarningPHP ?'WarningPHP' :(   $result[0] & $CONST_CLASS_RESULT->Phishing ?'Phishing' :  ($result[0] & $CONST_CLASS_RESULT->Adware ?'Adware' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalURL ? 'CriticalURL': ( $result[0] & $CONST_CLASS_RESULT->SecurityGIT ? 'SecurityGIT' : (  $result[0] & $CONST_CLASS_RESULT->GoogleCache ?  'GoogleCache' :  (  $result[0] & $CONST_CLASS_RESULT->CriticalHTML ? 'CriticalHTML' : ( $result[0] & $CONST_CLASS_RESULT->OpenListing ? 'OpenListing' : ( $result[0] & $CONST_CLASS_RESULT->WebpageError  ? 'WebPageErr': ( $result[0] & $CONST_CLASS_RESULT->PermissionISSUE ? 'PermissionISSUE' : ( $result[0] & $CONST_CLASS_RESULT->SuspiciousPlugins  ? 'SuspiciousPlugins' : 'None')  ))  )  ))) ) ) ))))),$tooks) ,  "\n";
                     }
                 }     
             }
