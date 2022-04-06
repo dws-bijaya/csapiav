@@ -774,7 +774,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
         $c_phpversion = phpversion();
         $l_phpversion = "8.1.3";
         $d_phpversion = version_compare($c_phpversion, $l_phpversion);
-        $webserver = isset($_SERVER['SERVER_SOFTWARE'])  ?   explode('/', $_SERVER['SERVER_SOFTWARE'])[0] :  IS_CLI ? 'CLI_PHP' : null;
+        $webserver = isset($_SERVER['SERVER_SOFTWARE'])  ?   explode('/', $_SERVER['SERVER_SOFTWARE'])[0] : (IS_CLI ? 'CLI_PHP' : null);
         $osname = PHP_OS;
         $sapi = php_sapi_name();
         $expose_php = @ini_get('expose_php');
@@ -2457,6 +2457,10 @@ Current default path is: $cwd
 
     --own-url=STRING                  Own url of the site
     --skip-paths=STRING1,STRING1      Ignore paths while scaning
+
+    find . -type d -exec chmod u-w {} \; -print;
+    chmod 0775 ./.well-known/pki-validation/ -v
+    TODO: error_reporting(0) or set_time_out(0);
 HELP;
     return 1;
     };
