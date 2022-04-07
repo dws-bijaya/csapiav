@@ -25,7 +25,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
     #list($SIGN_PARTERN, $APP_SIGN_HASH, $SIGN_SIGN_KEYS) = [ unserialize(gzinflate(base64_decode(("[SIGN_PATTERN]]")))), unserialize(gzinflate(base64_decode(("[SIGN_HASH]]")))), unserialize(gzinflate(base64_decode(("[SIGN_KEY]]"))))];
     $GLOBALS['OPTIONS']['BHAT_FILECURRUPTED'] =  123455 !== filesize(__FILE__);
     $GLOBALS['OPTIONS']['SELF_FILE'] =  realpath(__FILE__);
-    $CONST_CLASS_RESULT =  json_decode(json_encode(array('MALWARE'=>pow(2, 0), 'SUSPICIOUS' => pow(2, 1), 'ARTICLEINDEX'=> pow(2, 2), 'CriticalPHP' =>  pow(2, 3), 'CriticalPHPGIF' => pow(2, 4), 'CriticalPHPUploader'=> pow(2, 5), 'CriticalJS' => pow(2, 6) , 'WarningPHP' => pow(2, 7), 'Phishing'=> pow(2, 8) , 'Adware' => pow(2, 9), 'CriticalURL'=> pow(2, 10), 'SecurityISSUE'=> pow(2, 11), 'SecurityGIT'=> pow(2, 12) , 'GoogleBOT' =>pow(2, 13) , 'WarningGCache'=>  pow(2, 14) , 'GoogleCache'=> pow(2, 15), 'CRITICAL'=> pow(2, 16) ,  'CriticalHTML' => pow(2, 17), 'OpenListing' =>  pow(2, 18), 'WebpageError'=> pow(2, 18), 'PermissionISSUE' => pow(2, 19), 'SuspiciousPlugins') )  );
+    $CONST_CLASS_RESULT =  json_decode(json_encode(array('MALWARE'=>pow(2, 0), 'SUSPICIOUS' => pow(2, 1), 'ARTICLEINDEX'=> pow(2, 2), 'CriticalPHP' =>  pow(2, 3), 'CriticalPHPGIF' => pow(2, 4), 'CriticalPHPUploader'=> pow(2, 5), 'CriticalJS' => pow(2, 6) , 'WarningPHP' => pow(2, 7), 'Phishing'=> pow(2, 8) , 'Adware' => pow(2, 9), 'CriticalURL'=> pow(2, 10), 'SecurityISSUE'=> pow(2, 11), 'SecurityGIT'=> pow(2, 12) , 'GoogleBOT' =>pow(2, 13) , 'WarningGCache'=>  pow(2, 14) , 'GoogleCache'=> pow(2, 15), 'CRITICAL'=> pow(2, 16) ,  'CriticalHTML' => pow(2, 17), 'OpenListing' =>  pow(2, 18), 'WebpageError'=> pow(2, 18), 'PermissionISSUE' => pow(2, 19), 'SuspiciousPlugins' => pow(2, 20)  ) )  );
     global $gCmsVersionDetector;
      
     $GLOBALS['context'] = array(
@@ -75,6 +75,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
         const WP_LISTING = 16;
         const HOMEPAGE = 32;
         const VULNERABLE = 64;
+        const DOTFOLDER = 128;
     }
 
     class BlackAndWhiteURLs
@@ -141,7 +142,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
             while (preg_match(ScanCheckers::URL_GRAB, $l_Content, $l_Found, PREG_OFFSET_CAPTURE, $offset)) {        
                 $l_Found[2][0] = str_replace('\/', '/', $l_Found[2][0]);
                 #var_dump( ScanCheckers::isOwnUrl($l_Found[2][0], $this->getOwnUrl()[1] )); #, ScanCheckers::isUrlInList($l_Found[2][0], $this->getDb(seLf::WHITE)), ScanCheckers::isUrlInList( 'hello.dgridcash.js', $this->getDb(self::BLACK)),  $this->getSig($id)  );die;
-                if (!ScanCheckers::isOwnUrl($l_Found[2][0], $this->getOwnUrl()[1])
+                if ( $this->getOwnUrl() !== null && !ScanCheckers::isOwnUrl($l_Found[2][0], $this->getOwnUrl()[1])
                     && (  !ScanCheckers::isUrlInList($l_Found[2][0], $this->getDb(self::WHITE)))
                 ) {
                     if ($id = ScanCheckers::isUrlInList($l_Found[2][0], $this->getDb(self::BLACK))) {
@@ -774,7 +775,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
         $c_phpversion = phpversion();
         $l_phpversion = "8.1.3";
         $d_phpversion = version_compare($c_phpversion, $l_phpversion);
-        $webserver = isset($_SERVER['SERVER_SOFTWARE'])  ?   explode('/', $_SERVER['SERVER_SOFTWARE'])[0] : (IS_CLI ? 'CLI_PHP' : null);
+        $webserver = isset($_SERVER['SERVER_SOFTWARE'])  ?   explode('/', $_SERVER['SERVER_SOFTWARE'])[0] :  IS_CLI ? 'CLI_PHP' : null;
         $osname = PHP_OS;
         $sapi = php_sapi_name();
         $expose_php = @ini_get('expose_php');
@@ -806,7 +807,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
         #var_dump( substr(sprintf('%o', $perms), -4) ); 
         #$port_80_on = @file_get_contents('http://api.ipify.org', false , stream_context_create(array('http'=> array('timeout' =>3))) ) !== false;
         #$port_443_on = @file_get_contents('https://api.ipify.org', false, stream_context_create(array('http'=> array('timeout' =>3,  "ssl"=>array("verify_peer"=>false,"verify_peer_name"=>false, ),)))) !== false;
-        $port_80_on = $port_80_on = true;
+        $port_80_on = $port_443_on = true;
         #var_dump($port_443_on, $port_80_on); die;
         #var_dump($session_save_path); die;
         #var_dump( $webserver, PHP_OS, php_uname(), php_sapi_name(), $expose_php, $display_errors, $sql_safe_mode, $magic_quotes_gpc); die;
@@ -814,11 +815,18 @@ define('IS_CLI', PHP_SAPI == 'cli');
     };
 
     $GLOBALS['fn:path_join'] = static function( $base, $path ) {
-        function path_is_absolute($path) {  
-            if (  ( is_dir( $path ) || is_file( $path ) ) || (realpath( $path ) == $path) || ( strlen( $path ) == 0 || '.' === $path[0] ) || ( preg_match( '#^[a-zA-Z]:\\\\#', $path ) )  ) {
-                return true;
-            }    
+
+        if ( ! function_exists('path_is_absolute')) {
+            
+            function path_is_absolute($path) {  
+            
+                
+                if ( strlen( $path ) == 0 || '.' === $path[0] ) {
+                    return false;
+                }
+
             return ( '/' === $path[0] || '\\' === $path[0] );
+            }
         }
 
         if ( path_is_absolute( $path ) ) {
@@ -953,7 +961,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
             return [substr($body, $hsize), (int)$code,  $headers];
         } else {
             #$url = "https://collabx.com/test.php";
-            $context = $GLOBALS['context'][$browser] ; #[ 'http']['header'];
+            $context = $GLOBALS['context'][$browser];
             $context['http']['header'] .= "\r\n" . "Accept-Encoding: $accept_enc";
             $body = @file_get_contents($url, false, stream_context_create($context));
             $gzip = false; $deflate = false;$zip = false;
@@ -1494,6 +1502,13 @@ define('IS_CLI', PHP_SAPI == 'cli');
                 public static function  scan_dir_check($scan_path, $scanfile) {
                     global $CONST_CLASS_RESULT, $gCmsVersionDetector;
                     $perms = $scanfile[4];
+                    $flag = $scanfile[7];
+
+
+                    if ($flag & ScanItem::DOTFOLDER) {
+                        return [ 1,  array_merge( [ $CONST_CLASS_RESULT->SUSPICIOUS ,  "SUS:FDR:DOT:777" , time() ] ,  $scanfile) ]; 
+                    }
+
                     if (($perms & 0777 ) === 0777 ) {
                         $scanfile[0] =  $scanfile[4] == "." ? '/': $scanfile[0];
                         return [ 1,  array_merge( [ $CONST_CLASS_RESULT->CRITICAL | $CONST_CLASS_RESULT->PermissionISSUE,  "CTR:FDR:PERMS:777" , time() ] ,  $scanfile) ]; 
@@ -1515,7 +1530,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
                 #
                 public static function  scan_for_listing($scanfile) {
                     global $gBlackAndWhiteURLs, $CONST_CLASS_RESULT;
-                    if ( ! $gBlackAndWhiteURLs->getOwnUrl()[0] )
+                    if ( $gBlackAndWhiteURLs->getOwnUrl() === null || ! $gBlackAndWhiteURLs->getOwnUrl()[0] )
                         return [0, []];
                     #
                     $url = trim($gBlackAndWhiteURLs->getOwnUrl()[0], '/');
@@ -1536,7 +1551,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
 
                 public static function  scan_for_gitaccess($scanfile) {
                     global $gBlackAndWhiteURLs, $CONST_CLASS_RESULT;
-                    if ( ! $gBlackAndWhiteURLs->getOwnUrl()[0] )
+                    if ( $gBlackAndWhiteURLs->getOwnUrl() === null || ! $gBlackAndWhiteURLs->getOwnUrl()[0] )
                         return [0, []];
                     #
                     $url = trim($gBlackAndWhiteURLs->getOwnUrl()[0], '/');
@@ -1593,7 +1608,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
 
                     #print_r($scanfile); die;
                     global $gBlackAndWhiteURLs, $CONST_CLASS_RESULT;
-                    if ( ! $gBlackAndWhiteURLs->getOwnUrl()[0] )
+                    if ( $gBlackAndWhiteURLs->getOwnUrl() === null || ! $gBlackAndWhiteURLs->getOwnUrl()[0] )
                         return [0, []];
                     #
                     $url = trim($gBlackAndWhiteURLs->getOwnUrl()[0], '/');
@@ -1609,7 +1624,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
                     static $ch;
                     global $gBlackAndWhiteURLs;
                     #
-                    if ( ! $gBlackAndWhiteURLs->getOwnUrl()[0] )
+                    if ( $gBlackAndWhiteURLs->getOwnUrl() === null || $gBlackAndWhiteURLs->getOwnUrl()[0] )
                         return [0, [], []];
 
                     
@@ -1770,6 +1785,9 @@ define('IS_CLI', PHP_SAPI == 'cli');
 
 
         $flag = $scanfile[7];
+       
+
+
         if (  $flag & ScanItem::DIR ) {
             list($detected, $result) = ScanUnit::scan_dir_check($scan_path, $scanfile);
             #var_dump($result[10] & ScanItem::DIR);
@@ -1797,7 +1815,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
             #die('Listingfasfas');
             list($detected, $result, $live_headers)  = ScanUnit::scan_for_bot($scanfile);
             if(!$detected) {
-                list($detected, $result, $live_headers)  = ScanUnit::scan_security_vulnerability($scanfile, $live_headers);
+                list($detected, $result)  = ScanUnit::scan_security_vulnerability($scanfile, $live_headers);
             }
             return $detected;
         }
@@ -2211,7 +2229,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
         #
         $ownerid = @fileowner($file);
         $group_name = $user_name = "";
-        if ( $ownerid  ) {
+        if ( $ownerid && function_exists('posix_getpwuid')  ) {
             $info =( @posix_getpwuid(( int)$ownerid ));
             $user_name = is_array($info) ? $info['name']: "";
             $info =( @posix_getgrgid(( int)is_array($info) ?  $info['gid']: false));
@@ -2219,9 +2237,9 @@ define('IS_CLI', PHP_SAPI == 'cli');
         }
 
         $size = @filesize($file);
-        $ext  = @pathinfo($file, PATHINFO_EXTENSION);
-        $hashfile = hash_file('md5', $file);
-        return [$ext, $perms, $mtime, $size, $ownerid, $hashfile, $user_name, $group_name, ScanItem::FILE ];
+        $ext  = is_file($file) ?  @pathinfo($file, PATHINFO_EXTENSION) : '';
+        $hashfile = md5($file);
+        return [$ext, $perms, $mtime, $size, $ownerid, $hashfile, $user_name, $group_name,  is_dir($file) ? ScanItem::DIR : ScanItem::FILE  ];
 
     };
 
@@ -2231,6 +2249,20 @@ define('IS_CLI', PHP_SAPI == 'cli');
        
         $fdir =  $dir == "." ?  "{$scan_path}/*.{*}" : "{$scan_path}{$dir}/*.{*}" ;
         
+        $basename = basename($dir);
+        /* Dot Folder as SUSPICIOUS */
+        if ( strlen($basename) >1 && $basename[0] == "." &&  !in_array($basename, ['.git']))
+        {
+            $fldr = realpath(sprintf("%s%s", $scan_path, $dir));
+            list($ext, $perms, $mtime, $size, $ownerid, $hashfile, $user_name, $group_name, $flag) = $GLOBALS['fn:filestats']($fldr);
+            $flag = $flag | ScanItem::DOTFOLDER;
+            $ret_files[] = [ $dir, $hashfile, $size,  $ext , $perms, $mtime, "{$group_name}:{$user_name}", $flag];
+            return $ret_files; 
+        }
+
+
+
+
         $scan_files = array_diff(glob($fdir, GLOB_BRACE), array('..', '.'));
 
         #var_dump($scan_files); die;
@@ -2276,6 +2308,12 @@ define('IS_CLI', PHP_SAPI == 'cli');
             $GLOBALS['fn:stdout'](  "\033[2K\r" . "Adding File ... " . $display_file, false );
         }
         $GLOBALS['fn:stdout']( "\033[2K\r", false);
+        /* SUSPICIOUS */
+
+        
+
+
+
         if (   $dir === "/.git") {
             $gitdir = sprintf("%s%s", $scan_path, $dir);
             list($ext, $perms, $mtime, $size, $ownerid, $hashfile , $user_name, $group_name, $flag) = $GLOBALS['fn:filestats']($gitdir);
@@ -2361,6 +2399,7 @@ define('IS_CLI', PHP_SAPI == 'cli');
     return array($BANNER, $APP_VERSION, $SIGN_VERSION, $SIGN_COUNT, &$SIGN_PARTERN, &$APP_SIGN_HASH, &$SIGN_SIGN_KEYS);
 
 }))) && IS_CLI ? call_user_func(function($ret){ 
+    set_time_limit(300);
     echo $ret[0] .  "\n";
     $show_version = static function($app_version, $sign_version, $sign_loaded) {
         echo "current APP Version: {$app_version}, Signature Version: {$sign_version}, Signatue Loaded: {$sign_loaded}";
@@ -2403,7 +2442,7 @@ PROGRESS;
                     foreach ($return as $result) {
                         $result = array_merge($result, [microtime(true) - $stime]);
                         #var_dump($result[10] & ScanItem::DIR, $result[10] & ScanItem::FILE);
-                        echo sprintf("\033[2K\r%s: %s  [%s] [%s] [%s] [tooks:%s] ",  ( $result[10] & ScanItem::FILE ?  'FILE' : ( $result[10] & ScanItem::DIR ? 'FLDR' : ( $result[10] & ScanItem::WEBPAGE ? 'PAGE' :  (  'NONE' )  )  )),  $result[3], $result[0] & $CONST_CLASS_RESULT->MALWARE ? 'Malware' : ($result[0] & $CONST_CLASS_RESULT->SUSPICIOUS ? 'Suspicious' : ($result[0] & $CONST_CLASS_RESULT->ARTICLEINDEX?'ArticleindeX' : ($result[0] & $CONST_CLASS_RESULT->SecurityISSUE? 'SecurityISSUE' : ($result[0] & $CONST_CLASS_RESULT->CRITICAL ? 'CRITICAL' :'INGNORE'))) ), $result[1], $result[0] & $CONST_CLASS_RESULT->CriticalPHP ? 'CriticalPHP' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalPHPGIF? 'CriticalPHPGIF': ($result[0] & $CONST_CLASS_RESULT->CriticalPHPUploader? 'CriticalPHPUploader': (     $result[0] & $CONST_CLASS_RESULT->CriticalJS?'CriticalJS': ($result[0] & $CONST_CLASS_RESULT->WarningPHP ?'WarningPHP' :(   $result[0] & $CONST_CLASS_RESULT->Phishing ?'Phishing' :  ($result[0] & $CONST_CLASS_RESULT->Adware ?'Adware' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalURL ? 'CriticalURL': ( $result[0] & $CONST_CLASS_RESULT->SecurityGIT ? 'SecurityGIT' : (  $result[0] & $CONST_CLASS_RESULT->GoogleCache ?  'GoogleCache' :  (  $result[0] & $CONST_CLASS_RESULT->CriticalHTML ? 'CriticalHTML' : ( $result[0] & $CONST_CLASS_RESULT->OpenListing ? 'OpenListing' : ( $result[0] & $CONST_CLASS_RESULT->WebpageError  ? 'WebPageErr': ( $result[0] & $CONST_CLASS_RESULT->PermissionISSUE ? 'PermissionISSUE' : ( $result[0] & $CONST_CLASS_RESULT->SuspiciousPlugins  ? 'SuspiciousPlugins' : 'None')  ))  )  ))) ) ) ))))),$tooks) ,  "\n";
+                        echo sprintf("\033[2K\r%s: %s  [%s] [%s] [%s] [tooks:%s] ",  ( $result[10] & ScanItem::FILE ?  'FILE' : ( $result[10] & ScanItem::DIR ? 'FLDR' : ( $result[10] & ScanItem::WEBPAGE ? 'PAGE' :  (  'NONE' )  )  )),  $result[3], $result[0] & $CONST_CLASS_RESULT->MALWARE ? 'Malware' : ($result[0] & $CONST_CLASS_RESULT->SUSPICIOUS ? 'Suspicious' : ($result[0] & $CONST_CLASS_RESULT->ARTICLEINDEX?'ArticleindeX' : ($result[0] & $CONST_CLASS_RESULT->SecurityISSUE? 'SecurityISSUE' : ($result[0] & $CONST_CLASS_RESULT->CRITICAL ? 'CRITICAL' :'INGNORE'))) ), $result[1], $result[0] & $CONST_CLASS_RESULT->CriticalPHP ? 'CriticalPHP' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalPHPGIF? 'CriticalPHPGIF': ($result[0] & $CONST_CLASS_RESULT->CriticalPHPUploader? 'CriticalPHPUploader': (     $result[0] & $CONST_CLASS_RESULT->CriticalJS?'CriticalJS': ($result[0] & $CONST_CLASS_RESULT->WarningPHP ?'WarningPHP' :(   $result[0] & $CONST_CLASS_RESULT->Phishing ?'Phishing' :  ($result[0] & $CONST_CLASS_RESULT->Adware ?'Adware' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalURL ? 'CriticalURL': ( $result[0] & $CONST_CLASS_RESULT->SecurityGIT ? 'SecurityGIT' : (  $result[0] & $CONST_CLASS_RESULT->GoogleCache ?  'GoogleCache' :  (  $result[0] & $CONST_CLASS_RESULT->CriticalHTML ? 'CriticalHTML' : ( $result[0] & $CONST_CLASS_RESULT->OpenListing ? 'OpenListing' : ( $result[0] & $CONST_CLASS_RESULT->WebpageError  ? 'WebPageErr': ( $result[0] & $CONST_CLASS_RESULT->PermissionISSUE ? 'PermissionISSUE' : ( $result[0] & $CONST_CLASS_RESULT->SuspiciousPlugins  ? 'SuspiciousPlugins' :  ( ($result[10] & ScanItem::DIR  && $result[10] & ScanItem::DOTFOLDER ) ? 'SuspiciousDotFolder' : 'None' )  )  ))  )  ))) ) ) ))))),$tooks) ,  "\n";
                     }
                 }     
             }
@@ -2461,6 +2500,7 @@ Current default path is: $cwd
     find . -type d -exec chmod u-w {} \; -print;
     chmod 0775 ./.well-known/pki-validation/ -v
     TODO: error_reporting(0) or set_time_out(0);
+    
 HELP;
     return 1;
     };
@@ -2477,7 +2517,7 @@ HELP;
     $shortopts .= 'u:'; // Optional value
     
     $options = getopt($shortopts, ['file:', 'path:', 'help', 'version', 'recursive:', 'delay', 'mxdirs', 'minsize:', 'maxsize:', "user:", "scan:", "skip:", "own-url:", "skip-paths:"]);
-    $cwd = getcwd();
+    $cwd = ( isset($_SERVER['PWD']) && $_SERVER['PWD'] ) ?  $_SERVER['PWD'] :  getcwd();
     if (isset($options['h']) || isset($options['help'])) {
         exit($help($cwd));
     }
@@ -2485,7 +2525,7 @@ HELP;
         exit($show_version($ret[1], $ret[2], $ret[3]));
     }
     #print_r($options);die;
-    $scan_what = isset($options['f']) ? $options['f'] : (isset($options['file'])?($options['file']): (isset($options['p'])?($options['p']): isset($options['path'])?($options['path']): $cwd  ));
+    $scan_what = isset($options['f']) ? $options['f'] : (isset($options['file'])?($options['file']): (isset($options['p'])?($options['p']): (isset($options['path'])?($options['path']): $cwd  )));
     $scan_what = $GLOBALS['fn:path_join']($cwd, $scan_what);
     #var_dump($scan_what, ($GLOBALS['fn:path_join']($cwd, $scan_what)) ); die;
     if (! $scan_what ||  !file_exists($scan_what))  {
@@ -2500,7 +2540,7 @@ HELP;
 
     #
     $options['recursive'] = in_array( (isset($options['r']) ? $options['r']: (isset($options['recursive'])? $options['recursive']: 'yes') ) , ['Y', 'y','yes', 'Yes', 'YES', 'YEs', '1', 'on'] )  ;
-    $options['own_url'] =  isset($options['own-url']) ? $options['own-urlown-url']: null ;
+    $options['own-url'] =  isset($options['own-url']) ? $options['own-url']: null ;
     $GLOBALS['OPTIONS']['SITE_OWN_URL'] = $options['own-url'];
     global $gBlackAndWhiteURLs;
     $gBlackAndWhiteURLs = (new BlackAndWhiteURLs());
@@ -2559,7 +2599,7 @@ HELP;
         $l_phpv = str_pad("PHP Version", $vpad, " ", STR_PAD_LEFT);
         $v_cphpv = str_pad($info['c_phpversion'], $vpad, " ", STR_PAD_BOTH); 
         $v_lphpv = str_pad($info['l_phpversion'], $vpad, " ", STR_PAD_BOTH); 
-        $c_cphpv = $d_phpversion == 0 ? ["", ""] : $d_phpversion < 0?["\033[31m", "\033[0m"]:["\033[33", "\033[0m"];
+        $c_cphpv = $$info['d_phpversion'] == 0 ? ["", ""] :( $$info['d_phpversion'] < 0?["\033[31m", "\033[0m"]:["\033[33", "\033[0m"]);
         $T1 = str_pad('Common PHP Security Issue', $mwidth, "-", STR_PAD_BOTH);
         $T2 = str_pad('', $mwidth-2, "-", STR_PAD_BOTH);
 
@@ -2694,7 +2734,7 @@ HELP;
 |{$T2}|
 |{$l_errreport}|{$c_errreport[0]}{$v_errreport}{$c_errreport[1]}|{$r_errreport}|
 |{$T2}|
-$c_cphpv[0]$str{$c_cphpv[1]}
+
 
 INFOIUT;
     
