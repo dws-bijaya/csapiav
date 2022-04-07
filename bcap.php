@@ -2134,7 +2134,7 @@ define('IS_CLI', PHP_SAPI == 'cli' || PHP_SAPI == 'cgi-fcgi' );
         $started = microtime(true);
         $processResult = function ($checker, $content, $l_Pos, $l_SigId, &$return) use ($scanfile, &$result) {
             global $APP_SIGN_HASH, $CONST_CLASS_RESULT;
-            $l_Ext = $scanfile[3];
+            $l_Ext  = $scanfile[3];
             if (strpos($checker, 'Critical') !== false) {
                 if ($l_Ext === 'js') {
                     $checker = 'CriticalJS';
