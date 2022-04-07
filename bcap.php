@@ -2333,7 +2333,7 @@ define('IS_CLI', PHP_SAPI == 'cli' || PHP_SAPI == 'cgi-fcgi' );
         if ( $dir === "." ) {
             global $gBlackAndWhiteURLs;
             #var_dump($gBlackAndWhiteURLs->getOwnUrl()[0] );
-            list($ext, $perms, $mtime, $size, $ownerid, $hashfile , $user_name, $group_name, $flag) = [ null, 0, time(), 0, 0, md5($gBlackAndWhiteURLs->getOwnUrl()[0]), '', '', 0]; 
+            list($ext, $perms, $mtime, $size, $ownerid, $hashfile , $user_name, $group_name, $flag) = [ null, 0, time(), 0, 0, ($gBlackAndWhiteURLs->getOwnUrl() !== null && !$gBlackAndWhiteURLs->getOwnUrl()[0]) ?  md5($gBlackAndWhiteURLs->getOwnUrl()[0]) : '', '', '', 0]; 
             $flag =  $flag | ScanItem::WEBPAGE | ScanItem::HOMEPAGE;
             $ret_files[]= [ $gBlackAndWhiteURLs->getOwnUrl()[0] , $hashfile, 0,  $size , $perms, $mtime, "{$group_name}:{$user_name}",$flag  ];
             #print_r($ret_files); die;
