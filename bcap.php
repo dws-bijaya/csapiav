@@ -2251,7 +2251,7 @@ define('IS_CLI', PHP_SAPI == 'cli' || PHP_SAPI == 'cgi-fcgi' );
         
         $basename = basename($dir);
         /* Dot Folder as SUSPICIOUS */
-        if ( strlen($basename) >1 && $basename[0] == "." &&  !in_array($basename, ['.git']))
+        if ( strlen($basename) >1 && $basename[0] == "." &&  !in_array($basename, ['.git', '.well-known']))
         {
             $fldr = realpath(sprintf("%s%s", $scan_path, $dir));
             list($ext, $perms, $mtime, $size, $ownerid, $hashfile, $user_name, $group_name, $flag) = $GLOBALS['fn:filestats']($fldr);
