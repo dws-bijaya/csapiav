@@ -2327,7 +2327,7 @@ define('IS_CLI', PHP_SAPI == 'cli' || PHP_SAPI == 'cgi-fcgi' );
         $scan_fdr = dirname($fdir );
         #$scan_fdr = "./malwares_samples/0777fdlders";
         list($ext, $perms, $mtime, $size, $ownerid, $hashfile , $user_name, $group_name, $flag) = $GLOBALS['fn:filestats']($scan_fdr); 
-        $flag =  ($flag ^ ScanItem::FILE) | ScanItem::DIR;
+        $flag =  ScanItem::DIR;
         $ret_files[]= [ $dir  , $hashfile, 0,  $size , $perms, $mtime, "{$group_name}:{$user_name}", $flag  ];
         #print_r($ret_files);  die;
         
