@@ -3,7 +3,7 @@
 // Version: BrowserHat AV 1.5.3
 // Copyright 2018-2021 BrowserHat Inc.
 ///////////////////////////////////////////////////////////////////////////
-define('IS_CLI', PHP_SAPI == 'cli');
+define('IS_CLI', PHP_SAPI == 'cli' || PHP_SAPI == 'cgi-fcgi' );
 ($ret = (call_user_func(function(){
     global $GLOBALS,  $CONST_CLASS_RESULT;
     static $BANNER, $APP_VERSION, $SIGN_VERSION, $SIGN_COUNT;
