@@ -2599,7 +2599,7 @@ HELP;
         $l_phpv = str_pad("PHP Version", $vpad, " ", STR_PAD_LEFT);
         $v_cphpv = str_pad($info['c_phpversion'], $vpad, " ", STR_PAD_BOTH); 
         $v_lphpv = str_pad($info['l_phpversion'], $vpad, " ", STR_PAD_BOTH); 
-        $c_cphpv = $$info['d_phpversion'] == 0 ? ["", ""] :( $$info['d_phpversion'] < 0?["\033[31m", "\033[0m"]:["\033[33", "\033[0m"]);
+        $c_cphpv = $info['d_phpversion'] == 0 ? ["", ""] :( $info['d_phpversion'] < 0?["\033[31m", "\033[0m"]:["\033[33", "\033[0m"]);
         $T1 = str_pad('Common PHP Security Issue', $mwidth, "-", STR_PAD_BOTH);
         $T2 = str_pad('', $mwidth-2, "-", STR_PAD_BOTH);
 
