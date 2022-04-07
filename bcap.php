@@ -914,6 +914,7 @@ define('IS_CLI', PHP_SAPI == 'cli' || PHP_SAPI == 'cgi-fcgi' );
 
 
             $file = str_replace($scan_path, '', $sdir);
+            is_null($file) ? die(var_dump($sdir)) : '';
             $display_file = $GLOBALS['fn:shorten_path']($file, 100);
             $GLOBALS['fn:stdout']("\033[2K\r"  . "Adding directory ... " . $display_file, false);
             #$s % 20 ? $GLOBALS['fn:slowdown'](): null;
@@ -2244,7 +2245,7 @@ define('IS_CLI', PHP_SAPI == 'cli' || PHP_SAPI == 'cgi-fcgi' );
     };
 
     $GLOBALS['fn:loadfiles'] = static function($scan_path, $dir, $file_list) {
-        global $gCmsVersionDetector;
+        global $gCmsVersionDetector, $gBlackAndWhiteURLs;
        
        
         $fdir =  $dir == "." ?  "{$scan_path}/*.{*}" : "{$scan_path}{$dir}/*.{*}" ;
@@ -2270,6 +2271,7 @@ define('IS_CLI', PHP_SAPI == 'cli' || PHP_SAPI == 'cgi-fcgi' );
         $regex = '@^(test(\d+)?|info(\d+)?|index[1-9]?|phpinfo(\d+)?|uploadify|wp-config-backup|php(\d+)?|wp-config)(\.php((\d+)|~|((\.php)?\.swp|\.swo|\.bak|\.tmp|\.save|.orig|\.old|\.original)?)|\.old|\.txt|\.original|\.orig|\.save|\.php_bak|\.bak|\.save)$@ims';
         foreach($scan_files as $sdir) {   
             $file = substr($sdir, strlen($scan_path));
+            is_null($file) ? die(var_dump($sdir)) : '';
             $display_file = $GLOBALS['fn:shorten_path']($file, 100); 
             if ($file_list &&  !in_array( basename( $sdir),  $file_list )) {
                 $GLOBALS['fn:stdout'](  "\033[2K\r" . "Skiping File  [FILE-LIST] " . $display_file, false );
@@ -2435,6 +2437,7 @@ PROGRESS;
                 #$scanfile= $scanfiles[7];
                 $return = [];
                 $stime = microtime(true);
+                is_null($scanfile[0]) ? die(var_dump($scanfile[0], 22)) : '';
                 $display_file = $GLOBALS['fn:shorten_path']($scanfile[0], 100);
                 $GLOBALS['fn:stdout'](  "\033[2K\r" . "Scaning File ... " . $display_file, false );
                 $detected = $GLOBALS['fn:scanfile']($scan_path, $scanfile, $return);
