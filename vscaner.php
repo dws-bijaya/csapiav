@@ -1395,11 +1395,8 @@ function  build_db() {
 
 
 
+error_reporting(E_ALL | E_WARNING);
    
-   
-
-    
-
     $f_vdir_db = './v1/vdie/sigs.db';
     $vdie_signs = json_decode( file_get_contents($f_vdir_db), true);
     #print_r($vdie_signs); die;
@@ -1409,7 +1406,7 @@ function  build_db() {
     $vdie_def =[];
     $extensions =[""];
 
-    
+    error_reporting(E_ALL);
     $c = [];
     foreach($vdb as $key=>$value){
         $pattern = $value[1];
@@ -1434,7 +1431,25 @@ function  build_db() {
             #print_r( $signs_regex["VE"] ); die;
         }
         else {
+            $pattern = str_replace('\if', 'if', $pattern);
             $signs_regex["VE"]['signs'][$pattern] = [$ext_founds, $idx];
+            if ( $value[1][0] !== '=' )
+            {
+                error_clear_last();
+                $m = @preg_match($pattern, '', $match, PREG_OFFSET_CAPTURE);
+                $err =  (error_get_last());
+                error_clear_last();
+                $plr = preg_last_error();
+                if ($plr) {
+                    die("error");
+                }
+                if ($m === false  || !is_null($err)) {
+                    print_r($pattern);
+                    print_r(error_get_last());
+                    die();
+                }
+            }
+
         }
     }
     $signs_regex["VE"]['def'] = $vdie_def;
@@ -1461,6 +1476,7 @@ function  build_db() {
                 die("here");
             }
 
+VE
             if (@preg_match($sign, '') === false) {
                 print_r(error_get_last());
                 error_clear_last();
