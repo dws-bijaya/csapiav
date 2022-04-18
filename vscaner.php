@@ -1416,7 +1416,7 @@ error_reporting(E_ALL | E_WARNING);
            # print_r($value); 
            
         }
-        if (  in_array(strtolower($value[0]),  [ ('group.function_exists'), strtolower('GROUP.FUNCTION_EXISTS'), 'group.exec', 'group.preg_replace',  'group.location', 'group.iframe',  'group.command', 'group.uname',  'group.document.write', strtolower('GROUP.STRIPSLASHES'), strtolower('GROUP.CHR'),  strtolower('GROUP.FORM'),  'group.eval', 'group.script', 'group.mail', 'group.global']))
+        if (  in_array(strtolower($value[0]),  [ 'group.fopen', 'group.mysql', strtolower('GROUP.SOCK'),   strtolower('GROUP.URLDECODE'),  strtolower('GROUP.EXTRACT'),  ('group.function_exists'), strtolower('GROUP.FUNCTION_EXISTS'), 'group.exec', 'group.preg_replace',  'group.location', 'group.iframe',  'group.command', 'group.uname',  'group.document.write', strtolower('GROUP.STRIPSLASHES'), strtolower('GROUP.CHR'),  strtolower('GROUP.FORM'),  'group.eval', 'group.script', 'group.mail', 'group.global']))
         {
             #print_r($value);
 
