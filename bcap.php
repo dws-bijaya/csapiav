@@ -1608,9 +1608,9 @@ define('IS_CLI', PHP_SAPI == 'cli' || PHP_SAPI == 'cgi-fcgi' );
                             return [ 1,  array_merge( [ $CONST_CLASS_RESULT->SUSPICIOUS | $CONST_CLASS_RESULT->SuspiciousPlugins,  "SUS:WP:PLUGIN:1" , time() ] ,  $scanfile) ]; 
                         }
                     }
-
+                    
                     $basename = basename($scanfile[0]);
-                    if (in_array($basename, ['Fox-C404']))
+                    if (preg_match( '/^Fox-[A-Z]{1}/', $basename))
                     {
                         return [ 1,  array_merge( [ $CONST_CLASS_RESULT->SUSPICIOUS,  "SUS:WP:DIR:1" , time() ] ,  $scanfile, ['SuspiciousDIR']) ]; 
                     }
@@ -2382,7 +2382,7 @@ define('IS_CLI', PHP_SAPI == 'cli' || PHP_SAPI == 'cgi-fcgi' );
             $ret_files[] = [ $dir, $hashfile, $size,  $ext , $perms, $mtime, "{$group_name}:{$user_name}", $flag];
             return $ret_files; 
         }
-
+        /* SKIP  */
 
 
        
