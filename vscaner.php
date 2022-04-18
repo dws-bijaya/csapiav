@@ -1409,6 +1409,19 @@ error_reporting(E_ALL | E_WARNING);
     error_reporting(E_ALL);
     $c = [];
     foreach($vdb as $key=>$value){
+
+        #echo "\n" . ($value[1]);
+
+        if ( stripos( $value[0], 'script' ) !== false) {
+           # print_r($value); 
+        }
+        if (  in_array(strtolower($value[0]),  ['group.location', 'group.eval', 'group.script', 'group.mail', 'group.global']))
+        {
+            #print_r($value);
+
+            continue;
+            #die("eee");
+        }
         $pattern = $value[1];
         $ext_founds = array_filter(explode(",", $value[8]));
         $ext_founds = count($ext_founds) ? $ext_founds : null;
