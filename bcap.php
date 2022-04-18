@@ -1608,6 +1608,12 @@ define('IS_CLI', PHP_SAPI == 'cli' || PHP_SAPI == 'cgi-fcgi' );
                             return [ 1,  array_merge( [ $CONST_CLASS_RESULT->SUSPICIOUS | $CONST_CLASS_RESULT->SuspiciousPlugins,  "SUS:WP:PLUGIN:1" , time() ] ,  $scanfile) ]; 
                         }
                     }
+
+                    $basename = basename($scanfile[0]);
+                    if (in_array($basename, ['Fox-C404']))
+                    {
+                        return [ 1,  array_merge( [ $CONST_CLASS_RESULT->SUSPICIOUS,  "SUS:WP:DIR:1" , time() ] ,  $scanfile, ['SuspiciousDIR']) ]; 
+                    }
                     return [ 0,  []];
 
                     #var_dump($scanfile[0], $x,  $plugin_slug);
