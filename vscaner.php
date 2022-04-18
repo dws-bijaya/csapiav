@@ -1415,7 +1415,7 @@ error_reporting(E_ALL | E_WARNING);
         if ( stripos( $value[0], 'script' ) !== false) {
            # print_r($value); 
         }
-        if (  in_array(strtolower($value[0]),  ['group.location', 'group.eval', 'group.script', 'group.mail', 'group.global']))
+        if (  in_array(strtolower($value[0]),  ['group.location','group.document.write', strtolower('GROUP.STRIPSLASHES'), strtolower('GROUP.CHR'),  strtolower('GROUP.FORM'),  'group.eval', 'group.script', 'group.mail', 'group.global']))
         {
             #print_r($value);
 
