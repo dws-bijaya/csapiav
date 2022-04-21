@@ -1278,6 +1278,199 @@ class Exploits
 die(var_dump( preg_match('#[\'"]\)\);return;\?>(?<X76af356d>)#ims', '"));return;?>', $matches), $matches)); 
 */
 
+/*
+base = "https://www.zbapis.net/api/bl/checks-by-black-list-id?host=expresshomeandofficecleaning.co.nz&captcha=" + "1650371408.741.148" +"&id="
+base = "https://www.zbapis.net/api/bl/get-blacklist-by-host?host=rankwatch.com&captcha=" + "1650371408.741.148"
+ALL = [];
+31ee456f2ef8477b970d5cd1092aa42c
+for(var i=1; i<=1; i++)
+{
+    uri = base + i;
+    const response = await fetch(uri);
+    console.log("[" + i +"] " + "[" + response.status + "] " + uri);
+    if (response.status !== 200)
+        break;
+    ALL.push(await response.json())
+}
+
+
+*/
+
+$chekclist = [
+          "url.0spam.org",
+          "0spamurl.fusionzero.com",
+          "uribl.zeustracker.abuse.ch",
+          "uribl.abuse.ro",
+          "blacklist.netcore.co.in",
+          "bsb.empty.us",
+          "bsb.spamlookup.net",
+          "black.dnsbl.brukalai.lt",
+          "light.dnsbl.brukalai.lt",
+          "bl.fmb.la",
+          "communicado.fmb.la",
+          "nsbl.fmb.la",
+          "short.fmb.la",
+          "black.junkemailfilter.com",
+          "uribl.mailcleaner.net",
+          "dbl.nordspam.com",
+          "ubl.nszones.com",
+          "uribl.pofon.foobar.hu",
+          "rhsbl.rbl.polspam.pl",
+          "rhsbl-h.rbl.polspam.pl",
+          "mailsl.dnsbl.rjek.com",
+          "urlsl.dnsbl.rjek.com",
+          "rhsbl.rymsho.ru",
+          "public.sarbl.org",
+          "rhsbl.scientificspam.net",
+          "nomail.rhsbl.sorbs.net",
+          "badconf.rhsbl.sorbs.net",
+          "rhsbl.sorbs.net",
+          "fresh.spameatingmonkey.net",
+          "fresh10.spameatingmonkey.net",
+          "fresh15.spameatingmonkey.net",
+          "fresh30.spameatingmonkey.net",
+          "freshzero.spameatingmonkey.net",
+          "uribl.spameatingmonkey.net",
+          "urired.spameatingmonkey.net",
+          "dbl.spamhaus.org",
+          "dnsbl.spfbl.net",
+          "dbl.suomispam.net",
+          "multi.surbl.org",
+          "uribl.swinog.ch",
+          "dob.sibl.support-intelligence.net",
+          "dbl.tiopan.com",
+          "black.uribl.com",
+          "grey.uribl.com",
+           "multi.uribl.com",
+          "red.uribl.com",
+          "uri.blacklist.woody.ch",
+          "rhsbl.zapbl.net",
+          "all.s5h.net",
+        "b.barracudacentral.org",
+        "bl.spamcop.net",
+        "blacklist.woody.ch",
+        "bogons.cymru.com",
+        "cbl.abuseat.org",
+        "cdl.anti-spam.org.cn",
+        "combined.abuse.ch",
+        "db.wpbl.info",
+        "dnsbl-1.uceprotect.net",
+        "dnsbl-2.uceprotect.net",
+        "dnsbl-3.uceprotect.net",
+        "dnsbl.anticaptcha.net",
+        "dnsbl.dronebl.org",
+        "dnsbl.inps.de",
+        "dnsbl.sorbs.net",
+        "drone.abuse.ch",
+        "duinv.aupads.org",
+        "dul.dnsbl.sorbs.net",
+        "dyna.spamrats.com",
+        "dynip.rothen.com",
+        "http.dnsbl.sorbs.net",
+        "ips.backscatterer.org",
+        "ix.dnsbl.manitu.net",
+        "korea.services.net",
+        "misc.dnsbl.sorbs.net",
+        "noptr.spamrats.com",
+        "orvedb.aupads.org",
+        "pbl.spamhaus.org",
+        "proxy.bl.gweep.ca",
+        "psbl.surriel.com",
+        "relays.bl.gweep.ca",
+        "relays.nether.net",
+        "sbl.spamhaus.org",
+        "short.rbl.jp",
+        "singular.ttk.pte.hu",
+        "smtp.dnsbl.sorbs.net",
+        "socks.dnsbl.sorbs.net",
+        "spam.abuse.ch",
+        "spam.dnsbl.anonmails.de",
+        "spam.dnsbl.sorbs.net",
+        "spam.spamrats.com",
+        "spambot.bls.digibase.ca",
+        "spamrbl.imp.ch",
+        "spamsources.fabel.dk",
+        "ubl.lashback.com",
+        "ubl.unsubscore.com",
+        "virus.rbl.jp",
+        "web.dnsbl.sorbs.net",
+        "wormrbl.imp.ch",
+        "xbl.spamhaus.org",
+        "z.mailspike.net",
+        "zen.spamhaus.org",
+        "zombie.dnsbl.sorbs.net"
+];
+
+/*
+
+echo "\nCount : ", count($chekclist), "\n";
+$check_ip = 0;
+$_GET[ $check_ip ? 'check_ip' : 'check_domain'] = $check_ip  ? "69.167.154.36" : 'expresshomeandofficecleaning.co.nz' ;
+foreach($chekclist as $sr=> $dns) {
+    if ( isset($_GET['check_ip'])) {
+        $reverse_ip = implode(".", array_reverse(explode(".", $_GET['check_ip']))) . "." .  $dns . ".";     
+    } else {
+        $reverse_ip = $_GET['check_domain'] . "." .  $dns . ".";  
+    }
+    echo "\n {$sr} - $reverse_ip : " , (( checkdnsrr($reverse_ip, "A")) ? 'False' : 'True');
+}
+die("ee");
+
+*/
+
+function build_blacklisted() {
+    /* https://www.zerobounce.net/services/blacklist-checker.html */
+    /* https://www.zbapis.net/api/bl/get-blacklist-by-host?host=rankwatch.com&captcha=1650434177.869.967 */
+    /* https://www.zbapis.net/api/bl/checks-by-black-list-id?host=rankwatch.com&captcha=1650434177.869.967&id=6 */
+
+    $blist_host = json_decode(file_get_contents('./zbapis-blacklists-host.json'), true);
+    #die(print_r($blist_host));die;
+    echo "\nCount of Hosts: ", count($blist_host), "\n";
+
+    $sgns = [];
+    foreach($blist_host as $host) {
+        $sgns[]  = [$host['Id'], 1,  $host['Name'], $host['DnsZone'], $host['Url']];
+    }
+    
+
+
+
+    #
+    $blist_ip = json_decode(file_get_contents('./zbapis-blacklists-ip.json'), true);
+    echo "Count of IP: ", count($blist_ip), "\n";
+    foreach($blist_ip as $host) {
+        $sgns[]  = [$host['Id'], 2, $host['Name'], $host['DnsZone'], $host['Url']];
+    }
+
+
+    #
+    $blist_ip = json_decode( str_replace("'", '"', file_get_contents('./malware-blacklists-ip.json'))); #, true);
+    #print_r($blist_ip); die;
+    foreach($blist_ip as $host) {
+        $b = false;
+        foreach($sgns as $s) {
+            if ( $s[3] ===  $host )
+                {$b = true;break;}
+        }
+
+        if (!$b)
+        {
+            $new = ['virus.rbl.jp' => [1012, 'RBL JP', 'http://www.rbl.jp/' ], 'ubl.unsubscore.com' => [1011, 'Unsubscribe Blacklist (UBL)', 'https://blacklist.lashback.com/' ], 'ubl.lashback.com' => [1010, 'LashBack - Unsubscribe Blacklist', 'http://blacklist.lashback.com/' ], 'spam.abuse.ch' => [1009, 'Fighting malware and botnets', 'https://www.abuse.ch/?p=532' ],  'short.rbl.jp' => [1008, 'rbl.jp', 'http://www.rbl.jp/' ],  'relays.bl.gweep.ca' => [1007, 'Relays gweep', 'http://relays.bl.gweep.ca' ],  'proxy.bl.gweep.ca' => [1006, 'Blacklist Proxy Gweep', '' ],   'duinv.aupads.org' => [1005, 'ANTISPAM UFRJ', 'http://www.aupads.org' ],  'drone.abuse.ch' => [1004, 'abuse.ch FastFlux Tracker', 'https://www.abuse.ch/?p=532' ],  'dnsbl.anticaptcha.net' => [1003, 'AntiCaptcha.NET Project', 'http://anticaptcha.net/' ], 'combined.abuse.ch' => [1002, 'abuse.ch | Fighting malware and botnets', 'https://www.abuse.ch/?p=532' ], 'cdl.anti-spam.org.cn' => [1001, 'CASA RBL', 'http://www.anti-spam.org.cn/' ]  ]; 
+            if ( !isset($new[$host])) {
+                die($host);
+            }
+            $sgns[]  = [$new[$host][0], 2, $new[$host][1], $host, $new[$host][2]];
+        }
+    }
+    #print_r($sgns); die;
+    return $sgns;
+}
+
+
+
+#die(print_r(build_blacklisted()));
+
+
 function  build_db() {
     require_once('./LoadSignaturesForScan.php');
     define('AI_EXPERT',  2);  define('DEBUG_PERFORMANCE',  0);
@@ -1467,6 +1660,13 @@ error_reporting(E_ALL | E_WARNING);
         }
     }
     $signs_regex["VE"]['def'] = $vdie_def;
+
+
+    #die(print_r(build_blacklisted()));
+    $blacklist_sign = build_blacklisted();
+    $signs_regex["BD"] = $blacklist_sign;
+    
+
     #print_r( $signs_regex["VE"] ); die;
     #print_r($vdie_def); die;
     #print_r( count($patterns));
