@@ -1605,12 +1605,17 @@ error_reporting(E_ALL | E_WARNING);
 
         #echo "\n" . ($value[1]);
 
-        if ( stripos( $value[0], 'script' ) !== false) {
-           # print_r($value); 
+        if ( stripos( $value[0], 'GROUP.BASE64' ) !== false) {
+            #print_r($value); 
+            #die;
            
         }
-        if (  in_array(strtolower($value[0]),  [ strtolower('GROUP.HEXSTR'), strtolower('GROUP.ASSERT'),  strtolower('GROUP.UPLOAD'),  strtolower('GROUP.HEXSTR'), strtolower('GROUP.CHARCODE'), strtolower('GROUP.SHELL'), strtolower('GROUP.CREATE_FUNCTION'), strtolower('GROUP.UNLINK'),  strtolower('GROUP.BASE64 '), 'group.fopen', 'group.mysql', strtolower('GROUP.SOCK'),   strtolower('GROUP.URLDECODE'),  strtolower('GROUP.EXTRACT'),  ('group.function_exists'), strtolower('GROUP.FUNCTION_EXISTS'), 'group.exec', 'group.preg_replace',  'group.location', 'group.iframe',  'group.command', 'group.uname',  'group.document.write', strtolower('GROUP.STRIPSLASHES'), strtolower('GROUP.CHR'),  strtolower('GROUP.FORM'),  'group.eval', 'group.script', 'group.mail', 'group.global']))
+
+        if (  in_array(strtolower($value[0]),  [ strtolower('GROUP.HEXSTR'), strtolower('GROUP.ASSERT'),  strtolower('GROUP.UPLOAD'),  strtolower('GROUP.HEXSTR'), strtolower('GROUP.CHARCODE'), strtolower('GROUP.SHELL'), strtolower('GROUP.CREATE_FUNCTION'), strtolower('GROUP.UNLINK'),  strtolower('GROUP.BASE64'), 'group.fopen', 'group.mysql', strtolower('GROUP.SOCK'),   strtolower('GROUP.URLDECODE'),  strtolower('GROUP.EXTRACT'),  ('group.function_exists'), strtolower('GROUP.FUNCTION_EXISTS'), 'group.exec', 'group.preg_replace',  'group.location', 'group.iframe',  'group.command', 'group.uname',  'group.document.write', strtolower('GROUP.STRIPSLASHES'), strtolower('GROUP.CHR'),  strtolower('GROUP.FORM'),  'group.eval', 'group.script', 'group.mail', 'group.global']))
         {
+
+            
+
             #print_r($value);
 
             continue;
@@ -1665,7 +1670,7 @@ error_reporting(E_ALL | E_WARNING);
     #die(print_r(build_blacklisted()));
     $blacklist_sign = build_blacklisted();
     $signs_regex["BD"] = $blacklist_sign;
-    
+
 
     #print_r( $signs_regex["VE"] ); die;
     #print_r($vdie_def); die;
