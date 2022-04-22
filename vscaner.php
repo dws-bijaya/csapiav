@@ -1605,13 +1605,13 @@ error_reporting(E_ALL | E_WARNING);
 
         #echo "\n" . ($value[1]);
 
-        if ( stripos( $value[0], 'GROUP.BASE64' ) !== false) {
-            #print_r($value); 
-            #die;
+        if ( stripos( $value[0], strtolower('GROUP.DOCUMENT' )) !== false) {
+           # print_r($value); 
+            
            
         }
 
-        if (  in_array(strtolower($value[0]),  [ strtolower('GROUP.HEXSTR'), strtolower('GROUP.ASSERT'),  strtolower('GROUP.UPLOAD'),  strtolower('GROUP.HEXSTR'), strtolower('GROUP.CHARCODE'), strtolower('GROUP.SHELL'), strtolower('GROUP.CREATE_FUNCTION'), strtolower('GROUP.UNLINK'),  strtolower('GROUP.BASE64'), 'group.fopen', 'group.mysql', strtolower('GROUP.SOCK'),   strtolower('GROUP.URLDECODE'),  strtolower('GROUP.EXTRACT'),  ('group.function_exists'), strtolower('GROUP.FUNCTION_EXISTS'), 'group.exec', 'group.preg_replace',  'group.location', 'group.iframe',  'group.command', 'group.uname',  'group.document.write', strtolower('GROUP.STRIPSLASHES'), strtolower('GROUP.CHR'),  strtolower('GROUP.FORM'),  'group.eval', 'group.script', 'group.mail', 'group.global']))
+        if (  in_array(strtolower($value[0]),  [ strtolower('Group.document[]'),  strtolower('Group.document.write'),  strtolower('GROUP.HEXSTR'), strtolower('GROUP.ASSERT'),  strtolower('GROUP.UPLOAD'),  strtolower('GROUP.HEXSTR'), strtolower('GROUP.CHARCODE'), strtolower('GROUP.SHELL'), strtolower('GROUP.CREATE_FUNCTION'), strtolower('GROUP.UNLINK'),  strtolower('GROUP.BASE64'), 'group.fopen', 'group.mysql', strtolower('GROUP.SOCK'),   strtolower('GROUP.URLDECODE'),  strtolower('GROUP.EXTRACT'),  ('group.function_exists'), strtolower('GROUP.FUNCTION_EXISTS'), 'group.exec', 'group.preg_replace',  'group.location', 'group.iframe',  'group.command', 'group.uname',  'group.document.write', strtolower('GROUP.STRIPSLASHES'), strtolower('GROUP.CHR'),  strtolower('GROUP.FORM'),  'group.eval', 'group.script', 'group.mail', 'group.global']))
         {
 
             
@@ -1756,8 +1756,8 @@ VE
 
     $static_data = [
     <<<BANNER
-BrowserHat AV {$app_version} , Malware File Scanner for PHP Websites
-Copyright: 2018-2021 BrowserHat Inc.
+ZeroScan {$app_version} , Malware,Exploits Files Scanner for PHP Websites
+Copyright: 2022-2022 ZeroScan Inc.
 Signatures Verion: {$sign_version}
 Signatures Loaded: {$sign_count}
 BANNER,
