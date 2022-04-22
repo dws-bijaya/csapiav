@@ -1770,10 +1770,8 @@ BANNER,
     $burls = (base64_encode(serialize(file_get_contents('./v1/aibolit/blacklistedUrls.db'))));
     $wurls = (base64_encode(serialize(file_get_contents('./v1/aibolit/whitelistUrls.db'))));
     #var_dump($wurls); die;
-    $static_data  =  base64_encode(gzdeflate(serialize(($static_data))));
-
+    $static_data  =  base64_encode(serialize($static_data));
     
-
     #$burls, $wurls, $static_data, $signs_regex, $signs_hash,  $signs_keys
     #var_dump(is_string($signs_regex)); die;
 
@@ -1782,7 +1780,7 @@ BANNER,
 
 
     #die;
-    file_put_contents('./bcap.php', str_replace(array('[[BLACK_URLS]]', '[[WHITE_URLS]]', '[[STATIC_DATA]]', '[[SIGN_PATTERN]]', '[[SIGN_HASH]]', '[[SIGN_DEF]]'), array($burls, $wurls, $static_data, $signs_regex, $signs_hash,  $signs_def), file_get_contents('./bcap.php')));
+    file_put_contents('./zeroscan.php', str_replace(array('[[BLACK_URLS]]', '[[WHITE_URLS]]', '[[STATIC_DATA]]', '[[SIGN_PATTERN]]', '[[SIGN_HASH]]', '[[SIGN_DEF]]'), array($burls, $wurls, $static_data, $signs_regex, $signs_hash,  $signs_def), file_get_contents('./zeroscan.php')));
     #file_put_contents('./bcap.php', str_replace(array('[[BLACK_URLS]]', '[[WHITE_URLS]]', '[[STATIC_DATA]]', '[[__halt_compiler]]'), array($burls, $wurls, $static_data, $halt_compiler), file_get_contents('./bcap.php')));
     
 
