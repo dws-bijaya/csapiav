@@ -2503,7 +2503,7 @@ register_shutdown_function('__shutdown__');
            
            
             #$ext  = pathinfo($sdir, PATHINFO_EXTENSION);
-            if ( (! $ext  &&  $GLOBALS['OPTIONS']['SKIP-NON-EXT'])  || ! in_array($ext,  isset($GLOBALS['OPTIONS']["todo"]) ?$GLOBALS['OPTIONS']['SCAN_ONLY_EXTENSIONS']:  $GLOBALS['OPTIONS']['EXTENSIONS']  ))
+            if ( (! $ext  &&  $GLOBALS['OPTIONS']['SKIP-NON-EXT'])  || ! in_array($ext,  isset($GLOBALS['OPTIONS']["SCAN_ONLY_EXTENSIONS"]) ?$GLOBALS['OPTIONS']['SCAN_ONLY_EXTENSIONS']:  $GLOBALS['OPTIONS']['EXTENSIONS']  ))
             {
                 $GLOBALS['fn:stdout'](  "\033[2K\r" . "Skiping File [NON-EXTENSION] " . $display_file, false );
                 continue;
