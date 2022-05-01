@@ -1540,7 +1540,6 @@ function  build_db() {
    
 
 
-
     $susidx = [];
 
     foreach(['M' => $signs->_FlexDBShe, 'S' => $signs->_SusDB, 'A' => $signs->_AdwareSig, 'E' => $signs->_ExceptFlex,  'F' => $signs->_PhishingSig, 'J' => $signs->_JSVirSig ] as $prefix => $_signs) {
@@ -1608,7 +1607,8 @@ error_reporting(E_ALL | E_WARNING);
         if ( stripos( $value[0], strtolower('5.7.1' )) !== false) {
            #die(print_r($value)); 
             
-            # DOM.IFRAME.HIDDEN.1.EXC # CORE.5.7.1.CVE.EXC DOM.IFRAME.HIDDEN.1.EXC
+            # WP.PERMALINKMANAGERLITE.CVE GROUP.STR_ROT13
+
         }
 
         if (  in_array(strtolower($value[0]),  [ strtolower('CORE.5.7.1.CVE.EXC'), strtolower('DOM.IFRAME.HIDDEN.1.EXC'), strtolower('GROUP.POSIX'), strtolower('GROUP.STRREV'),  strtolower('Group.document[]'),  strtolower('Group.document.write'),  strtolower('GROUP.HEXSTR'), strtolower('GROUP.ASSERT'),  strtolower('GROUP.UPLOAD'),  strtolower('GROUP.HEXSTR'), strtolower('GROUP.CHARCODE'), strtolower('GROUP.SHELL'), strtolower('GROUP.CREATE_FUNCTION'), strtolower('GROUP.UNLINK'),  strtolower('GROUP.BASE64'), 'group.fopen', 'group.mysql', strtolower('GROUP.SOCK'),   strtolower('GROUP.URLDECODE'),  strtolower('GROUP.EXTRACT'),  ('group.function_exists'), strtolower('GROUP.FUNCTION_EXISTS'), 'group.exec', 'group.preg_replace',  'group.location', 'group.iframe',  'group.command', 'group.uname',  'group.document.write', strtolower('GROUP.STRIPSLASHES'), strtolower('GROUP.CHR'),  strtolower('GROUP.FORM'),  'group.eval', 'group.script', 'group.mail', 'group.global']))
@@ -1667,7 +1667,7 @@ error_reporting(E_ALL | E_WARNING);
     $signs_regex["VE"]['def'] = $vdie_def;
 
 
-    #die(print_r(build_blacklisted()));
+    die(var_dump(json_encode(build_blacklisted())));
     $blacklist_sign = build_blacklisted();
     $signs_regex["BD"] = $blacklist_sign;
 
