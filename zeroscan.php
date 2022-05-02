@@ -39,6 +39,14 @@ register_shutdown_function('__shutdown__');
     $CONST_CLASS_RESULT =  json_decode(json_encode(array('MALWARE'=>pow(2, 0), 'SUSPICIOUS' => pow(2, 1), 'ARTICLEINDEX'=> pow(2, 2), 'CriticalPHP' =>  pow(2, 3), 'CriticalPHPGIF' => pow(2, 4), 'CriticalPHPUploader'=> pow(2, 5), 'CriticalJS' => pow(2, 6) , 'WarningPHP' => pow(2, 7), 'Phishing'=> pow(2, 8) , 'Adware' => pow(2, 9), 'CriticalURL'=> pow(2, 10), 'SecurityISSUE'=> pow(2, 11), 'SecurityGIT'=> pow(2, 12) , 'GoogleBOT' =>pow(2, 13) , 'WarningGCache'=>  pow(2, 14) , 'GoogleCache'=> pow(2, 15), 'CRITICAL'=> pow(2, 16) ,  'CriticalHTML' => pow(2, 17), 'OpenListing' =>  pow(2, 18), 'WebpageError'=> pow(2, 18), 'PermissionISSUE' => pow(2, 19), 'SuspiciousPlugins' => pow(2, 20), 'EXPLOITS' =>  pow(2, 21), 'DNS_BLACKLIST' =>  pow(2, 22)   ) )  );
     global $gCmsVersionDetector;
      
+    $GLOBALS['tooks'] = function($time_start) {
+        $time_end = microtime(true);
+        $time = ($time_end - $time_start);
+        $time = number_format((float)$time, 3, '.', '');
+        return $time;
+    };
+
+
     $GLOBALS['context'] = array(
         'browser' =>  (array(
             'http'=>array(
@@ -545,11 +553,10 @@ register_shutdown_function('__shutdown__');
         private function checkWordpress($dir, &$version) {
             $version = self::CMS_VERSION_UNDEFINED;
             $res     = false;
-
-            if (file_exists($dir . '/wp-admin')) {
+            $version_f = $dir . '/wp-admin/wp-includes/version.php';
+            if (file_exists($version_f) ) {
                 $res = true;
-                $tmp_content = @file_get_contents($dir . '/wp-admin/wp-includes/version.php');
-               
+                $tmp_content = @file_get_contents($version_f);
                 if (preg_match('|\$wp_version\s*=\s*\'(.+?)\'|smi', $tmp_content, $tmp_ver)) {
                     $version = $tmp_ver[1];
                 }
@@ -1015,8 +1022,6 @@ register_shutdown_function('__shutdown__');
             return [$body, (int)$code, $headers];
         }
 
-     
-
     } ;
 
    
@@ -1389,31 +1394,28 @@ register_shutdown_function('__shutdown__');
                 public static function CriticalPHP($l_Content, &$l_Pos, &$l_SigId, $signs, $debug = null)
                 {
 
-                    
-
                     #$l_Content = file_get_contents('/Applications/XAMPP/xamppfiles/htdocs/vdie/malwares_samples/x.htaccess');
-                    #var_dump($signs->_FlexDBShe); die;
-                  
+                    #print_r($signs->_FlexDBShe); 
+                    #die;
 
                     foreach ($signs->_FlexDBShe as $l_Item) {
-                    
                         $offset = 0;
-                        $l_Item = preg_replace('#^~(.*)~smi$#ims', '\\1', $l_Item);
+                        #$l_Item = preg_replace('#^~(.*)~smi$#ims', '\\1', $l_Item);
                         $time = microtime(true);
                         $res = preg_match('~' . $l_Item . '~smiS', $l_Content, $l_Found, PREG_OFFSET_CAPTURE, $offset);
-                        while ($res) {
+                        if ($res) {
+                            $l_SigId = LoadSignaturesForScan::getSigId($l_Found);
+                            return true;
+                        }
+
+                        while ($res && 0) {
                             if (!self::CheckException($l_Content, $l_Found)) {
                                 $l_Pos   = $l_Found[0][1];
                                 //$l_SigId = myCheckSum($l_Item);
                                 $l_SigId = LoadSignaturesForScan::getSigId($l_Found);
                                 return true;
                             }
-                            $offset = $l_Found[0][1] + 1;
-                            $time = microtime(true);
-                            $res = preg_match('~' . $l_Item . '~smiS', $l_Content, $l_Found, PREG_OFFSET_CAPTURE, $offset);
-                            if (class_exists('PerfomanceStats')) {
-                                PerfomanceStats::addPerfomanceItem(PerfomanceStats::PCRE_SCAN_STAT, microtime(true) - $time);
-                            }
+                            $offset = $l_Found[0][1] + 1;       
                         }
                         
 
@@ -1576,25 +1578,23 @@ register_shutdown_function('__shutdown__');
 
                     #print_r($checkers); die;
                     #$checkers = file_get_contents('./malwares_samples/Shell.TurboForceByTrYaG.php')
+
+                    
                     foreach ($checkers as $checker => $full) {
                         #var_dump( array_keys($SIGN_PARTERN));die;
                         $l_pos = 0;
                         $l_SignId = '';
-                        if (isset($precheck) && is_callable($precheck)) {
-                            if (!$precheck($checker, $l_Unwrapped) && ($full && !$precheck($checker, $l_Content))) {
-                                $smart_skipped = true;
-                                continue;
-                            }
-                        }
-
-                       
+                        $st = microtime(true);
                         $flag = ScanCheckers::{$checker}($l_Unwrapped, $l_pos, $l_SignId, $SIGN_PARTERN, $debug);
+                        #echo "\n Loop 1 under $checker : ", $GLOBALS['tooks']($st);
                         #var_dump($flag, $checker,  "$l_SignId");
-                        if ($flag && isset($processResult) && is_callable($processResult)) {
-                            $processResult($checker, $l_Unwrapped, $l_pos, $l_SignId, $return);
-                            #print_r($return); die;
+                        if ($flag ){
+                            if (isset($processResult) && is_callable($processResult)) {
+                                $processResult($checker, $l_Unwrapped, $l_pos, $l_SignId, $return);
+                            }
+                            return true;
                         }
-
+                        /*
                         if (!$flag && $full) {
                             $flag = ScanCheckers::{$checker}($l_Content, $l_pos, $l_SignId, $SIGN_PARTERN, $debug);
                             if ($flag && isset($processResult) && is_callable($processResult)) {
@@ -1604,9 +1604,10 @@ register_shutdown_function('__shutdown__');
                         if ($flag) {
                             return true;
                         }
+                        */
                     }
                     
-
+                    
 
                     return false;
                 }
@@ -1970,7 +1971,8 @@ register_shutdown_function('__shutdown__');
         }
 
 
-        
+        $st = microtime(true);
+
         $flag = $scanfile[7];
        
         if (  $flag & ScanItem::DIR ) {
@@ -1995,6 +1997,8 @@ register_shutdown_function('__shutdown__');
             
         }
 
+        
+
         if (  $flag & ScanItem::HOMEPAGE )
         {
             list($detected, $result, $live_headers)  = ScanUnit::scan_for_bot($scanfile);
@@ -2008,7 +2012,7 @@ register_shutdown_function('__shutdown__');
             return $detected;
         }
 
-
+        
 
        
         $CheckVulnerability = static function($scan_path, $scanfile, $par_Content, $vars)
@@ -2303,7 +2307,7 @@ register_shutdown_function('__shutdown__');
             return [false, []];
         };
 
-
+        
         if (  $flag & ScanItem::VULNERABLE )
         {
             list($detected, $result)  = ScanUnit::scan_vulnerability($scanfile);
@@ -2371,8 +2375,10 @@ register_shutdown_function('__shutdown__');
         #var_dump($l_Unwrapped, $l_Content); die;
 
         #var_dump($content); die;
+       
         $detected = ScanUnit::QCR_ScanContent($checkers, $l_Unwrapped, $content, 1, null,
                 $processResult, $return) ;
+        
         
         if (!$detected && isset($checkers['Adware'])) {
             // articles
@@ -2381,11 +2387,14 @@ register_shutdown_function('__shutdown__');
             }
         }
 
+       
+
+        
         ### Wordprss unknown files as Suspectd
         if (!$detected) {
             list($detected, $result)  = $gCmsVersionDetector[0]->scan_for_sus($scan_path, $scanfile);
         }
-
+       
         ### URL Check
         if (!$detected) {
             list($detected, $result)  =  $gBlackAndWhiteURLs->scan($content, $scanfile, 'CNT');
@@ -2396,25 +2405,31 @@ register_shutdown_function('__shutdown__');
             list($detected, $result) = $CheckVulnerability($scan_path, $scanfile, 0, $content);
            
         }
+
+        
         ### Custom code in PHP
         if (!$detected) {
             list($detected, $result) = ScanCheckers::InjectedCodeAtBegOrEnd($scan_path, $scanfile);
         }
 
+        
 
         if (!$detected && ($GLOBALS['OPTIONS']['EXPLOITS'] === true || is_array($GLOBALS['OPTIONS']['EXPLOITS']))) {
             list($detected, $result)  = ScanCheckers::scan_exploits($scanfile, $content);
         }
 
+        
+
+
         if (!$detected) {
             list($detected, $result)  = ScanCheckers::scan_extended($scanfile, $content);
         }
         
+       
 
         if (!$detected) {
             list($detected, $result)  = ScanCheckers::scan_vdie($scanfile, $content);
         }
-
 
 
         #var_dump($result, $detected); 
@@ -2637,13 +2652,17 @@ PROGRESS;
             foreach($scanfiles as $scanfile) {
                 #$scanfile= $scanfiles[7];
                 #var_dump($scanfiles[0]);
+                #$scanfil[0] ='/jmc/wp-login.phpstring';
                 $return = [];
                 $stime = microtime(true);
                 is_null($scanfile[0]) ? die(var_dump($scanfile[0], 22)) : '';
                 $display_file = $GLOBALS['fn:shorten_path']($scanfile[0], 100);
                 $GLOBALS['fn:stdout'](  "\033[2K\r" . "Scaning File ... " . $display_file, false );
                 $detected = $GLOBALS['fn:scanfile']($scan_path, $scanfile, $return);
-                $tooks = $GLOBALS["fn:humantime"]( microtime(true) - $stime, true);
+                #$tooks = $GLOBALS["fn:humantime"]( microtime(true) - $stime, true);
+                $tooks =  $GLOBALS['tooks']($stime);
+                #echo "\n Here : ", $tooks;
+                #var_dump($tooks);
                 if ($detected) {
                     if ( !is_array($return[0]))
                         $return = [$return];
