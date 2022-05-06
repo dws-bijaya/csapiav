@@ -7,8 +7,9 @@ define('IS_CLI', PHP_SAPI == 'cli' || PHP_SAPI == 'cgi-fcgi' );
 (function_exists("set_time_limit") == TRUE ) ? [@set_time_limit(0),  @ini_set('max_execution_time', 0)] : NULL;
 ini_set('max_execution_time', 0);
 
+
 function __shutdown__() {
-    print_r(error_get_last());
+    #print_r(error_get_last());
 }
 register_shutdown_function('__shutdown__');
 
@@ -913,6 +914,7 @@ register_shutdown_function('__shutdown__');
         } while(strlen(implode("/", $paths)) > $maxchrs);
         #var_dump($maxchrs, strlen(implode("/", $paths)) < $maxchrs);
        $doted_paths = (implode("/", $paths));
+       $doted_paths = (  preg_replace('~(\/(.[\.\/]*)\/)~im', '..', $doted_paths) ); 
        return strlen($doted_paths) < $maxchrs ?  $doted_paths : basename($doted_paths);
     };
     
@@ -2599,7 +2601,7 @@ register_shutdown_function('__shutdown__');
     $GLOBALS['fn:humantime'] =  static function ($seconds)
     {
 
-        return date('H:i:s', $seconds);
+        return date('H:i:s', (int) $seconds);
         $r        = '';
         $_seconds = floor($seconds);
         $ms       = $seconds - $_seconds;
@@ -2825,10 +2827,14 @@ HELP;
     }
 
     if ($options['scan'] != 'ALL') 
-        $GLOBALS['OPTIONS']['SCAN_ONLY_EXTENSIONS'] =  array_map( 'strtolower', array_filter(explode(",", $options['scan']) ) );
+        $GLOBALS['OPTIONS']['SCAN_ONLY_EXTENSIONS'] =  $options['scan'];
     
     if ('LIMITED' == $options['scan'] )
         $GLOBALS['OPTIONS']['SCAN_ONLY_EXTENSIONS'] = 'php,js,htaccess,html,htm';
+
+    if (isset($GLOBALS['OPTIONS']['SCAN_ONLY_EXTENSIONS']))
+        $GLOBALS['OPTIONS']['SCAN_ONLY_EXTENSIONS'] = array_map( 'strtolower', array_filter(explode(",",  $GLOBALS['OPTIONS']['SCAN_ONLY_EXTENSIONS']) ) );
+
 
     #print_r($GLOBALS['OPTIONS']['SCAN_ONLY_EXTENSIONS']); die;
 
