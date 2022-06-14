@@ -2472,7 +2472,7 @@ register_shutdown_function('__shutdown__');
             list($detected, $result)  = ScanCheckers::catch_all($scanfile, $content);
         }
 
-        var_dump($scanfile[0], $detected); 
+        #var_dump($scanfile[0], $detected); 
         return $detected;
 
 
@@ -2756,7 +2756,7 @@ Current default path is: $cwd
                                         Default is 1/y/yes/on => true, else false
     -s, --suspect                       Allow to scan for suspected file
     -d, --delay=INT                     Delay in milliseconds  to reduce load on the file system (Default: 1).
-    -m, --mxdirs=INT                      Max directories allowed(Default: 8000)
+    -m, --maxdirs=INT                      Max directories allowed(Default: 8000)
     for filter 
     --minsize=INT
     --maxsize=INT
@@ -2794,7 +2794,7 @@ HELP;
     $shortopts .= 'm:'; // Optional value
     $shortopts .= 'u:'; // Optional value
 
-    $options = getopt($shortopts, ['file:', 'path:', 'help', 'version', 'recursive:', 'delay', 'mxdirs', 'minsize:', 'maxsize:', "user:", "scan:", "skip:", "own-url:", "skip-paths:", "exploits:", "skip-non-ext:", "blacklist:", "clean:", "clean-jstag-beg:", "clean-jstag-end:"]);
+    $options = getopt($shortopts, ['file:', 'path:', 'help', 'version', 'recursive:', 'delay', 'maxdirs:', 'minsize:', 'maxsize:', "user:", "scan:", "skip:", "own-url:", "skip-paths:", "exploits:", "skip-non-ext:", "blacklist:", "clean:", "clean-jstag-beg:", "clean-jstag-end:"]);
     $cwd = ( isset($_SERVER['PWD']) && $_SERVER['PWD'] ) ?  $_SERVER['PWD'] :  getcwd();
     if (isset($options['h']) || isset($options['help'])) {
         exit($help($cwd));
@@ -2827,8 +2827,8 @@ HELP;
 
     #
     $delay = ((isset($options['delay']) && !empty($options['delay']) && ($delay = $options['delay']) !== false) || (isset($options['d']) && !empty($options['d']) && ($delay = $options['d']) !== false)) ?  min((int)$delay, 5) : $GLOBALS['OPTIONS']['DEFAULT_SLOWDOWN_DELAY'];
-    $mxdirs = ((isset($options['mxdirs']) && !empty($options['mxdirs']) && ($mxdirs = $options['mxdirs']) !== false) || (isset($options['m']) && !empty($options['m']) && ($mxdirs = $options['m']) !== false)) ? (int)$mxdirs : 8000;
-    $mxdirs = (!($mxdirs < 0))?$mxdirs:8000;
+    $maxdirs = ((isset($options['maxdirs']) && !empty($options['maxdirs']) && ($maxdirs = $options['maxdirs']) !== false) || (isset($options['m']) && !empty($options['m']) && ($maxdirs = $options['m']) !== false)) ? (int)$maxdirs : 8000;
+    $maxdirs = (!($maxdirs < 0))?$maxdirs:8000;
     $delay = (!((int)$delay < 0))?(int)$delay:1;
    # var_dump($delay);die;
     
@@ -2847,7 +2847,8 @@ HELP;
     $GLOBALS['OPTIONS']['MIN_CONTENT_LEN'] = $minsize;
     $GLOBALS['OPTIONS']['MAX_CONTENT_LEN'] = $maxsize;
     $GLOBALS['OPTIONS']['SLOWDOWN_DELAY'] = $delay;
-
+    $GLOBALS['OPTIONS']['MAX_DIRS'] = $maxdirs;
+    
     
     #
     $GLOBALS['OPTIONS']['SKIP-NON-EXT'] = true;
@@ -3111,7 +3112,8 @@ INFOIUT;
         }
         $gCmsVersionDetector = [ $_csmditector,  $cms];
     }
-    $dirlist =  $scan_dirlist($scan_path, $file_list, $options['recursive'], $mxdirs);
+    $maxdirs = $GLOBALS['OPTIONS']['MAX_DIRS'];
+    $dirlist =  $scan_dirlist($scan_path, $file_list, $options['recursive'], $maxdirs);
     $GLOBALS['fn:stdout']("Directories Found : ". count($dirlist), true) ;
     $scandirs($scan_path,  $dirlist, $file_list,  $progress);
     $GLOBALS['fn:stdout']("Scanning complete! Time taken: " . $GLOBALS["fn:humantime"](round(microtime(true) - $start_time, 1), true));
