@@ -1418,7 +1418,7 @@ die("ee");
 
 */
 
-function build_blacklisted() {
+function build_blacklisted($save=false) {
     /* https://www.zerobounce.net/services/blacklist-checker.html */
     /* https://www.zbapis.net/api/bl/get-blacklist-by-host?host=rankwatch.com&captcha=1650434177.869.967 */
     /* https://www.zbapis.net/api/bl/checks-by-black-list-id?host=rankwatch.com&captcha=1650434177.869.967&id=6 */
@@ -1463,12 +1463,16 @@ function build_blacklisted() {
         }
     }
     #print_r($sgns); die;
+    if ($save)
+    {
+        file_put_contents('./../bin/blacklist_servers.json',  json_encode($sgns));
+    }
     return $sgns;
 }
 
-
-
-#die(print_r(build_blacklisted()));
+print_r([4=>"1","2", "3"]);
+die;
+die(print_r(build_blacklisted(true)));
 
 
 function  build_db() {

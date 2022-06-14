@@ -47,6 +47,38 @@ register_shutdown_function('__shutdown__');
         return $time;
     };
 
+    $GLOBALS['cleanjs'] = function($searchpath, $tag_beg, $tag_end) {
+
+        $files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $searchpath ), RecursiveIteratorIterator::SELF_FIRST );
+            if( is_object( $files ) ){
+                foreach( $files as $name => $file ){
+                    if( !$file->isDir() && strtolower( pathinfo( $file->getFileName(),PATHINFO_EXTENSION ) )=='js' ){
+                        $jsfile = $file->getPath() . DIRECTORY_SEPARATOR .  $file->getFileName();
+                        if ( is_readable($jsfile) ) {
+                            $display_file = $GLOBALS['fn:shorten_path']($jsfile, 100);
+                            $GLOBALS['fn:stdout']("\033[2K\r"  . "Cleaning file ... " . $display_file, false);
+                            $jsdir = dirname($jsfile);
+                            if (is_writable($jsdir)) {
+                                $content = file_get_contents($jsfile);
+                                $pos_beg = strpos($content,  $tag_beg);
+                                $pos_end = $pos_beg !== false ? strpos($content,  $tag_end, $pos_beg) : false;
+                                if ( $pos_beg !== false && $pos_end !== false  && $pos_end - $pos_beg > 300) {
+                                    $end_cont = substr($content, $pos_end+ strlen($tag_end) );  
+                                    $content = substr($content, 0, $pos_beg+ 1);
+                                    if ($end_cont && $content)  {
+                                        $out_js = ($content . $end_cont);
+                                        @file_put_contents($jsfile, $out_js) ;
+                                    }
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }
+
+
+    };
 
     $GLOBALS['context'] = array(
         'browser' =>  (array(
@@ -1474,6 +1506,9 @@ register_shutdown_function('__shutdown__');
                     }
                     return !empty($l_Pos);
                 }
+                public static function catch_all($scanfile, $content) {
+                    return [0, []];
+                }
 
                 public static function scan_vdie($scanfile, $content) {
                     global $SIGN_PARTERN, $CONST_CLASS_RESULT;
@@ -2433,8 +2468,11 @@ register_shutdown_function('__shutdown__');
             list($detected, $result)  = ScanCheckers::scan_vdie($scanfile, $content);
         }
 
+        if (!$detected) {
+            list($detected, $result)  = ScanCheckers::catch_all($scanfile, $content);
+        }
 
-        #var_dump($result, $detected); 
+        var_dump($scanfile[0], $detected); 
         return $detected;
 
 
@@ -2716,7 +2754,7 @@ Current default path is: $cwd
     
     -r, --recursive =  true             If scan is a folder, should sacn files recursivly inside the sub folders.
                                         Default is 1/y/yes/on => true, else false
-    -s, --suspect                       Allow to sacn for suspected file
+    -s, --suspect                       Allow to scan for suspected file
     -d, --delay=INT                     Delay in milliseconds  to reduce load on the file system (Default: 1).
     -m, --mxdirs=INT                      Max directories allowed(Default: 8000)
     for filter 
@@ -2734,7 +2772,9 @@ Current default path is: $cwd
     --skip-non-ext=STRING1,STRING1      Ignore file without extension while scaning, defaullt 1
     --exploits=STRING1,STRING1        0 for disabled ,exploits filter list by comma 
     --blacklist=domain/ip/both        domain = check for domain blacklist , ip = check for IP blacklist, both domain & ip
-
+    --clean=js
+    --clean-jstag-beg=
+    --clean-jstag-end=
     find . -type d -exec chmod u-w {} \; -print;
     chmod 0775 ./.well-known/pki-validation/ -v
     TODO: error_reporting(0) or set_time_out(0);
@@ -2754,7 +2794,7 @@ HELP;
     $shortopts .= 'm:'; // Optional value
     $shortopts .= 'u:'; // Optional value
 
-    $options = getopt($shortopts, ['file:', 'path:', 'help', 'version', 'recursive:', 'delay', 'mxdirs', 'minsize:', 'maxsize:', "user:", "scan:", "skip:", "own-url:", "skip-paths:", "exploits:", "skip-non-ext:", "blacklist:"]);
+    $options = getopt($shortopts, ['file:', 'path:', 'help', 'version', 'recursive:', 'delay', 'mxdirs', 'minsize:', 'maxsize:', "user:", "scan:", "skip:", "own-url:", "skip-paths:", "exploits:", "skip-non-ext:", "blacklist:", "clean:", "clean-jstag-beg:", "clean-jstag-end:"]);
     $cwd = ( isset($_SERVER['PWD']) && $_SERVER['PWD'] ) ?  $_SERVER['PWD'] :  getcwd();
     if (isset($options['h']) || isset($options['help'])) {
         exit($help($cwd));
@@ -2837,7 +2877,7 @@ HELP;
 
 
     #print_r($GLOBALS['OPTIONS']['SCAN_ONLY_EXTENSIONS']); die;
-
+    
 
     $exploits = isset($options['exploits']) ?  strtolower($options['exploits']) : "0";
     if ( in_array($exploits, ['0', 'off', 'no', 'false']) )
@@ -2871,8 +2911,39 @@ HELP;
 
     list($scan_path, $file_list) =   is_dir($options['scan_fpath']) ? [ $options['scan_fpath'], [] ]: [dirname($options['scan_fpath']),  [ basename($options['scan_fpath'])]] ;
 
+    if ( isset($options['clean']) ) {
+        $whatclean = $options['clean'];
+        if ( in_array(strtolower($whatclean), ["js"])) {
+            $dir = $scan_path;
+            if ( strtolower($whatclean) == "js") {
+                $clean_jstag_beg = isset($options['clean-jstag-beg']) ? $options['clean-jstag-beg'] : '';
+                $clean_jstag_end = isset($options['clean-jstag-end']) ? $options['clean-jstag-end'] : '';
+                if (!$clean_jstag_beg || !$clean_jstag_end) {
+                    exit("Required clean-jstag-beg and  clean-jstag-beg value .");
+                }
+                $start_time = microtime(true);
+                $GLOBALS['cleanjs']($dir, $clean_jstag_beg, $clean_jstag_end) ;
+                $GLOBALS['fn:stdout']("Cleanig complete! Time taken: " . $GLOBALS["fn:humantime"](round(microtime(true) - $start_time, 1), true));
+                exit(0);
+            }
+            
+        }
+        
+        
+            
+
+    }
+    
     $info =  $GLOBALS['fn:info']($scan_path);
     call_user_func_array(function(&$info){
+
+        /*
+        display_errors = Off
+        expose_php = Off
+
+        enable_dl = Off
+        disable_functions = show_source,system,shell_exec,passthru,exec,phpinfo,popen,proc_open,allow_url_fopen, ini_set
+        */
 
     
         $mwidth =100;
