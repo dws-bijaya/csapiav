@@ -2697,7 +2697,7 @@ PROGRESS;
     };
 
     $scandirs = static function($scan_path, &$dirs, $file_list, $progress) {
-        global $CONST_CLASS_RESULT, $gBlackAndWhiteURLs;
+        global $CONST_CLASS_RESULT, $gBlackAndWhiteURLs, $GLOBALS;
         while (($sdir=array_shift($dirs)) !== NULL) {       
             $scanfiles =  $GLOBALS['fn:loadfiles']($scan_path, $sdir, $file_list) ;
             #print_r($scanfiles);  die;
@@ -2724,8 +2724,13 @@ PROGRESS;
                             print_r($result);
                             die('ee');
                         }
+                        $col_def = $result[0] & $CONST_CLASS_RESULT->MALWARE ? [ (strpos($result[1], 'SMW') === 0 ?  "\033[0;31m" : "\033[0;33m" ) ,"\033[0m" , "MALW"]   : ($result[0] & $CONST_CLASS_RESULT->SUSPICIOUS ?  ["\033[0;33m", "\033[0m", "SUSP"]   : ($result[0] & $CONST_CLASS_RESULT->ARTICLEINDEX? ["\033[01;31m", "\033[0m", 'AIDX'] : ($result[0] & $CONST_CLASS_RESULT->SecurityISSUE? 'SecurityISSUE' : ($result[0] & $CONST_CLASS_RESULT->CRITICAL ? "\033[0;31mCRTL\033[0m" : ( $result[0] & $CONST_CLASS_RESULT->EXPLOITS ? ["\033[1;33m", "\033[0m", "EXPT"]  : ( ["\033[0;39m", "\033[0m", 'INGN']) ) ))) );
                         #var_dump($result[10] & ScanItem::DIR, $result[10] & ScanItem::FILE);
-                        echo sprintf("\033[2K\r[%s] [%s] %s [%s] [%s] [%s] ",  ( $result[10] & ScanItem::FILE ?  'FILE' : ( $result[10] & ScanItem::DIR ? 'FLDR' : ( $result[10] & ScanItem::WEBPAGE ? 'PAGE' :  (  $result[10] & ScanItem::DOMAIN ?  'DOMAIN' :  (  $result[10] & ScanItem::IP ? 'IP' :  'NONE') )  )  )),   $result[0] & $CONST_CLASS_RESULT->MALWARE ? "\033[31mMALWARE\033[0m" : ($result[0] & $CONST_CLASS_RESULT->SUSPICIOUS ?  "\033[0;33mSUSPICIOUS\033[0m"   : ($result[0] & $CONST_CLASS_RESULT->ARTICLEINDEX?'ArticleindeX' : ($result[0] & $CONST_CLASS_RESULT->SecurityISSUE? 'SecurityISSUE' : ($result[0] & $CONST_CLASS_RESULT->CRITICAL ? "\033[0;31mCRITICAL\033[0m" : ( $result[0] & $CONST_CLASS_RESULT->EXPLOITS ? "\033[1;32mEXPLOITS\033[0m"  : ( 'INGNORE') ) ))) ), $result[3], $result[1], $result[0] & $CONST_CLASS_RESULT->CriticalPHP ? 'CriticalPHP' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalPHPGIF? 'CriticalPHPGIF': ($result[0] & $CONST_CLASS_RESULT->CriticalPHPUploader? 'CriticalPHPUploader': (     $result[0] & $CONST_CLASS_RESULT->CriticalJS?'CriticalJS': ($result[0] & $CONST_CLASS_RESULT->WarningPHP ?'WarningPHP' :(   $result[0] & $CONST_CLASS_RESULT->Phishing ?'Phishing' :  ($result[0] & $CONST_CLASS_RESULT->Adware ?'Adware' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalURL ? 'CriticalURL': ( $result[0] & $CONST_CLASS_RESULT->SecurityGIT ? 'SecurityGIT' : (  $result[0] & $CONST_CLASS_RESULT->GoogleCache ?  'GoogleCache' :  (  $result[0] & $CONST_CLASS_RESULT->CriticalHTML ? 'CriticalHTML' : ( $result[0] & $CONST_CLASS_RESULT->OpenListing ? 'OpenListing' : ( $result[0] & $CONST_CLASS_RESULT->WebpageError  ? 'WebPageErr': ( $result[0] & $CONST_CLASS_RESULT->PermissionISSUE ? 'PermissionISSUE' : ( $result[0] & $CONST_CLASS_RESULT->SuspiciousPlugins  ? 'SuspiciousPlugins' :  ( ($result[10] & ScanItem::DIR  && $result[10] & ScanItem::DOTFOLDER ) ? 'SuspiciousDotFolder' : (  isset($result[11]) ? $result[11]:  'None') )  )  ))  )  ))) ) ) ))))),$tooks) ,  "\n";
+                        #echo sprintf("\033[2K\r[%s] [%s] %s [%s] [%s] [%s] ",  ( $result[10] & ScanItem::FILE ?  'FILE' : ( $result[10] & ScanItem::DIR ? 'FLDR' : ( $result[10] & ScanItem::WEBPAGE ? 'PAGE' :  (  $result[10] & ScanItem::DOMAIN ?  'DOMN' :  (  $result[10] & ScanItem::IP ? 'IP' :  'NONE') )  )  )),   $result[0] & $CONST_CLASS_RESULT->MALWARE ? "\033[31mMALW\033[0m" : ($result[0] & $CONST_CLASS_RESULT->SUSPICIOUS ?  "\033[0;33mSUS\033[0m"   : ($result[0] & $CONST_CLASS_RESULT->ARTICLEINDEX?'ArticleindeX' : ($result[0] & $CONST_CLASS_RESULT->SecurityISSUE? 'SecurityISSUE' : ($result[0] & $CONST_CLASS_RESULT->CRITICAL ? "\033[0;31mCRITICAL\033[0m" : ( $result[0] & $CONST_CLASS_RESULT->EXPLOITS ? "\033[1;32mEXPLOITS\033[0m"  : ( 'INGNORE') ) ))) ), $result[3], $result[1], $result[0] & $CONST_CLASS_RESULT->CriticalPHP ? 'CriticalPHP' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalPHPGIF? 'CriticalPHPGIF': ($result[0] & $CONST_CLASS_RESULT->CriticalPHPUploader? 'CriticalPHPUploader': (     $result[0] & $CONST_CLASS_RESULT->CriticalJS?'CriticalJS': ($result[0] & $CONST_CLASS_RESULT->WarningPHP ?'WarningPHP' :(   $result[0] & $CONST_CLASS_RESULT->Phishing ?'Phishing' :  ($result[0] & $CONST_CLASS_RESULT->Adware ?'Adware' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalURL ? 'CriticalURL': ( $result[0] & $CONST_CLASS_RESULT->SecurityGIT ? 'SecurityGIT' : (  $result[0] & $CONST_CLASS_RESULT->GoogleCache ?  'GoogleCache' :  (  $result[0] & $CONST_CLASS_RESULT->CriticalHTML ? 'CriticalHTML' : ( $result[0] & $CONST_CLASS_RESULT->OpenListing ? 'OpenListing' : ( $result[0] & $CONST_CLASS_RESULT->WebpageError  ? 'WebPageErr': ( $result[0] & $CONST_CLASS_RESULT->PermissionISSUE ? 'PermissionISSUE' : ( $result[0] & $CONST_CLASS_RESULT->SuspiciousPlugins  ? 'SuspiciousPlugins' :  ( ($result[10] & ScanItem::DIR  && $result[10] & ScanItem::DOTFOLDER ) ? 'SuspiciousDotFolder' : (  isset($result[11]) ? $result[11]:  'None') )  )  ))  )  ))) ) ) ))))),$tooks) ,  "\n";
+                        $scan_type = sprintf( "%s%s%s", $col_def[0],  ( $result[10] & ScanItem::FILE ?  'FILE' : ( $result[10] & ScanItem::DIR ? 'FLDR' : ( $result[10] & ScanItem::WEBPAGE ? 'PAGE' :  (  $result[10] & ScanItem::DOMAIN ?  'DOMN' :  (  $result[10] & ScanItem::IP ? 'IP' :  'NONE') )  )  )), $col_def[1]);
+                        #$result[0] & $CONST_CLASS_RESULT->MALWARE ? "\033[31mMALW\033[0m" : ($result[0] & $CONST_CLASS_RESULT->SUSPICIOUS ?  "\033[0;33mSUS\033[0m"   : ($result[0] & $CONST_CLASS_RESULT->ARTICLEINDEX?'ArticleindeX' : ($result[0] & $CONST_CLASS_RESULT->SecurityISSUE? 'SecurityISSUE' : ($result[0] & $CONST_CLASS_RESULT->CRITICAL ? "\033[0;31mCRITICAL\033[0m" : ( $result[0] & $CONST_CLASS_RESULT->EXPLOITS ? "\033[1;32mEXPLOITS\033[0m"  : ( 'INGNORE') ) ))) )
+                        $scan_issue = $result[0] & $CONST_CLASS_RESULT->CriticalPHP ? 'CriticalPHP' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalPHPGIF? 'CriticalPHPGIF': ($result[0] & $CONST_CLASS_RESULT->CriticalPHPUploader? 'CriticalPHPUploader': (     $result[0] & $CONST_CLASS_RESULT->CriticalJS?'CriticalJS': ($result[0] & $CONST_CLASS_RESULT->WarningPHP ?'WarningPHP' :(   $result[0] & $CONST_CLASS_RESULT->Phishing ?'Phishing' :  ($result[0] & $CONST_CLASS_RESULT->Adware ?'Adware' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalURL ? 'CriticalURL': ( $result[0] & $CONST_CLASS_RESULT->SecurityGIT ? 'SecurityGIT' : (  $result[0] & $CONST_CLASS_RESULT->GoogleCache ?  'GoogleCache' :  (  $result[0] & $CONST_CLASS_RESULT->CriticalHTML ? 'CriticalHTML' : ( $result[0] & $CONST_CLASS_RESULT->OpenListing ? 'OpenListing' : ( $result[0] & $CONST_CLASS_RESULT->WebpageError  ? 'WebPageErr': ( $result[0] & $CONST_CLASS_RESULT->PermissionISSUE ? 'PermissionISSUE' : ( $result[0] & $CONST_CLASS_RESULT->SuspiciousPlugins  ? 'SuspiciousPlugins' :  ( ($result[10] & ScanItem::DIR  && $result[10] & ScanItem::DOTFOLDER ) ? 'SuspiciousDotFolder' : (  isset($result[11]) ? $result[11]:  'None') )  )  ))  )  ))) ) ) )))));
+                        echo sprintf("\033[2K\r[%s][%s]%s %s %s", $scan_type , $scan_issue ,( (isset($GLOBALS['OPTIONS']['SHOW_SIGN']) && $GLOBALS['OPTIONS']['SHOW_SIGN'] === 1 ) ? sprintf('[%s]', $result[1]) : '') , $result[3],  ((isset($GLOBALS['OPTIONS']['SHOW_TIME']) && $GLOBALS['OPTIONS']['SHOW_TIME'] === 1 ) ? sprintf('[%s]', $tooks) :' ' )) ,  "\n";
                     }
                 }     
             }
@@ -2787,6 +2792,7 @@ Current default path is: $cwd
     --clean-jstag-end
     --enable-extended-scan
     --show-shutdown=0
+    --show-sign=0
     find . -type d -exec chmod u-w {} \; -print;
     chmod 0775 ./.well-known/pki-validation/ -v
     TODO: error_reporting(0) or set_time_out(0);
@@ -2806,7 +2812,7 @@ HELP;
     $shortopts .= 'm:'; // Optional value
     $shortopts .= 'u:'; // Optional value
 
-    $options = getopt($shortopts, ['file:', 'show-shutdown:',  'path:', 'help', 'version', 'recursive:', 'delay', 'maxdirs:', 'minsize:', 'maxsize:', "user:", "scan:", "skip:", "own-url:", "skip-paths:", "exploits:", "skip-non-ext:", "blacklist:", "clean:", "clean-jstag-beg:", "clean-jstag-end:"]);
+    $options = getopt($shortopts, ['file:', 'show-sign:', 'show-time:' , 'show-shutdown:',  'path:', 'help', 'version', 'recursive:', 'delay', 'maxdirs:', 'minsize:', 'maxsize:', "user:", "scan:", "skip:", "own-url:", "skip-paths:", "exploits:", "skip-non-ext:", "blacklist:", "clean:", "clean-jstag-beg:", "clean-jstag-end:"]);
     $cwd = ( isset($_SERVER['PWD']) && $_SERVER['PWD'] ) ?  $_SERVER['PWD'] :  getcwd();
     if (isset($options['h']) || isset($options['help'])) {
         exit($help($cwd));
@@ -2893,8 +2899,13 @@ HELP;
     if (isset($options['show-shutdown']) && in_array($options['show-shutdown'], ["1", "on", "yes", "true"]) )
         $GLOBALS['OPTIONS']['SHOW_SHUTDOWN'] = 1;
 
+    $GLOBALS['OPTIONS']['SHOW_SIGN'] = 0;
+    if (isset($options['show-sign']) && in_array($options['show-sign'], ["1", "on", "yes", "true"]) )
+        $GLOBALS['OPTIONS']['SHOW_SIGN'] = 1;
 
-
+    $GLOBALS['OPTIONS']['SHOW_TIME'] = 0;
+    if (isset($options['show-time']) && in_array($options['show-time'], ["1", "on", "yes", "true"]) )
+        $GLOBALS['OPTIONS']['SHOW_TIME'] = 1;
 
     $exploits = isset($options['exploits']) ?  strtolower($options['exploits']) : "0";
     if ( in_array($exploits, ['0', 'off', 'no', 'false']) )
