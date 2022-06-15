@@ -6,10 +6,12 @@
 define('IS_CLI', PHP_SAPI == 'cli' || PHP_SAPI == 'cgi-fcgi' );
 (function_exists("set_time_limit") == TRUE ) ? [@set_time_limit(0),  @ini_set('max_execution_time', 0)] : NULL;
 ini_set('max_execution_time', 0);
-
-
+ini_set('memory_limit', '512M');
 function __shutdown__() {
-    #print_r(error_get_last());
+    global $GLOBALS;
+    if ( isset($GLOBALS['OPTIONS']['SHOW_SHUTDOWN']) && $GLOBALS['OPTIONS']['SHOW_SHUTDOWN']){
+        error_get_last() ?print_r(error_get_last()):null;
+    }
 }
 register_shutdown_function('__shutdown__');
 
@@ -48,11 +50,15 @@ register_shutdown_function('__shutdown__');
     };
 
     $GLOBALS['cleanjs'] = function($searchpath, $tag_beg, $tag_end) {
+        $jsfiles = 0;
+        $cleaned = 0;
+        $affected = 0;
 
         $files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $searchpath ), RecursiveIteratorIterator::SELF_FIRST );
             if( is_object( $files ) ){
                 foreach( $files as $name => $file ){
                     if( !$file->isDir() && strtolower( pathinfo( $file->getFileName(),PATHINFO_EXTENSION ) )=='js' ){
+                        $jsfiles++;
                         $jsfile = $file->getPath() . DIRECTORY_SEPARATOR .  $file->getFileName();
                         if ( is_readable($jsfile) ) {
                             $display_file = $GLOBALS['fn:shorten_path']($jsfile, 100);
@@ -63,11 +69,15 @@ register_shutdown_function('__shutdown__');
                                 $pos_beg = strpos($content,  $tag_beg);
                                 $pos_end = $pos_beg !== false ? strpos($content,  $tag_end, $pos_beg) : false;
                                 if ( $pos_beg !== false && $pos_end !== false  && $pos_end - $pos_beg > 300) {
+                                    $affected++;
                                     $end_cont = substr($content, $pos_end+ strlen($tag_end) );  
                                     $content = substr($content, 0, $pos_beg+ 1);
-                                    if ($end_cont && $content)  {
-                                        $out_js = ($content . $end_cont);
-                                        @file_put_contents($jsfile, $out_js) ;
+                                    if ( $content)  {
+                                        $out_js = ($content . ( is_string($end_cont) ? $end_cont : '' ) );
+                                        if (@file_put_contents($jsfile, $out_js))
+                                        $cleaned++;
+
+
                                     }
                                 }
                             }
@@ -77,7 +87,7 @@ register_shutdown_function('__shutdown__');
                 }
             }
 
-
+            return [$jsfiles,$affected , $cleaned];
     };
 
     $GLOBALS['context'] = array(
@@ -2773,8 +2783,10 @@ Current default path is: $cwd
     --exploits=STRING1,STRING1        0 for disabled ,exploits filter list by comma 
     --blacklist=domain/ip/both        domain = check for domain blacklist , ip = check for IP blacklist, both domain & ip
     --clean=js
-    --clean-jstag-beg=
-    --clean-jstag-end=
+    --clean-jstag-beg
+    --clean-jstag-end
+    --enable-extended-scan
+    --show-shutdown=0
     find . -type d -exec chmod u-w {} \; -print;
     chmod 0775 ./.well-known/pki-validation/ -v
     TODO: error_reporting(0) or set_time_out(0);
@@ -2794,7 +2806,7 @@ HELP;
     $shortopts .= 'm:'; // Optional value
     $shortopts .= 'u:'; // Optional value
 
-    $options = getopt($shortopts, ['file:', 'path:', 'help', 'version', 'recursive:', 'delay', 'maxdirs:', 'minsize:', 'maxsize:', "user:", "scan:", "skip:", "own-url:", "skip-paths:", "exploits:", "skip-non-ext:", "blacklist:", "clean:", "clean-jstag-beg:", "clean-jstag-end:"]);
+    $options = getopt($shortopts, ['file:', 'show-shutdown:',  'path:', 'help', 'version', 'recursive:', 'delay', 'maxdirs:', 'minsize:', 'maxsize:', "user:", "scan:", "skip:", "own-url:", "skip-paths:", "exploits:", "skip-non-ext:", "blacklist:", "clean:", "clean-jstag-beg:", "clean-jstag-end:"]);
     $cwd = ( isset($_SERVER['PWD']) && $_SERVER['PWD'] ) ?  $_SERVER['PWD'] :  getcwd();
     if (isset($options['h']) || isset($options['help'])) {
         exit($help($cwd));
@@ -2877,8 +2889,12 @@ HELP;
         $GLOBALS['OPTIONS']['SCAN_ONLY_EXTENSIONS'] = array_map( 'strtolower', array_filter(explode(",",  $GLOBALS['OPTIONS']['SCAN_ONLY_EXTENSIONS']) ) );
 
 
-    #print_r($GLOBALS['OPTIONS']['SCAN_ONLY_EXTENSIONS']); die;
-    
+    $GLOBALS['OPTIONS']['SHOW_SHUTDOWN'] = 0;
+    if (isset($options['show-shutdown']) && in_array($options['show-shutdown'], ["1", "on", "yes", "true"]) )
+        $GLOBALS['OPTIONS']['SHOW_SHUTDOWN'] = 1;
+
+
+
 
     $exploits = isset($options['exploits']) ?  strtolower($options['exploits']) : "0";
     if ( in_array($exploits, ['0', 'off', 'no', 'false']) )
@@ -2923,8 +2939,8 @@ HELP;
                     exit("Required clean-jstag-beg and  clean-jstag-beg value .");
                 }
                 $start_time = microtime(true);
-                $GLOBALS['cleanjs']($dir, $clean_jstag_beg, $clean_jstag_end) ;
-                $GLOBALS['fn:stdout']("Cleanig complete! Time taken: " . $GLOBALS["fn:humantime"](round(microtime(true) - $start_time, 1), true));
+                list($jsfiles,$affected , $cleaned) = $GLOBALS['cleanjs']($dir, $clean_jstag_beg, $clean_jstag_end) ;
+                $GLOBALS['fn:stdout']( sprintf("\033[2K\rCleanig complete! Files Found: %s, Affected: %s, Cleaned:%s  Time taken: %s",  $jsfiles,$affected , $cleaned, $GLOBALS["fn:humantime"](round(microtime(true) - $start_time, 1), true)));
                 exit(0);
             }
             
