@@ -6,7 +6,7 @@
 define('IS_CLI', PHP_SAPI == 'cli' || PHP_SAPI == 'cgi-fcgi' );
 (function_exists("set_time_limit") == TRUE ) ? [@set_time_limit(0),  @ini_set('max_execution_time', 0)] : NULL;
 ini_set('max_execution_time', 0);
-ini_set('memory_limit', '512M');
+@ini_set('memory_limit', '512M');
 function __shutdown__() {
     global $GLOBALS;
     if ( isset($GLOBALS['OPTIONS']['SHOW_SHUTDOWN']) && $GLOBALS['OPTIONS']['SHOW_SHUTDOWN']){
