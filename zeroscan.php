@@ -16,8 +16,8 @@ function __shutdown__() {
 register_shutdown_function('__shutdown__');
 
 ($ret = (call_user_func(function(){
-    global $GLOBALS,  $CONST_CLASS_RESULT;
-    static $BANNER, $APP_VERSION, $SIGN_VERSION, $SIGN_COUNT;
+    global $GLOBALS,  $CONST_CLASS_RESULT, $BANNER;
+    static $APP_VERSION, $SIGN_VERSION, $SIGN_COUNT;
     global  $SIGN_PARTERN, $SIGN_HASH, $SIGN_DEF;
 
 
@@ -37,12 +37,68 @@ register_shutdown_function('__shutdown__');
     $SIGN_PARTERN = json_decode( json_encode( array('_FlexDBShe'=> $SIGN_PARTERN['M'], '_SusDB'=> $SIGN_PARTERN['S'], '_AdwareSig'=> $SIGN_PARTERN['A'], '_ExceptFlex'=> $SIGN_PARTERN['E'], '_JSVirSig'=> $SIGN_PARTERN['J'], '_PhishingSig'=> $SIGN_PARTERN['F'], '_ExploitsSig'=> $SIGN_PARTERN['EX'], '_ExtendedSig'=> $SIGN_PARTERN['RX'], '_VirusDieSig'=> $SIGN_PARTERN['VE'], '_BlacklistDnsSig'=> $SIGN_PARTERN['BD']   )));
     #list($SIGN_PARTERN, $SIGN_HASH, $SIGN_DEF) = [ unserialize(gzinflate(base64_decode(("[SIGN_PATTERN]]")))), unserialize(gzinflate(base64_decode(("[SIGN_HASH]]")))), unserialize(gzinflate(base64_decode(("[SIGN_DEF]]"))))];
     #print_r($SIGN_PARTERN); die;
-    $SIGN_PARTERN->_CriticalDirs = [ "/^config[A-Z]{3}(?<Sconfig>)$/"];
+    $SIGN_PARTERN->_CriticalDirs = [ "/^config[A-Z]{3}(?<Sconfig>)$/", "/^JumpF0x(?<Sjumpf0x>)$/" ];
     $GLOBALS['OPTIONS']['BHAT_FILECURRUPTED'] =  123455 !== filesize(__FILE__);
     $GLOBALS['OPTIONS']['SELF_FILE'] =  realpath(__FILE__);
     $CONST_CLASS_RESULT =  json_decode(json_encode(array('MALWARE'=>pow(2, 0), 'SUSPICIOUS' => pow(2, 1), 'ARTICLEINDEX'=> pow(2, 2), 'CriticalPHP' =>  pow(2, 3), 'CriticalPHPGIF' => pow(2, 4), 'CriticalPHPUploader'=> pow(2, 5), 'CriticalJS' => pow(2, 6) , 'WarningPHP' => pow(2, 7), 'Phishing'=> pow(2, 8) , 'Adware' => pow(2, 9), 'CriticalURL'=> pow(2, 10), 'SecurityISSUE'=> pow(2, 11), 'SecurityGIT'=> pow(2, 12) , 'GoogleBOT' =>pow(2, 13) , 'WarningGCache'=>  pow(2, 14) , 'GoogleCache'=> pow(2, 15), 'CRITICAL'=> pow(2, 16) ,  'CriticalHTML' => pow(2, 17), 'OpenListing' =>  pow(2, 18), 'WebpageError'=> pow(2, 18), 'PermissionISSUE' => pow(2, 19), 'SuspiciousPlugins' => pow(2, 20), 'EXPLOITS' =>  pow(2, 21), 'DNS_BLACKLIST' =>  pow(2, 22)   ) )  );
     global $gCmsVersionDetector;
-     
+    
+    global $BANNER;
+    function injectData($file, $data, $position) 
+    {
+        $temp = fopen('php://temp', "rw+");
+        $fd = fopen($file, 'r+b');
+
+        fseek($fd, $position);
+        stream_copy_to_stream($fd, $temp); // copy end
+
+        fseek($fd, $position); // seek back
+        fwrite($fd, $data); // write data
+
+        rewind($temp);
+        stream_copy_to_stream($temp, $fd); // stich end on again
+
+        fclose($temp);
+        fclose($fd);
+    }
+
+    
+    $GLOBALS['fn:write_report'] = function($scan_path, $data) {
+        global $BANNER;
+        static $init, $took_pos, $result_pos ;
+
+        #if ( $init && $init >1)
+        #    return;
+
+        $write = '';
+        #$GLOBALS['OPTIONS']['REPORT_DIR']['FILE'] = './out.json';
+        if (is_null($init))
+        {   
+            @unlink($GLOBALS['OPTIONS']['REPORT_DIR']['FILE']);
+            touch($GLOBALS['OPTIONS']['REPORT_DIR']['FILE']);
+
+            $write = array("banner" => $BANNER, "time" => time(), "scan_folder"=>$scan_path, "tooks"=> "[[TOOKS]]", "results"=>[9999999]) ;
+            $write = json_encode($write);
+            $took_pos = strpos($write, '[[TOOKS]]');
+            $write = str_replace('[[TOOKS]]', '', $write) ;
+            $result_pos = strpos($write, '9999999');
+            $write = str_replace('9999999', '', $write) ;
+            file_put_contents($GLOBALS['OPTIONS']['REPORT_DIR']['FILE'], $write) ;
+            #:q!injectData($GLOBALS['OPTIONS']['REPORT_DIR']['FILE'], "2:3:4 seconds", $took_pos);
+            $init = 0;
+        }
+
+
+        $write =  ( ($init==0) ? "" : ", " ) .  json_encode($data);
+        injectData($GLOBALS['OPTIONS']['REPORT_DIR']['FILE'], $write  , $result_pos);
+        $init++;
+        $result_pos += strlen($write);
+        
+
+    } ;
+    
+
+
     $GLOBALS['tooks'] = function($time_start) {
         $time_end = microtime(true);
         $time = ($time_end - $time_start);
@@ -2548,7 +2604,7 @@ register_shutdown_function('__shutdown__');
         
         $basename = basename($dir);
         /* Dot Folder as SUSPICIOUS */
-        if ( strlen($basename) >1 && $basename[0] == "." &&  !in_array($basename, ['.git', '.well-known']))
+        if ( strlen($basename) >1 && $basename[0] == "." &&  !in_array($basename, ['.git', '.well-known', ".vscode", ".github"]))
         {
             $fldr = realpath(sprintf("%s%s", $scan_path, $dir));
             list($ext, $perms, $mtime, $size, $ownerid, $hashfile, $user_name, $group_name, $flag) = $GLOBALS['fn:filestats']($fldr);
@@ -2697,7 +2753,8 @@ register_shutdown_function('__shutdown__');
     return array($BANNER, $APP_VERSION, $SIGN_VERSION, $SIGN_COUNT, &$SIGN_PARTERN, &$SIGN_HASH, &$SIGN_DEF);
 
 }))) && IS_CLI ? call_user_func(function($ret){ 
-    echo $ret[0] .  "\n";
+    
+
     $show_version = static function($app_version, $sign_version, $sign_loaded) {
         echo "current APP Version: {$app_version}, Signature Version: {$sign_version}, Signatue Loaded: {$sign_loaded}";
         return 1;
@@ -2750,15 +2807,14 @@ PROGRESS;
                         $col_def = $result[0] & $CONST_CLASS_RESULT->MALWARE ? [ (strpos($result[1], 'SMW') === 0 ?  "\033[0;31m" : "\033[0;33m" ) ,"\033[0m" , "MALW"]   : ($result[0] & $CONST_CLASS_RESULT->SUSPICIOUS ?  ["\033[0;33m", "\033[0m", "SUSP"]   : ($result[0] & $CONST_CLASS_RESULT->ARTICLEINDEX? ["\033[01;31m", "\033[0m", 'AIDX'] : ($result[0] & $CONST_CLASS_RESULT->SecurityISSUE? 'SecurityISSUE' : ($result[0] & $CONST_CLASS_RESULT->CRITICAL ? ["\033[0;31m", "\033[0m", "CRTL"] : ( $result[0] & $CONST_CLASS_RESULT->EXPLOITS ? ["\033[1;33m", "\033[0m", "EXPT"]  : ( ["\033[0;39m", "\033[0m", 'INGN']) ) ))) );
                         #var_dump($result[10] & ScanItem::DIR, $result[10] & ScanItem::FILE);
                         #echo sprintf("\033[2K\r[%s] [%s] %s [%s] [%s] [%s] ",  ( $result[10] & ScanItem::FILE ?  'FILE' : ( $result[10] & ScanItem::DIR ? 'FLDR' : ( $result[10] & ScanItem::WEBPAGE ? 'PAGE' :  (  $result[10] & ScanItem::DOMAIN ?  'DOMN' :  (  $result[10] & ScanItem::IP ? 'IP' :  'NONE') )  )  )),   $result[0] & $CONST_CLASS_RESULT->MALWARE ? "\033[31mMALW\033[0m" : ($result[0] & $CONST_CLASS_RESULT->SUSPICIOUS ?  "\033[0;33mSUS\033[0m"   : ($result[0] & $CONST_CLASS_RESULT->ARTICLEINDEX?'ArticleindeX' : ($result[0] & $CONST_CLASS_RESULT->SecurityISSUE? 'SecurityISSUE' : ($result[0] & $CONST_CLASS_RESULT->CRITICAL ? "\033[0;31mCRITICAL\033[0m" : ( $result[0] & $CONST_CLASS_RESULT->EXPLOITS ? "\033[1;32mEXPLOITS\033[0m"  : ( 'INGNORE') ) ))) ), $result[3], $result[1], $result[0] & $CONST_CLASS_RESULT->CriticalPHP ? 'CriticalPHP' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalPHPGIF? 'CriticalPHPGIF': ($result[0] & $CONST_CLASS_RESULT->CriticalPHPUploader? 'CriticalPHPUploader': (     $result[0] & $CONST_CLASS_RESULT->CriticalJS?'CriticalJS': ($result[0] & $CONST_CLASS_RESULT->WarningPHP ?'WarningPHP' :(   $result[0] & $CONST_CLASS_RESULT->Phishing ?'Phishing' :  ($result[0] & $CONST_CLASS_RESULT->Adware ?'Adware' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalURL ? 'CriticalURL': ( $result[0] & $CONST_CLASS_RESULT->SecurityGIT ? 'SecurityGIT' : (  $result[0] & $CONST_CLASS_RESULT->GoogleCache ?  'GoogleCache' :  (  $result[0] & $CONST_CLASS_RESULT->CriticalHTML ? 'CriticalHTML' : ( $result[0] & $CONST_CLASS_RESULT->OpenListing ? 'OpenListing' : ( $result[0] & $CONST_CLASS_RESULT->WebpageError  ? 'WebPageErr': ( $result[0] & $CONST_CLASS_RESULT->PermissionISSUE ? 'PermissionISSUE' : ( $result[0] & $CONST_CLASS_RESULT->SuspiciousPlugins  ? 'SuspiciousPlugins' :  ( ($result[10] & ScanItem::DIR  && $result[10] & ScanItem::DOTFOLDER ) ? 'SuspiciousDotFolder' : (  isset($result[11]) ? $result[11]:  'None') )  )  ))  )  ))) ) ) ))))),$tooks) ,  "\n";
-                        $scan_type = sprintf( "%s%s%s", $col_def[0],  ( $result[10] & ScanItem::FILE ?  'FILE' : ( $result[10] & ScanItem::DIR ? 'FLDR' : ( $result[10] & ScanItem::WEBPAGE ? 'PAGE' :  (  $result[10] & ScanItem::DOMAIN ?  'DOMN' :  (  $result[10] & ScanItem::IP ? 'IP' :  'NONE') )  )  )), $col_def[1]);
+                        $scan_type = ( $result[10] & ScanItem::FILE ?  'FILE' : ( $result[10] & ScanItem::DIR ? 'FLDR' : ( $result[10] & ScanItem::WEBPAGE ? 'PAGE' :  (  $result[10] & ScanItem::DOMAIN ?  'DOMN' :  (  $result[10] & ScanItem::IP ? 'IPv4' :  'NONE') )  )  ));
+                        $cscan_type = sprintf( "%s%s%s", $col_def[0], $scan_type , $col_def[1]);
                        
                         #$result[0] & $CONST_CLASS_RESULT->MALWARE ? "\033[31mMALW\033[0m" : ($result[0] & $CONST_CLASS_RESULT->SUSPICIOUS ?  "\033[0;33mSUS\033[0m"   : ($result[0] & $CONST_CLASS_RESULT->ARTICLEINDEX?'ArticleindeX' : ($result[0] & $CONST_CLASS_RESULT->SecurityISSUE? 'SecurityISSUE' : ($result[0] & $CONST_CLASS_RESULT->CRITICAL ? "\033[0;31mCRITICAL\033[0m" : ( $result[0] & $CONST_CLASS_RESULT->EXPLOITS ? "\033[1;32mEXPLOITS\033[0m"  : ( 'INGNORE') ) ))) )
                         $scan_issue = $result[0] & $CONST_CLASS_RESULT->CriticalPHP ? 'CriticalPHP' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalPHPGIF? 'CriticalPHPGIF': ($result[0] & $CONST_CLASS_RESULT->CriticalPHPUploader? 'CriticalPHPUploader': (     $result[0] & $CONST_CLASS_RESULT->CriticalJS?'CriticalJS': ($result[0] & $CONST_CLASS_RESULT->WarningPHP ?'WarningPHP' :(   $result[0] & $CONST_CLASS_RESULT->Phishing ?'Phishing' :  ($result[0] & $CONST_CLASS_RESULT->Adware ?'Adware' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalURL ? 'CriticalURL': ( $result[0] & $CONST_CLASS_RESULT->SecurityGIT ? 'SecurityGIT' : (  $result[0] & $CONST_CLASS_RESULT->GoogleCache ?  'GoogleCache' :  (  $result[0] & $CONST_CLASS_RESULT->CriticalHTML ? 'CriticalHTML' : ( $result[0] & $CONST_CLASS_RESULT->OpenListing ? 'OpenListing' : ( $result[0] & $CONST_CLASS_RESULT->WebpageError  ? 'WebPageErr': ( $result[0] & $CONST_CLASS_RESULT->PermissionISSUE ? 'PermissionISSUE' : ( $result[0] & $CONST_CLASS_RESULT->SuspiciousPlugins  ? 'SuspiciousPlugins' :  ( ($result[10] & ScanItem::DIR  && $result[10] & ScanItem::DOTFOLDER ) ? 'SuspiciousDotFolder' : (  isset($result[11]) ? $result[11]:  'None') )  )  ))  )  ))) ) ) )))));
                         echo sprintf("\033[2K\r[%s][%s]%s %s %s", $scan_type , $scan_issue ,( (isset($GLOBALS['OPTIONS']['SHOW_SIGN']) && $GLOBALS['OPTIONS']['SHOW_SIGN'] === 1 ) ? sprintf('[%s]', $result[1]) : '') , $result[3],  ((isset($GLOBALS['OPTIONS']['SHOW_TIME']) && $GLOBALS['OPTIONS']['SHOW_TIME'] === 1 ) ? sprintf('[%s]', $tooks) :' ' )) ,  "\n";
-                        if ( $result[10] & ScanItem::FILE)
-                        {
-                           # var_dump($col_def); 
-                        }
+                        $record = [ $scan_type , $scan_issue, $result[1],  $result[3], $tooks];
+                        $GLOBALS['fn:write_report']($scan_path, $record);
                     }
                 }     
             }
@@ -2821,6 +2877,7 @@ Current default path is: $cwd
     --enable-extended-scan
     --show-shutdown=0
     --show-sign=0
+    --report-dir=
     find . -type d -exec chmod u-w {} \; -print;
     chmod 0775 ./.well-known/pki-validation/ -v
     TODO: error_reporting(0) or set_time_out(0);
@@ -2828,6 +2885,9 @@ Current default path is: $cwd
 HELP;
     return 1;
     };
+
+
+    echo $ret[0];
 
     #
     $shortopts = '';
@@ -2840,7 +2900,8 @@ HELP;
     $shortopts .= 'm:'; // Optional value
     $shortopts .= 'u:'; // Optional value
 
-    $options = getopt($shortopts, ['file:', 'show-sign:', 'show-time:' , 'show-shutdown:',  'path:', 'help', 'version', 'recursive:', 'delay', 'maxdirs:', 'minsize:', 'maxsize:', "user:", "scan:", "skip:", "own-url:", "skip-paths:", "exploits:", "skip-non-ext:", "blacklist:", "clean:", "clean-jstag-beg:", "clean-jstag-end:"]);
+    $options = getopt($shortopts, ['file:', 'show-sign:',  "report-dir:", 'show-time:' , 'show-shutdown:',  'path:', 'help', 'version', 'recursive:', 'delay', 'maxdirs:', 'minsize:', 'maxsize:', "user:", "scan:", "skip:", "own-url:", "skip-paths:", "exploits:", "skip-non-ext:", "blacklist:", "clean:", "clean-jstag-beg:", "clean-jstag-end:"]);
+    #var_dump($options, realpath("")); die;
     $cwd = ( isset($_SERVER['PWD']) && $_SERVER['PWD'] ) ?  $_SERVER['PWD'] :  getcwd();
     if (isset($options['h']) || isset($options['help'])) {
         exit($help($cwd));
@@ -2856,8 +2917,23 @@ HELP;
         exit('Specified  scan path or file.'.chr(10));
     }
     if ( strpos($scan_what, $cwd) !== 0 ) {
-        die("Can't scann below the current dir folder .");
+        die("Can't scan below the current dir folder .");
     }
+
+    $GLOBALS['OPTIONS']['REPORT_DIR'] = getcwd();
+    if (isset($options['report-dir']) && $options['report-dir'])
+        $GLOBALS['OPTIONS']['REPORT_DIR'] = realpath($options['report-dir']);
+      
+    if ( ! is_dir($GLOBALS['OPTIONS']['REPORT_DIR']) || !is_writable($GLOBALS['OPTIONS']['REPORT_DIR']))
+        die("Can't write report in the report folder .");
+
+    $GLOBALS['OPTIONS']['REPORT_DIR'] = [
+        'DIR' => $GLOBALS['OPTIONS']['REPORT_DIR'],
+        'FILE' => sprintf("%s/zeroscan-report-%s.json" , $GLOBALS['OPTIONS']['REPORT_DIR'], md5(time()))
+    ];
+
+    echo sprintf("Report File: %s \n", $GLOBALS['OPTIONS']['REPORT_DIR']['FILE']);
+    
 
     $options['scan_fpath'] = $scan_what;
     $options['scan_cdir']  = substr($scan_what, 0, strlen($cwd));
@@ -2935,6 +3011,7 @@ HELP;
     if (isset($options['show-time']) && in_array($options['show-time'], ["1", "on", "yes", "true"]) )
         $GLOBALS['OPTIONS']['SHOW_TIME'] = 1;
 
+      
     $exploits = isset($options['exploits']) ?  strtolower($options['exploits']) : "0";
     if ( in_array($exploits, ['0', 'off', 'no', 'false']) )
         $GLOBALS['OPTIONS']['EXPLOITS'] = false;
@@ -2966,7 +3043,7 @@ HELP;
 
 
     list($scan_path, $file_list) =   is_dir($options['scan_fpath']) ? [ $options['scan_fpath'], [] ]: [dirname($options['scan_fpath']),  [ basename($options['scan_fpath'])]] ;
-
+    
     if ( isset($options['clean']) ) {
         $whatclean = $options['clean'];
         if ( in_array(strtolower($whatclean), ["js"])) {
