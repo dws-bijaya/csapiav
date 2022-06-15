@@ -37,6 +37,7 @@ register_shutdown_function('__shutdown__');
     $SIGN_PARTERN = json_decode( json_encode( array('_FlexDBShe'=> $SIGN_PARTERN['M'], '_SusDB'=> $SIGN_PARTERN['S'], '_AdwareSig'=> $SIGN_PARTERN['A'], '_ExceptFlex'=> $SIGN_PARTERN['E'], '_JSVirSig'=> $SIGN_PARTERN['J'], '_PhishingSig'=> $SIGN_PARTERN['F'], '_ExploitsSig'=> $SIGN_PARTERN['EX'], '_ExtendedSig'=> $SIGN_PARTERN['RX'], '_VirusDieSig'=> $SIGN_PARTERN['VE'], '_BlacklistDnsSig'=> $SIGN_PARTERN['BD']   )));
     #list($SIGN_PARTERN, $SIGN_HASH, $SIGN_DEF) = [ unserialize(gzinflate(base64_decode(("[SIGN_PATTERN]]")))), unserialize(gzinflate(base64_decode(("[SIGN_HASH]]")))), unserialize(gzinflate(base64_decode(("[SIGN_DEF]]"))))];
     #print_r($SIGN_PARTERN); die;
+    $SIGN_PARTERN->_CriticalDirs = [ "/^config[A-Z]{3}(?<Sconfig>)$/"];
     $GLOBALS['OPTIONS']['BHAT_FILECURRUPTED'] =  123455 !== filesize(__FILE__);
     $GLOBALS['OPTIONS']['SELF_FILE'] =  realpath(__FILE__);
     $CONST_CLASS_RESULT =  json_decode(json_encode(array('MALWARE'=>pow(2, 0), 'SUSPICIOUS' => pow(2, 1), 'ARTICLEINDEX'=> pow(2, 2), 'CriticalPHP' =>  pow(2, 3), 'CriticalPHPGIF' => pow(2, 4), 'CriticalPHPUploader'=> pow(2, 5), 'CriticalJS' => pow(2, 6) , 'WarningPHP' => pow(2, 7), 'Phishing'=> pow(2, 8) , 'Adware' => pow(2, 9), 'CriticalURL'=> pow(2, 10), 'SecurityISSUE'=> pow(2, 11), 'SecurityGIT'=> pow(2, 12) , 'GoogleBOT' =>pow(2, 13) , 'WarningGCache'=>  pow(2, 14) , 'GoogleCache'=> pow(2, 15), 'CRITICAL'=> pow(2, 16) ,  'CriticalHTML' => pow(2, 17), 'OpenListing' =>  pow(2, 18), 'WebpageError'=> pow(2, 18), 'PermissionISSUE' => pow(2, 19), 'SuspiciousPlugins' => pow(2, 20), 'EXPLOITS' =>  pow(2, 21), 'DNS_BLACKLIST' =>  pow(2, 22)   ) )  );
@@ -1661,9 +1662,10 @@ register_shutdown_function('__shutdown__');
 
 
                 public static function  scan_dir_check($scan_path, $scanfile) {
-                    global $CONST_CLASS_RESULT, $gCmsVersionDetector;
+                    global $CONST_CLASS_RESULT, $gCmsVersionDetector, $SIGN_PARTERN;
                     $perms = $scanfile[4];
                     $flag = $scanfile[7];
+
 
 
                     if ($flag & ScanItem::DOTFOLDER) {
@@ -1688,6 +1690,27 @@ register_shutdown_function('__shutdown__');
                     {
                         return [ 1,  array_merge( [ $CONST_CLASS_RESULT->SUSPICIOUS,  "SUS:WP:DIR:1" , time() ] ,  $scanfile, ['SuspiciousDIR']) ]; 
                     }
+
+                    foreach($SIGN_PARTERN->_CriticalDirs as $regex) {
+                        if ($regex[0] == '/') {
+                            #var_dump($regex, $basename, preg_match($regex, $basename)); 
+                            if (preg_match($regex, $basename, $match)) {
+                                $sign = "NA";$idx =0;
+                                foreach($match as $k =>$v)
+                                {   
+                                    $idx++;
+                                    if ( is_string($k) && strlen($k) >2 &&  ($pos= strpos($k, "S")) === 0 )
+                                        $sign = strtoupper(substr($k, $pos+1));
+                                }
+                                return [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:{$sign}:DIR:{$idx}" , time() ] ,  $scanfile, ['MalareDIR']) ]; 
+                            }
+                    
+                        } 
+                    }
+                    
+
+
+
                     return [ 0,  []];
 
                     #var_dump($scanfile[0], $x,  $plugin_slug);
@@ -2586,7 +2609,7 @@ register_shutdown_function('__shutdown__');
         $GLOBALS['fn:stdout']( "\033[2K\r", false);
         /* SUSPICIOUS */
 
-        if (   $dir === "/.git") {
+        if (  $dir === "/.git") {
             $gitdir = sprintf("%s%s", $scan_path, $dir);
             list($ext, $perms, $mtime, $size, $ownerid, $hashfile , $user_name, $group_name, $flag) = $GLOBALS['fn:filestats']($gitdir);
             $flag =  $flag | ScanItem::WEBPAGE | ScanItem::GIT_ACCESS;
@@ -2724,13 +2747,18 @@ PROGRESS;
                             print_r($result);
                             die('ee');
                         }
-                        $col_def = $result[0] & $CONST_CLASS_RESULT->MALWARE ? [ (strpos($result[1], 'SMW') === 0 ?  "\033[0;31m" : "\033[0;33m" ) ,"\033[0m" , "MALW"]   : ($result[0] & $CONST_CLASS_RESULT->SUSPICIOUS ?  ["\033[0;33m", "\033[0m", "SUSP"]   : ($result[0] & $CONST_CLASS_RESULT->ARTICLEINDEX? ["\033[01;31m", "\033[0m", 'AIDX'] : ($result[0] & $CONST_CLASS_RESULT->SecurityISSUE? 'SecurityISSUE' : ($result[0] & $CONST_CLASS_RESULT->CRITICAL ? "\033[0;31mCRTL\033[0m" : ( $result[0] & $CONST_CLASS_RESULT->EXPLOITS ? ["\033[1;33m", "\033[0m", "EXPT"]  : ( ["\033[0;39m", "\033[0m", 'INGN']) ) ))) );
+                        $col_def = $result[0] & $CONST_CLASS_RESULT->MALWARE ? [ (strpos($result[1], 'SMW') === 0 ?  "\033[0;31m" : "\033[0;33m" ) ,"\033[0m" , "MALW"]   : ($result[0] & $CONST_CLASS_RESULT->SUSPICIOUS ?  ["\033[0;33m", "\033[0m", "SUSP"]   : ($result[0] & $CONST_CLASS_RESULT->ARTICLEINDEX? ["\033[01;31m", "\033[0m", 'AIDX'] : ($result[0] & $CONST_CLASS_RESULT->SecurityISSUE? 'SecurityISSUE' : ($result[0] & $CONST_CLASS_RESULT->CRITICAL ? ["\033[0;31m", "\033[0m", "CRTL"] : ( $result[0] & $CONST_CLASS_RESULT->EXPLOITS ? ["\033[1;33m", "\033[0m", "EXPT"]  : ( ["\033[0;39m", "\033[0m", 'INGN']) ) ))) );
                         #var_dump($result[10] & ScanItem::DIR, $result[10] & ScanItem::FILE);
                         #echo sprintf("\033[2K\r[%s] [%s] %s [%s] [%s] [%s] ",  ( $result[10] & ScanItem::FILE ?  'FILE' : ( $result[10] & ScanItem::DIR ? 'FLDR' : ( $result[10] & ScanItem::WEBPAGE ? 'PAGE' :  (  $result[10] & ScanItem::DOMAIN ?  'DOMN' :  (  $result[10] & ScanItem::IP ? 'IP' :  'NONE') )  )  )),   $result[0] & $CONST_CLASS_RESULT->MALWARE ? "\033[31mMALW\033[0m" : ($result[0] & $CONST_CLASS_RESULT->SUSPICIOUS ?  "\033[0;33mSUS\033[0m"   : ($result[0] & $CONST_CLASS_RESULT->ARTICLEINDEX?'ArticleindeX' : ($result[0] & $CONST_CLASS_RESULT->SecurityISSUE? 'SecurityISSUE' : ($result[0] & $CONST_CLASS_RESULT->CRITICAL ? "\033[0;31mCRITICAL\033[0m" : ( $result[0] & $CONST_CLASS_RESULT->EXPLOITS ? "\033[1;32mEXPLOITS\033[0m"  : ( 'INGNORE') ) ))) ), $result[3], $result[1], $result[0] & $CONST_CLASS_RESULT->CriticalPHP ? 'CriticalPHP' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalPHPGIF? 'CriticalPHPGIF': ($result[0] & $CONST_CLASS_RESULT->CriticalPHPUploader? 'CriticalPHPUploader': (     $result[0] & $CONST_CLASS_RESULT->CriticalJS?'CriticalJS': ($result[0] & $CONST_CLASS_RESULT->WarningPHP ?'WarningPHP' :(   $result[0] & $CONST_CLASS_RESULT->Phishing ?'Phishing' :  ($result[0] & $CONST_CLASS_RESULT->Adware ?'Adware' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalURL ? 'CriticalURL': ( $result[0] & $CONST_CLASS_RESULT->SecurityGIT ? 'SecurityGIT' : (  $result[0] & $CONST_CLASS_RESULT->GoogleCache ?  'GoogleCache' :  (  $result[0] & $CONST_CLASS_RESULT->CriticalHTML ? 'CriticalHTML' : ( $result[0] & $CONST_CLASS_RESULT->OpenListing ? 'OpenListing' : ( $result[0] & $CONST_CLASS_RESULT->WebpageError  ? 'WebPageErr': ( $result[0] & $CONST_CLASS_RESULT->PermissionISSUE ? 'PermissionISSUE' : ( $result[0] & $CONST_CLASS_RESULT->SuspiciousPlugins  ? 'SuspiciousPlugins' :  ( ($result[10] & ScanItem::DIR  && $result[10] & ScanItem::DOTFOLDER ) ? 'SuspiciousDotFolder' : (  isset($result[11]) ? $result[11]:  'None') )  )  ))  )  ))) ) ) ))))),$tooks) ,  "\n";
                         $scan_type = sprintf( "%s%s%s", $col_def[0],  ( $result[10] & ScanItem::FILE ?  'FILE' : ( $result[10] & ScanItem::DIR ? 'FLDR' : ( $result[10] & ScanItem::WEBPAGE ? 'PAGE' :  (  $result[10] & ScanItem::DOMAIN ?  'DOMN' :  (  $result[10] & ScanItem::IP ? 'IP' :  'NONE') )  )  )), $col_def[1]);
+                       
                         #$result[0] & $CONST_CLASS_RESULT->MALWARE ? "\033[31mMALW\033[0m" : ($result[0] & $CONST_CLASS_RESULT->SUSPICIOUS ?  "\033[0;33mSUS\033[0m"   : ($result[0] & $CONST_CLASS_RESULT->ARTICLEINDEX?'ArticleindeX' : ($result[0] & $CONST_CLASS_RESULT->SecurityISSUE? 'SecurityISSUE' : ($result[0] & $CONST_CLASS_RESULT->CRITICAL ? "\033[0;31mCRITICAL\033[0m" : ( $result[0] & $CONST_CLASS_RESULT->EXPLOITS ? "\033[1;32mEXPLOITS\033[0m"  : ( 'INGNORE') ) ))) )
                         $scan_issue = $result[0] & $CONST_CLASS_RESULT->CriticalPHP ? 'CriticalPHP' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalPHPGIF? 'CriticalPHPGIF': ($result[0] & $CONST_CLASS_RESULT->CriticalPHPUploader? 'CriticalPHPUploader': (     $result[0] & $CONST_CLASS_RESULT->CriticalJS?'CriticalJS': ($result[0] & $CONST_CLASS_RESULT->WarningPHP ?'WarningPHP' :(   $result[0] & $CONST_CLASS_RESULT->Phishing ?'Phishing' :  ($result[0] & $CONST_CLASS_RESULT->Adware ?'Adware' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalURL ? 'CriticalURL': ( $result[0] & $CONST_CLASS_RESULT->SecurityGIT ? 'SecurityGIT' : (  $result[0] & $CONST_CLASS_RESULT->GoogleCache ?  'GoogleCache' :  (  $result[0] & $CONST_CLASS_RESULT->CriticalHTML ? 'CriticalHTML' : ( $result[0] & $CONST_CLASS_RESULT->OpenListing ? 'OpenListing' : ( $result[0] & $CONST_CLASS_RESULT->WebpageError  ? 'WebPageErr': ( $result[0] & $CONST_CLASS_RESULT->PermissionISSUE ? 'PermissionISSUE' : ( $result[0] & $CONST_CLASS_RESULT->SuspiciousPlugins  ? 'SuspiciousPlugins' :  ( ($result[10] & ScanItem::DIR  && $result[10] & ScanItem::DOTFOLDER ) ? 'SuspiciousDotFolder' : (  isset($result[11]) ? $result[11]:  'None') )  )  ))  )  ))) ) ) )))));
                         echo sprintf("\033[2K\r[%s][%s]%s %s %s", $scan_type , $scan_issue ,( (isset($GLOBALS['OPTIONS']['SHOW_SIGN']) && $GLOBALS['OPTIONS']['SHOW_SIGN'] === 1 ) ? sprintf('[%s]', $result[1]) : '') , $result[3],  ((isset($GLOBALS['OPTIONS']['SHOW_TIME']) && $GLOBALS['OPTIONS']['SHOW_TIME'] === 1 ) ? sprintf('[%s]', $tooks) :' ' )) ,  "\n";
+                        if ( $result[10] & ScanItem::FILE)
+                        {
+                           # var_dump($col_def); 
+                        }
                     }
                 }     
             }
