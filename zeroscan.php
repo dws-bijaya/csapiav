@@ -1178,39 +1178,54 @@ register_shutdown_function('__shutdown__');
                 public static function InjectedCodeAtBegOrEnd($scan_path, $scanfile)
                 {
                     global $CONST_CLASS_RESULT;
-                    if ( preg_match('~php(\d+)?$~', $scanfile[3]) )
+                    if ( !preg_match('~php(\d+)?$~', $scanfile[3]) )
                     {
-                        $file = "{$scan_path}{$scanfile[0]}" ;
-                        #$file = "./malwares_samples/large-line-in-php.php";
-                        $bfile = new SplFileObject($file, 'r');
-                        $bfile->setFlags(SplFileObject::READ_AHEAD | SplFileObject::SKIP_EMPTY );
-                        $lno = 0;$found = [];
-                        while (!$bfile->eof()) {
-                            $lno += 1;
-                            $line  =  $bfile->fgets();
-                            if (!trim($line))
-                                continue;
-                            if (  !$found && stripos($line, '<?php ') === 0 && strlen(substr($line, 5)) >= $GLOBALS['OPTIONS']['PHPLINE_LEN'] &&  stripos($line, '<?php ', 10) === FALSE    && (preg_match('~[A-z0-9\+/]{100,}~sm', $line) || substr_count($line, 'function ')>=3  )     ) {
-                                $found = [$lno, $line];
-                            }
-                        }
-                        $bfile = null;
-                        /* First line Or Last Line injected  */
-                        if ( !$found )  {
-                            return  [0, []];
-                        }
-
-                        if (stripos($found[1], '<?php ') === 0 &&  strlen(substr($found[1], 5)) >= $GLOBALS['OPTIONS']['PHPLINE_LEN']) {
-                            $error_reporting  =  stripos($found[1], 'error_reporting');
-                            $display_errors  =  stripos($found[1], 'display_errors');
-                            if (  ( $found[0] ==  $lno &&  $lno == 1)  ||  ( $found[0] ==  $lno &&  $lno != 1)  ) {
-                                return  [1, array_merge( [ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->CriticalPHP,  "SMW:INJ:PHP:CODE:MXlN", time() ] ,  $scanfile)];
-                            }
-                            return  [1, array_merge( [ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->CriticalPHP,  "CRI:FLE:PHP:MXLINE", time() ] ,  $scanfile)];
-                        }
+                        return  [0, []];
                     }
-                    return  [0, []];
+
+                    $file = "{$scan_path}{$scanfile[0]}" ;
+                    #$file = "./malwares_samples/large-line-in-php.php";
+                    $bfile = new SplFileObject($file, 'r');
+                    $bfile->setFlags(SplFileObject::READ_AHEAD | SplFileObject::SKIP_EMPTY );
+                    $lno = 0;$found = []; $prev = null; $last = null;
+                    while (!$bfile->eof()) {
+                        $lno += 1;
+                        $line  =  $bfile->fgets();
+                        if (!trim($line))
+                            continue;
+
+                        if ( !$found && strlen($line) >= $GLOBALS['OPTIONS']['PHPLINE_LEN'] )
+                        {
+                            $found = [$lno, $line];
+                        }
+                        
+                        $last = $line;
+                        if ( stripos( trim($line), '<?php') ===  0 ) 
+                            $prev  = $lno;
+
+                        if ( stripos( trim($line), '?>') ===  0 ) 
+                            $last  = $lno;
+
+                        #if (  !$found && stripos($line, '<?php ') === 0 && strlen(substr($line, 5)) >= $GLOBALS['OPTIONS']['PHPLINE_LEN'] &&  stripos($line, '<?php ', 10) === FALSE    && (preg_match('~[A-z0-9\+/]{100,}~sm', $line) || substr_count($line, 'function ')>=3  )     ) {
+                                
+                    }
+                    $bfile = null;
+                    /* First line Or Last Line injected  */
+                    if ( !$found || strlen(($found[1])) <= $GLOBALS['OPTIONS']['PHPLINE_LEN'] )  
+                        return  [0, []];
+                        
+
+                        
+                    $error_reporting  =  stripos($found[1], 'error_reporting');
+                    $display_errors  =  stripos($found[1], 'display_errors');
+                    if ( ( !is_null($prev)  && !is_null($last) && $found[0] - 1 === $prev &&   $found[0] + 1 === $last     ) || ( stripos($found[1], '<?php ') === 0  &&  (( $found[0] ==  $lno &&  $lno == 1)  ||  ( $found[0] ==  $lno &&  $lno != 1)  ) ))
+                    {
+                        return  [1, array_merge( [ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->CriticalPHP,  "SMW:INJ:PHP:CODE:MXlN", time() ] ,  $scanfile)]; 
+                    }
+
+                    return  [1, array_merge( [ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->CriticalPHP,  "CRI:FLE:PHP:MXLINE", time() ] ,  $scanfile)];
                 }
+                    
                 public static function WarningPHP($l_Content, &$l_Pos, &$l_SigId, $signs, $debug = null)
                 {
                     foreach ($signs->_SusDB as $l_Item) {
