@@ -1184,24 +1184,30 @@ register_shutdown_function('__shutdown__');
                         #$file = "./malwares_samples/large-line-in-php.php";
                         $bfile = new SplFileObject($file, 'r');
                         $bfile->setFlags(SplFileObject::READ_AHEAD | SplFileObject::SKIP_EMPTY );
-                        $lno = 0;$found = false;
+                        $lno = 0;$found = [];
                         while (!$bfile->eof()) {
+                            $lno += 1;
                             $line  =  $bfile->fgets();
                             if (!trim($line))
                                 continue;
-                            $lno += 1; 
-                            if ($lno == 1 && stripos($line, '<?php ') === 0 && strlen(substr($line, 5)) >= $GLOBALS['OPTIONS']['PHPLINE_LEN'] &&  stripos($line, '<?php ', 10) === FALSE    && (preg_match('~[A-z0-9\+/]{100,}~sm', $line) || substr_count($line, 'function ')>=3  )     ) {
-                                $found = true;
-                                break;
+                            if (  !$found && stripos($line, '<?php ') === 0 && strlen(substr($line, 5)) >= $GLOBALS['OPTIONS']['PHPLINE_LEN'] &&  stripos($line, '<?php ', 10) === FALSE    && (preg_match('~[A-z0-9\+/]{100,}~sm', $line) || substr_count($line, 'function ')>=3  )     ) {
+                                $found = [$lno, $line];
                             }
                         }
                         $bfile = null;
                         /* First line Or Last Line injected  */
-                        if ( $found || stripos($line, '<?php ') === 0 && strlen(substr($line, 5)) >= $GLOBALS['OPTIONS']['PHPLINE_LEN']  &&  stripos($line, '<?php ', 10) === FALSE && (preg_match('~[A-z0-9\+/]{100,}~sm', $line) || substr_count($line, 'function ')>=3  )  ) {
-                            unset($line);
+                        if ( !$found )  {
+                            return  [0, []];
+                        }
+
+                        if (stripos($found[1], '<?php ') === 0 &&  strlen(substr($found[1], 5)) >= $GLOBALS['OPTIONS']['PHPLINE_LEN']) {
+                            $error_reporting  =  stripos($found[1], 'error_reporting');
+                            $display_errors  =  stripos($found[1], 'display_errors');
+                            if (  ( $found[0] ==  $lno &&  $lno == 1)  ||  ( $found[0] ==  $lno &&  $lno != 1)  ) {
+                                return  [1, array_merge( [ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->CriticalPHP,  "SMW:INJ:PHP:CODE:MXlN", time() ] ,  $scanfile)];
+                            }
                             return  [1, array_merge( [ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->CriticalPHP,  "CRI:FLE:PHP:MXLINE", time() ] ,  $scanfile)];
                         }
-                        unset($line);
                     }
                     return  [0, []];
                 }
@@ -2788,6 +2794,7 @@ PROGRESS;
                 $return = [];
                 $stime = microtime(true);
                 is_null($scanfile[0]) ? die(var_dump($scanfile[0], 22)) : '';
+                $scan_time= time();
                 $display_file = $GLOBALS['fn:shorten_path']($scanfile[0], 100);
                 $GLOBALS['fn:stdout'](  "\033[2K\r" . "Scaning File ... " . $display_file, false );
                 $detected = $GLOBALS['fn:scanfile']($scan_path, $scanfile, $return);
@@ -2804,16 +2811,16 @@ PROGRESS;
                             print_r($result);
                             die('ee');
                         }
-                        $col_def = $result[0] & $CONST_CLASS_RESULT->MALWARE ? [ (strpos($result[1], 'SMW') === 0 ?  "\033[0;31m" : "\033[0;33m" ) ,"\033[0m" , "MALW"]   : ($result[0] & $CONST_CLASS_RESULT->SUSPICIOUS ?  ["\033[0;33m", "\033[0m", "SUSP"]   : ($result[0] & $CONST_CLASS_RESULT->ARTICLEINDEX? ["\033[01;31m", "\033[0m", 'AIDX'] : ($result[0] & $CONST_CLASS_RESULT->SecurityISSUE? 'SecurityISSUE' : ($result[0] & $CONST_CLASS_RESULT->CRITICAL ? ["\033[0;31m", "\033[0m", "CRTL"] : ( $result[0] & $CONST_CLASS_RESULT->EXPLOITS ? ["\033[1;33m", "\033[0m", "EXPT"]  : ( ["\033[0;39m", "\033[0m", 'INGN']) ) ))) );
+                        $col_def = $result[0] & $CONST_CLASS_RESULT->MALWARE ? [ (strpos($result[1], 'SMW:') === 0 ?  "\033[0;31m" : "\033[0;33m" ) ,"\033[0m" , "MALW"]   : ($result[0] & $CONST_CLASS_RESULT->SUSPICIOUS ?  ["\033[0;33m", "\033[0m", "SUSP"]   : ($result[0] & $CONST_CLASS_RESULT->ARTICLEINDEX? ["\033[01;31m", "\033[0m", 'AIDX'] : ($result[0] & $CONST_CLASS_RESULT->SecurityISSUE? 'SecurityISSUE' : ($result[0] & $CONST_CLASS_RESULT->CRITICAL ? ["\033[0;31m", "\033[0m", "CRTL"] : ( $result[0] & $CONST_CLASS_RESULT->EXPLOITS ? ["\033[1;33m", "\033[0m", "EXPT"]  : ( ["\033[0;39m", "\033[0m", 'INGN']) ) ))) );
                         #var_dump($result[10] & ScanItem::DIR, $result[10] & ScanItem::FILE);
                         #echo sprintf("\033[2K\r[%s] [%s] %s [%s] [%s] [%s] ",  ( $result[10] & ScanItem::FILE ?  'FILE' : ( $result[10] & ScanItem::DIR ? 'FLDR' : ( $result[10] & ScanItem::WEBPAGE ? 'PAGE' :  (  $result[10] & ScanItem::DOMAIN ?  'DOMN' :  (  $result[10] & ScanItem::IP ? 'IP' :  'NONE') )  )  )),   $result[0] & $CONST_CLASS_RESULT->MALWARE ? "\033[31mMALW\033[0m" : ($result[0] & $CONST_CLASS_RESULT->SUSPICIOUS ?  "\033[0;33mSUS\033[0m"   : ($result[0] & $CONST_CLASS_RESULT->ARTICLEINDEX?'ArticleindeX' : ($result[0] & $CONST_CLASS_RESULT->SecurityISSUE? 'SecurityISSUE' : ($result[0] & $CONST_CLASS_RESULT->CRITICAL ? "\033[0;31mCRITICAL\033[0m" : ( $result[0] & $CONST_CLASS_RESULT->EXPLOITS ? "\033[1;32mEXPLOITS\033[0m"  : ( 'INGNORE') ) ))) ), $result[3], $result[1], $result[0] & $CONST_CLASS_RESULT->CriticalPHP ? 'CriticalPHP' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalPHPGIF? 'CriticalPHPGIF': ($result[0] & $CONST_CLASS_RESULT->CriticalPHPUploader? 'CriticalPHPUploader': (     $result[0] & $CONST_CLASS_RESULT->CriticalJS?'CriticalJS': ($result[0] & $CONST_CLASS_RESULT->WarningPHP ?'WarningPHP' :(   $result[0] & $CONST_CLASS_RESULT->Phishing ?'Phishing' :  ($result[0] & $CONST_CLASS_RESULT->Adware ?'Adware' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalURL ? 'CriticalURL': ( $result[0] & $CONST_CLASS_RESULT->SecurityGIT ? 'SecurityGIT' : (  $result[0] & $CONST_CLASS_RESULT->GoogleCache ?  'GoogleCache' :  (  $result[0] & $CONST_CLASS_RESULT->CriticalHTML ? 'CriticalHTML' : ( $result[0] & $CONST_CLASS_RESULT->OpenListing ? 'OpenListing' : ( $result[0] & $CONST_CLASS_RESULT->WebpageError  ? 'WebPageErr': ( $result[0] & $CONST_CLASS_RESULT->PermissionISSUE ? 'PermissionISSUE' : ( $result[0] & $CONST_CLASS_RESULT->SuspiciousPlugins  ? 'SuspiciousPlugins' :  ( ($result[10] & ScanItem::DIR  && $result[10] & ScanItem::DOTFOLDER ) ? 'SuspiciousDotFolder' : (  isset($result[11]) ? $result[11]:  'None') )  )  ))  )  ))) ) ) ))))),$tooks) ,  "\n";
                         $scan_type = ( $result[10] & ScanItem::FILE ?  'FILE' : ( $result[10] & ScanItem::DIR ? 'FLDR' : ( $result[10] & ScanItem::WEBPAGE ? 'PAGE' :  (  $result[10] & ScanItem::DOMAIN ?  'DOMN' :  (  $result[10] & ScanItem::IP ? 'IPv4' :  'NONE') )  )  ));
                         $cscan_type = sprintf( "%s%s%s", $col_def[0], $scan_type , $col_def[1]);
                         #echo $cscan_type; die;
                         #$result[0] & $CONST_CLASS_RESULT->MALWARE ? "\033[31mMALW\033[0m" : ($result[0] & $CONST_CLASS_RESULT->SUSPICIOUS ?  "\033[0;33mSUS\033[0m"   : ($result[0] & $CONST_CLASS_RESULT->ARTICLEINDEX?'ArticleindeX' : ($result[0] & $CONST_CLASS_RESULT->SecurityISSUE? 'SecurityISSUE' : ($result[0] & $CONST_CLASS_RESULT->CRITICAL ? "\033[0;31mCRITICAL\033[0m" : ( $result[0] & $CONST_CLASS_RESULT->EXPLOITS ? "\033[1;32mEXPLOITS\033[0m"  : ( 'INGNORE') ) ))) )
-                        $scan_issue = $result[0] & $CONST_CLASS_RESULT->CriticalPHP ? 'CriticalPHP' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalPHPGIF? 'CriticalPHPGIF': ($result[0] & $CONST_CLASS_RESULT->CriticalPHPUploader? 'CriticalPHPUploader': (     $result[0] & $CONST_CLASS_RESULT->CriticalJS?'CriticalJS': ($result[0] & $CONST_CLASS_RESULT->WarningPHP ?'WarningPHP' :(   $result[0] & $CONST_CLASS_RESULT->Phishing ?'Phishing' :  ($result[0] & $CONST_CLASS_RESULT->Adware ?'Adware' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalURL ? 'CriticalURL': ( $result[0] & $CONST_CLASS_RESULT->SecurityGIT ? 'SecurityGIT' : (  $result[0] & $CONST_CLASS_RESULT->GoogleCache ?  'GoogleCache' :  (  $result[0] & $CONST_CLASS_RESULT->CriticalHTML ? 'CriticalHTML' : ( $result[0] & $CONST_CLASS_RESULT->OpenListing ? 'OpenListing' : ( $result[0] & $CONST_CLASS_RESULT->WebpageError  ? 'WebPageErr': ( $result[0] & $CONST_CLASS_RESULT->PermissionISSUE ? 'PermissionISSUE' : ( $result[0] & $CONST_CLASS_RESULT->SuspiciousPlugins  ? 'SuspiciousPlugins' :  ( ($result[10] & ScanItem::DIR  && $result[10] & ScanItem::DOTFOLDER ) ? 'SuspiciousDotFolder' : (  isset($result[11]) ? $result[11]:  'None') )  )  ))  )  ))) ) ) )))));
-                        echo sprintf("\033[2K\r[%s][%s]%s %s %s", $cscan_type , $scan_issue ,( (isset($GLOBALS['OPTIONS']['SHOW_SIGN']) && $GLOBALS['OPTIONS']['SHOW_SIGN'] === 1 ) ? sprintf('[%s]', $result[1]) : '') , $result[3],  ((isset($GLOBALS['OPTIONS']['SHOW_TIME']) && $GLOBALS['OPTIONS']['SHOW_TIME'] === 1 ) ? sprintf('[%s]', $tooks) :' ' )) ,  "\n";
-                        $record = [ $scan_type , $scan_issue, $result[1],  $result[3], $tooks];
+                        $scan_issue = $result[0] & $CONST_CLASS_RESULT->CriticalPHP ? 'CriticPHP' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalPHPGIF? 'CriPHPGIF': ($result[0] & $CONST_CLASS_RESULT->CriticalPHPUploader? 'CriPHPUpd': (     $result[0] & $CONST_CLASS_RESULT->CriticalJS?'CriticlJS': ($result[0] & $CONST_CLASS_RESULT->WarningPHP ?'WarningPHP' :(   $result[0] & $CONST_CLASS_RESULT->Phishing ?'Phishings' :  ($result[0] & $CONST_CLASS_RESULT->Adware ?'AdwareCde' :  ( $result[0] & $CONST_CLASS_RESULT->CriticalURL ? 'CritilURL': ( $result[0] & $CONST_CLASS_RESULT->SecurityGIT ? 'SecuriGIT' : (  $result[0] & $CONST_CLASS_RESULT->GoogleCache ?  'GogleCache' :  (  $result[0] & $CONST_CLASS_RESULT->CriticalHTML ? 'CritlHTML' : ( $result[0] & $CONST_CLASS_RESULT->OpenListing ? 'OpenLsting' : ( $result[0] & $CONST_CLASS_RESULT->WebpageError  ? 'WebPageEr': ( $result[0] & $CONST_CLASS_RESULT->PermissionISSUE ? 'PermISSUE' : ( $result[0] & $CONST_CLASS_RESULT->SuspiciousPlugins  ? 'SuspPlugin' :  ( ($result[10] & ScanItem::DIR  && $result[10] & ScanItem::DOTFOLDER ) ? 'SusDotDir' : (  isset($result[11]) ? $result[11]:  'None') )  )  ))  )  ))) ) ) )))));
+                        echo sprintf("\033[2K\r[%s][%s][%s]%s %s %s", date('Y-m-d\TH:i:s') , $cscan_type , $scan_issue ,( (isset($GLOBALS['OPTIONS']['SHOW_SIGN']) && $GLOBALS['OPTIONS']['SHOW_SIGN'] === 1 ) ? sprintf('[%s]', $result[1]) : '') , $result[3],  ((isset($GLOBALS['OPTIONS']['SHOW_TIME']) && $GLOBALS['OPTIONS']['SHOW_TIME'] === 1 ) ? sprintf('[%s]', $tooks) :' ' )) ,  "\n";
+                        $record = [ $scan_type , $scan_issue, $result[1],  $result[3],  $scan_time, $tooks];
                         $GLOBALS['fn:write_report']($scan_path, $record);
                     }
                 }     
@@ -2927,13 +2934,16 @@ HELP;
     if ( ! is_dir($GLOBALS['OPTIONS']['REPORT_DIR']) || !is_writable($GLOBALS['OPTIONS']['REPORT_DIR']))
         die("Can't write report in the report folder .");
 
+    $scan_id = md5(microtime(true));
+    $GLOBALS['OPTIONS']['SCAN_ID'] = $scan_id;
     $GLOBALS['OPTIONS']['REPORT_DIR'] = [
         'DIR' => $GLOBALS['OPTIONS']['REPORT_DIR'],
-        'FILE' => sprintf("%s/zeroscan-report-%s.json" , $GLOBALS['OPTIONS']['REPORT_DIR'], md5(time()))
+        'FILE' => sprintf("%s/zeroscan-report-%s.json" , $GLOBALS['OPTIONS']['REPORT_DIR'], $scan_id)
     ];
-
+    ##############################################################################
+    echo sprintf("\nScan ID: %s \n", $scan_id);
     echo sprintf("Report File: %s \n", $GLOBALS['OPTIONS']['REPORT_DIR']['FILE']);
-    
+    ##############################################################################
 
     $options['scan_fpath'] = $scan_what;
     $options['scan_cdir']  = substr($scan_what, 0, strlen($cwd));
