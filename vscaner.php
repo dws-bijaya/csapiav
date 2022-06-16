@@ -1470,17 +1470,18 @@ function build_blacklisted($save=false) {
     return $sgns;
 }
 
-print_r([4=>"1","2", "3"]);
-die;
-die(print_r(build_blacklisted(true)));
+
+#die(print_r(build_blacklisted(true)));
 
 
 function  build_db() {
     require_once('./LoadSignaturesForScan.php');
     define('AI_EXPERT',  2);  define('DEBUG_PERFORMANCE',  0);
     #var_dump(AI_EXPERT, DEBUG_PERFORMANCE);
+    #root@69.167.148.63:/var/imunify360/files/sigs/v1_2022-06-16T074309.987928Z/aibolit/
     $signs = new LoadSignaturesForScan('./v1/aibolit/ai-bolit-hoster-full.db', AI_EXPERT, DEBUG_PERFORMANCE);
-   # print_r( $signs->_FlexDBShe); die;
+    $signs = new LoadSignaturesForScan('./v1/var/imunify360/files/sigs/v1_2022-06-16T074309.987928Z/aibolit/ai-bolit-hoster-full.db', AI_EXPERT, DEBUG_PERFORMANCE);
+    #print_r( $signs->_FlexDBShe); die;
 
 
 
@@ -1591,7 +1592,7 @@ function  build_db() {
 
 
 
-error_reporting(E_ALL | E_WARNING);
+    error_reporting(E_ALL | E_WARNING);
    
     $f_vdir_db = './v1/vdie/sigs.db';
     $vdie_signs = json_decode( file_get_contents($f_vdir_db), true);
@@ -1671,7 +1672,7 @@ error_reporting(E_ALL | E_WARNING);
     $signs_regex["VE"]['def'] = $vdie_def;
 
 
-    die(var_dump(json_encode(build_blacklisted())));
+    #die(var_dump(json_encode(build_blacklisted())));
     $blacklist_sign = build_blacklisted();
     $signs_regex["BD"] = $blacklist_sign;
 
@@ -1742,7 +1743,7 @@ VE
 
 
     $sign_version = time();
-    $app_version = '1.0.0';
+    $app_version = '4.3.0';
 
     #$halt_compiler = gzdeflate(base64_encode(str_rot13(strrev(json_encode(array('_FlexDBShe'=> $signs_regex['M'], '_SusDB'=> $signs_regex['S'], '_AdwareSig'=> $signs_regex['A'], '_ExceptFlex'=> $signs_regex['E'], '_JSVirSig'=> $signs_regex['J'], '_PhishingSig'=> $signs_regex['F'], '_ExploitsSig'=> $signs_regex['EX'] ))))));
     #$halt_compiler = (((json_encode(array('_FlexDBShe'=> $signs_regex['M'], '_SusDB'=> $signs_regex['S'], '_AdwareSig'=> $signs_regex['A'], '_ExceptFlex'=> $signs_regex['E'], '_JSVirSig'=> $signs_regex['J'], '_PhishingSig'=> $signs_regex['F'], '_ExploitsSig'=> $signs_regex['EX'] )))));
@@ -1760,8 +1761,14 @@ VE
 
     $static_data = [
     <<<BANNER
-ZeroScan {$app_version} , Malware,Exploits Files Scanner for PHP Websites
-Copyright: 2022-2022 ZeroScan Inc.
+     ______              _____                  
+    |___  /             / ____|                
+       / / ___ _ __ ___| (___   ___ __ _ _ __  
+      / / / _ \ '__/ _ \\___ \ / __/ _` | '_ \ 
+     / /_|  __/ | | (_) |___) | (_| (_| | | | |
+    /_____\___|_|  \___/_____/ \___\__,_|_| |_|
+ZeroScan {$app_version} , Malware, Exploits anf Vulnerability Files Scanner for PHP Websites
+Copyright: 2022-2023 ZeroScan Inc.
 Signatures Verion: {$sign_version}
 Signatures Loaded: {$sign_count}
 BANNER,
