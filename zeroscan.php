@@ -2593,7 +2593,7 @@ register_shutdown_function('__shutdown__');
         
 
 
-        if (  $flag & ScanItem::VULNERABLE )
+        if (! $detected && $flag & ScanItem::VULNERABLE )
         {
             list($detected, $result)  = ScanUnit::scan_vulnerability($scanfile);
         }
