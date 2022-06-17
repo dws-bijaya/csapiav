@@ -1227,12 +1227,14 @@ register_shutdown_function('__shutdown__');
                     if ($eval !== false)
                         $cond[] = 1;
 
-                    
-                    if (  ( count($cond) && $prev  ) || (   ( !is_null($prev)  && !is_null($last) && $found[0] - 1 === $prev &&   $found[0] + 1 === $last     ) || ( stripos($found[1], '<?php ') === 0  &&  (( $found[0] ==  $lno &&  $lno == 1)  ||  ( $found[0] ==  $lno &&  $lno != 1)  ) )))
+                    $doller = substr_count($found[1], '$');
+                    $semicol = substr_count($found[1], ';');
+                    if (    (   ( !is_null($prev)  && !is_null($last) && $found[0] - 1 === $prev &&   $found[0] + 1 === $last     ) || ( stripos($found[1], '<?php ') === 0  &&  (( $found[0] ==  $lno &&  $lno == 1)  ||  ( $found[0] ==  $lno &&  $lno != 1)  ) ))  || ( count($cond) && $prev  ) || ($doller && $doller > 10 && $semicol && $semicol > 10  )  )
                     {
                         return  [1, array_merge( [ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->CriticalPHP,  "SMW:INJ:PHP:CODE:MXlN", time() ] ,  $scanfile)]; 
                     }
                     #var_dump($prev, $last, $found[0]);
+                    
 
                     return  [1, array_merge( [ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->CriticalPHP,  "CRI:FLE:PHP:MXLINE", time() ] ,  $scanfile)];
                 }
@@ -2599,6 +2601,7 @@ register_shutdown_function('__shutdown__');
         if ( $vul_result ) {
             $detected = 1;
             $result[]= $vul_result;
+            
         }
         #var_dump($scanfile[0], $detected); 
         return $detected;
