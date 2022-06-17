@@ -1214,9 +1214,21 @@ register_shutdown_function('__shutdown__');
                     if ( !$found || strlen(($found[1])) <= $GLOBALS['OPTIONS']['PHPLINE_LEN'] )  
                         return  [0, []];
                         
-                    $error_reporting  =  stripos($found[1], 'error_reporting');
-                    $display_errors  =  stripos($found[1], 'display_errors');
-                    if ( ( !is_null($prev)  && !is_null($last) && $found[0] - 1 === $prev &&   $found[0] + 1 === $last     ) || ( stripos($found[1], '<?php ') === 0  &&  (( $found[0] ==  $lno &&  $lno == 1)  ||  ( $found[0] ==  $lno &&  $lno != 1)  ) ))
+                    $error_reporting  =  stripos($found[1], 'error_reporting(');
+                    $display_errors  =  stripos($found[1], 'display_errors(');
+                    $eval  =  stripos($found[1], 'eval(');
+
+                    $cond  = [] ;
+                    if ($error_reporting !== false)
+                        $cond[] = 1;
+                    if ($display_errors !== false)
+                        $cond[] = 1;
+
+                    if ($eval !== false)
+                        $cond[] = 1;
+
+                    
+                    if (  ( count($cond) && $prev  ) || (   ( !is_null($prev)  && !is_null($last) && $found[0] - 1 === $prev &&   $found[0] + 1 === $last     ) || ( stripos($found[1], '<?php ') === 0  &&  (( $found[0] ==  $lno &&  $lno == 1)  ||  ( $found[0] ==  $lno &&  $lno != 1)  ) )))
                     {
                         return  [1, array_merge( [ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->CriticalPHP,  "SMW:INJ:PHP:CODE:MXlN", time() ] ,  $scanfile)]; 
                     }
@@ -2454,11 +2466,13 @@ register_shutdown_function('__shutdown__');
             return [false, []];
         };
 
-        
+
+       
+        $vul_result = [];
         if (  $flag & ScanItem::VULNERABLE )
         {
-            list($detected, $result)  = ScanUnit::scan_vulnerability($scanfile);
-            return $detected;
+            list($detected, $vul_result)  = ScanUnit::scan_vulnerability($scanfile);
+            #return $detected;
         }
 
 
@@ -2582,6 +2596,10 @@ register_shutdown_function('__shutdown__');
             list($detected, $result)  = ScanCheckers::catch_all($scanfile, $content);
         }
 
+        if ( $vul_result ) {
+            $detected = 1;
+            $result[]= $vul_result;
+        }
         #var_dump($scanfile[0], $detected); 
         return $detected;
 
