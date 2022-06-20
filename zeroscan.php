@@ -62,6 +62,40 @@ register_shutdown_function('__shutdown__');
         fclose($fd);
     }
 
+    $GLOBALS['fn:size_format'] = function ($bytes, $decimals = 0) {
+            $quant   =  Array (
+
+    /*
+    [YB] => YB_IN_BYTES
+    [ZB] => ZB_IN_BYTES
+    [EB] => EB_IN_BYTES
+    [PB] => PB_IN_BYTES
+    */
+
+    'T' => 1099511627776,
+    'G' => 1073741824,
+    'M' => 1048576,
+    'K' => 1024,
+    'B' => 1
+);
+
+
+         
+            if ( 0 === $bytes ) {
+                /* translators: Unit symbol for byte. */
+                return number_format( 0, $decimals ) . '' . 'B';
+            }
+         
+            foreach ( $quant as $unit => $mag ) {
+                if ( (float) $bytes >= $mag ) {
+                    return number_format( $bytes / $mag, $decimals ) . '' . $unit;
+                }
+            }
+         
+            return false;
+        
+    };
+
     
     $GLOBALS['fn:write_report'] = function($scan_path, $data) {
         global $BANNER;
@@ -1182,7 +1216,7 @@ register_shutdown_function('__shutdown__');
                     {
                         return  [0, []];
                     }
-
+                    
                     $file = "{$scan_path}{$scanfile[0]}" ;
                     #$file = "./malwares_samples/large-line-in-php.php";
                     $bfile = new SplFileObject($file, 'r');
@@ -1227,7 +1261,7 @@ register_shutdown_function('__shutdown__');
                     if ($eval !== false)
                         $cond[] = 1;
                     
-                register_shutdown_function(function (){die(error_get_last());});
+                    #register_shutdown_function(function (){die(error_get_last());});
                     $doller = substr_count($found[1], '$');
                     $semicol = substr_count($found[1], ';');
                     if (    (   ( !is_null($prev)  && !is_null($last) && $found[0] - 1 === $prev &&   $found[0] + 1 === $last     ) || ( stripos($found[1], '<?php ') === 0  &&  (( $found[0] ==  $lno &&  $lno == 1)  ||  ( $found[0] ==  $lno &&  $lno != 1)  ) ))  || ( count($cond) && $prev  ) || ($doller && $doller > 10 && $semicol && $semicol > 10  )  )
@@ -1235,7 +1269,7 @@ register_shutdown_function('__shutdown__');
                         return  [1, array_merge( [ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->CriticalPHP,  "SMW:INJ:PHP:CODE:MXlN", time() ] ,  $scanfile)]; 
                     }
                     #var_dump($prev, $last, $found[0]);
-                    return  [1, array_merge( [ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->CriticalPHP,  "CRI:FLE:PHP:MXLINE", time() ] ,  $scanfile)];
+                    return  [1, array_merge( [ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->CriticalPHP,  "CRI:" . $GLOBALS['fn:size_format']($scanfile[2]) .":PHP:MXLINE", time() ] ,  $scanfile)];
                 }
                     
                 public static function WarningPHP($l_Content, &$l_Pos, &$l_SigId, $signs, $debug = null)
@@ -1298,7 +1332,6 @@ register_shutdown_function('__shutdown__');
                 public static function Phishing($l_Content, &$l_Pos, &$l_SigId, $signs, $debug = null)
                 {
                     $l_Res = false;
-
                     foreach ($signs->_PhishingSig as $l_Item) {
                         $offset = 0;
                         while (preg_match('~' . $l_Item . '~smi', $l_Content, $l_Found, PREG_OFFSET_CAPTURE, $offset)) {
@@ -1607,6 +1640,12 @@ register_shutdown_function('__shutdown__');
                     return !empty($l_Pos);
                 }
                 public static function catch_all($scanfile, $content) {
+                    
+                    # detected om 19th june
+                    if ( preg_match('/\d+; url=remove\.php/im', $content) ) {
+                        return [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:INJ:PHIS:1"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
+                    }
+                    
                     return [0, []];
                 }
 
@@ -2523,7 +2562,7 @@ register_shutdown_function('__shutdown__');
         $checkers['CriticalPHPUploader'] = strpos($scanfile[3], 'ph') !== false;
         #$checkers['CriticalJS'] = true;
         #$checkers['WarningPHP'] = true;
-        #$checkers['Phishing'] = true;
+        $checkers['Phishing'] = true;
         #$checkers['Adware'] = true;
         $return = [];
 
