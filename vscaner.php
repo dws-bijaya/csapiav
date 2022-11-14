@@ -1605,6 +1605,8 @@ function  build_db($dbpath="./v1/var/imunify360/files/sigs/v1_2022-11-13T133840.
     $f_vdir_db = './v1/vdie/sigs.db';
     $vdie_signs = json_decode( file_get_contents($f_vdir_db), true);
     #print_r($vdie_signs); die;
+
+    // virus die
     $vdb = CSApiAVScanner::Decode(file_get_contents('vdb.json'));
     $signs_regex["VE"] = [];
     $vdie_def =[];
@@ -1765,7 +1767,8 @@ VE
     $signs_regex  =  base64_encode(gzdeflate(serialize((($signs_regex)))));
     
     #var_dump( unserialize(gzinflate(base64_decode($signs_keys)))); die;
-
+    $YYYY_MM_DD_H_I_S_Z = date('Y-m-d-H:i:sZ');
+    #die($YYYY_MM_DD_H_I_S_Z);
     $static_data = [
     <<<BANNER
      ______              _____                  
@@ -1776,7 +1779,7 @@ VE
     /_____\___|_|  \___/_____/ \___\__,_|_| |_|
 ZeroScan {$app_version} , Malware, Exploits anf Vulnerability Files Scanner for PHP Websites
 Copyright: 2022-2023 ZeroScan Inc.
-Signatures Verion: {$sign_version}
+Signatures Verion: {$sign_version} | {$YYYY_MM_DD_H_I_S_Z}
 Signatures Loaded: {$sign_count}
 BANNER,
  $app_version,
