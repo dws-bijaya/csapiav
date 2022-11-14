@@ -7,6 +7,12 @@ define('IS_CLI', PHP_SAPI == 'cli' || PHP_SAPI == 'cgi-fcgi' );
 (function_exists("set_time_limit") == TRUE ) ? [@set_time_limit(0),  @ini_set('max_execution_time', 0)] : NULL;
 ini_set('max_execution_time', 0);
 @ini_set('memory_limit', '512M');
+ini_set('realpath_cache_size', '16M');
+ini_set('realpath_cache_ttl', '1200');
+ini_set('pcre.backtrack_limit', '1000000');
+ini_set('pcre.recursion_limit', '200000');
+ini_set('pcre.jit', '1');
+
 function __shutdown__() {
     global $GLOBALS;
     if ( isset($GLOBALS['OPTIONS']['SHOW_SHUTDOWN']) && $GLOBALS['OPTIONS']['SHOW_SHUTDOWN']){
@@ -37,7 +43,7 @@ register_shutdown_function('__shutdown__');
     $SIGN_PARTERN = json_decode( json_encode( array('_FlexDBShe'=> $SIGN_PARTERN['M'], '_SusDB'=> $SIGN_PARTERN['S'], '_AdwareSig'=> $SIGN_PARTERN['A'], '_ExceptFlex'=> $SIGN_PARTERN['E'], '_JSVirSig'=> $SIGN_PARTERN['J'], '_PhishingSig'=> $SIGN_PARTERN['F'], '_ExploitsSig'=> $SIGN_PARTERN['EX'], '_ExtendedSig'=> $SIGN_PARTERN['RX'], '_VirusDieSig'=> $SIGN_PARTERN['VE'], '_BlacklistDnsSig'=> $SIGN_PARTERN['BD']   )));
     #list($SIGN_PARTERN, $SIGN_HASH, $SIGN_DEF) = [ unserialize(gzinflate(base64_decode(("[SIGN_PATTERN]]")))), unserialize(gzinflate(base64_decode(("[SIGN_HASH]]")))), unserialize(gzinflate(base64_decode(("[SIGN_DEF]]"))))];
     #print_r($SIGN_PARTERN); die;
-    $SIGN_PARTERN->_CriticalDirs = [ "/^config[A-Z]{3}(?<Sconfig>)$/", "/^JumpF0x(?<Sjumpf0x>)$/", "/^AutoDHL(?<SautoDHL>)$/" ];
+    $SIGN_PARTERN->_CriticalDirs = [ "/^config[A-Z]{3}(?<Sconfig>)$/", "/^JumpF0x(?<Sjumpf0x>)$/", "/^AutoDHL(?<SautoDHL>)$/", "/^Fox\-C(\d{3})(?<SFoxC>)$/" ];
     $GLOBALS['OPTIONS']['BHAT_FILECURRUPTED'] =  123455 !== filesize(__FILE__);
     $GLOBALS['OPTIONS']['SELF_FILE'] =  realpath(__FILE__);
     $CONST_CLASS_RESULT =  json_decode(json_encode(array('MALWARE'=>pow(2, 0), 'SUSPICIOUS' => pow(2, 1), 'ARTICLEINDEX'=> pow(2, 2), 'CriticalPHP' =>  pow(2, 3), 'CriticalPHPGIF' => pow(2, 4), 'CriticalPHPUploader'=> pow(2, 5), 'CriticalJS' => pow(2, 6) , 'WarningPHP' => pow(2, 7), 'Phishing'=> pow(2, 8) , 'Adware' => pow(2, 9), 'CriticalURL'=> pow(2, 10), 'SecurityISSUE'=> pow(2, 11), 'SecurityGIT'=> pow(2, 12) , 'GoogleBOT' =>pow(2, 13) , 'WarningGCache'=>  pow(2, 14) , 'GoogleCache'=> pow(2, 15), 'CRITICAL'=> pow(2, 16) ,  'CriticalHTML' => pow(2, 17), 'OpenListing' =>  pow(2, 18), 'WebpageError'=> pow(2, 18), 'PermissionISSUE' => pow(2, 19), 'SuspiciousPlugins' => pow(2, 20), 'EXPLOITS' =>  pow(2, 21), 'DNS_BLACKLIST' =>  pow(2, 22)   ) )  );
@@ -1331,6 +1337,7 @@ register_shutdown_function('__shutdown__');
                 ////////////////////////////////////////////////////////////////////////////
                 public static function Phishing($l_Content, &$l_Pos, &$l_SigId, $signs, $debug = null)
                 {
+                    
                     $l_Res = false;
                     foreach ($signs->_PhishingSig as $l_Item) {
                         $offset = 0;
@@ -1640,6 +1647,7 @@ register_shutdown_function('__shutdown__');
                     return !empty($l_Pos);
                 }
                 public static function catch_all($scanfile, $content) {
+                    global  $CONST_CLASS_RESULT;
                     
                     # detected om 19th june
                     if ( preg_match('/\d+; url=remove\.php/im', $content) ) {
@@ -2831,7 +2839,7 @@ register_shutdown_function('__shutdown__');
 
 }))) && IS_CLI ? call_user_func(function($ret){ 
     
-
+    
     $show_version = static function($app_version, $sign_version, $sign_loaded) {
         echo "current APP Version: {$app_version}, Signature Version: {$sign_version}, Signatue Loaded: {$sign_loaded}";
         return 1;

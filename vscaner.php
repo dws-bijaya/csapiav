@@ -1471,7 +1471,7 @@ function build_blacklisted($save=false) {
 }
 
 
-#die(print_r(build_blacklisted(true)));
+die(print_r(build_blacklisted(true)));
 
 
 function  build_db() {
@@ -1479,9 +1479,17 @@ function  build_db() {
     define('AI_EXPERT',  2);  define('DEBUG_PERFORMANCE',  0);
     #var_dump(AI_EXPERT, DEBUG_PERFORMANCE);
     #root@69.167.148.63:/var/imunify360/files/sigs/v1_2022-06-16T074309.987928Z/aibolit/
-    $signs = new LoadSignaturesForScan('./v1/aibolit/ai-bolit-hoster-full.db', AI_EXPERT, DEBUG_PERFORMANCE);
+    #$signs = new LoadSignaturesForScan('./v1/aibolit/ai-bolit-hoster-full.db', AI_EXPERT, DEBUG_PERFORMANCE);
     $signs = new LoadSignaturesForScan('./v1/var/imunify360/files/sigs/v1_2022-06-16T074309.987928Z/aibolit/ai-bolit-hoster-full.db', AI_EXPERT, DEBUG_PERFORMANCE);
-    #print_r( $signs->_FlexDBShe); die;
+    #$signs = new LoadSignaturesForScan('./v1/var/imunify360/files/sigs/v1_2022-06-16T074309.987928Z/aibolit/ai-bolit.db', AI_EXPERT, DEBUG_PERFORMANCE);
+    $signs = new LoadSignaturesForScan('./v1/var/imunify360/files/sigs/v1/aibolit/ai-bolit-hoster-full.db', AI_EXPERT, DEBUG_PERFORMANCE);
+    $signs = new LoadSignaturesForScan('./v1/var/imunify360/files/sigs/v1_2022-11-13T133840.484922Z/ai-bolit-hoster-full.db', AI_EXPERT, DEBUG_PERFORMANCE);
+    # /home/canedirectfurnit/public_html/wp-content/uploads/2021/12/index.php  SMW-BLKH-1373673-php.bkdr.wshll.autoast
+    # /home/canedirectfurnit/public_html/wp-content/uploads/2021/10/shate.php SMW-BLKH-144350-php.bkdr
+    # /home/canedirectfurnit/public_html/wp-includes/SimplePie/Content/Type/Snifferterd.php SMW-INJ-03548-php.bkdr-8
+    # home/canedirectfurnit/public_html/wp-includes/js/crop/cropper.cats.php SMW-INJ-03548-php.bkdr-8
+
+    #print_r( $signs->_Mnemo); die;
 
 
 
@@ -1523,9 +1531,6 @@ function  build_db() {
     #$signs_regex = [];
     $signs_def = [];
     foreach ($signs->_Mnemo as $key => $value) {
-
-       
-
         $value = preg_replace( '/\s+/', ':', ucwords(join(" ", preg_split('/(-|\.)/', $value))));
         $signs_def[$key] = $value;
         continue;
@@ -1740,7 +1745,7 @@ VE
     $sign_count = count($signs_regex['M']) +  count($signs_regex['S']) +  count($signs_regex['A']) +  count($signs_regex['E']) +  count($signs_regex['J'])  +  count($signs_regex['F'])  +  count($signs_regex['EX']) +  count($signs_regex['VE']); 
     echo "\nDefination Added " .  $sign_count . "\n";
    
-
+    die;
 
     $sign_version = time();
     $app_version = '4.3.0';
@@ -1825,6 +1830,9 @@ BANNER,
 
     return $result;
 }
+
+
+
 die(build_db());
 
 function wpscan() {
