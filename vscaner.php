@@ -1471,10 +1471,13 @@ function build_blacklisted($save=false) {
 }
 
 
-die(print_r(build_blacklisted(true)));
 
 
-function  build_db() {
+
+
+
+
+function  build_db($dbpath="./v1/var/imunify360/files/sigs/v1_2022-11-13T133840.484922Z") {
     require_once('./LoadSignaturesForScan.php');
     define('AI_EXPERT',  2);  define('DEBUG_PERFORMANCE',  0);
     #var_dump(AI_EXPERT, DEBUG_PERFORMANCE);
@@ -1483,7 +1486,7 @@ function  build_db() {
     $signs = new LoadSignaturesForScan('./v1/var/imunify360/files/sigs/v1_2022-06-16T074309.987928Z/aibolit/ai-bolit-hoster-full.db', AI_EXPERT, DEBUG_PERFORMANCE);
     #$signs = new LoadSignaturesForScan('./v1/var/imunify360/files/sigs/v1_2022-06-16T074309.987928Z/aibolit/ai-bolit.db', AI_EXPERT, DEBUG_PERFORMANCE);
     $signs = new LoadSignaturesForScan('./v1/var/imunify360/files/sigs/v1/aibolit/ai-bolit-hoster-full.db', AI_EXPERT, DEBUG_PERFORMANCE);
-    $signs = new LoadSignaturesForScan('./v1/var/imunify360/files/sigs/v1_2022-11-13T133840.484922Z/ai-bolit-hoster-full.db', AI_EXPERT, DEBUG_PERFORMANCE);
+    $signs = new LoadSignaturesForScan($dbpath . '/aibolit/ai-bolit-hoster-full.db', AI_EXPERT, DEBUG_PERFORMANCE);
     # /home/canedirectfurnit/public_html/wp-content/uploads/2021/12/index.php  SMW-BLKH-1373673-php.bkdr.wshll.autoast
     # /home/canedirectfurnit/public_html/wp-content/uploads/2021/10/shate.php SMW-BLKH-144350-php.bkdr
     # /home/canedirectfurnit/public_html/wp-includes/SimplePie/Content/Type/Snifferterd.php SMW-INJ-03548-php.bkdr-8
@@ -1603,7 +1606,6 @@ function  build_db() {
     $vdie_signs = json_decode( file_get_contents($f_vdir_db), true);
     #print_r($vdie_signs); die;
     $vdb = CSApiAVScanner::Decode(file_get_contents('vdb.json'));
-    #print_r(  ($vdb)); die;
     $signs_regex["VE"] = [];
     $vdie_def =[];
     $extensions =[""];
@@ -1745,7 +1747,7 @@ VE
     $sign_count = count($signs_regex['M']) +  count($signs_regex['S']) +  count($signs_regex['A']) +  count($signs_regex['E']) +  count($signs_regex['J'])  +  count($signs_regex['F'])  +  count($signs_regex['EX']) +  count($signs_regex['VE']); 
     echo "\nDefination Added " .  $sign_count . "\n";
    
-    die;
+   
 
     $sign_version = time();
     $app_version = '4.3.0';
@@ -1783,8 +1785,8 @@ BANNER,
     ];
 
 
-    $burls = (base64_encode(serialize(file_get_contents('./v1/aibolit/blacklistedUrls.db'))));
-    $wurls = (base64_encode(serialize(file_get_contents('./v1/aibolit/whitelistUrls.db'))));
+    $burls = (base64_encode(serialize(file_get_contents($dbpath . '/aibolit/blacklistedUrls.db'))));
+    $wurls = (base64_encode(serialize(file_get_contents($dbpath . '/aibolit/whitelistUrls.db'))));
     #var_dump($wurls); die;
     $static_data  =  base64_encode(serialize($static_data));
     
@@ -1832,7 +1834,7 @@ BANNER,
 }
 
 
-
+#die(print_r(build_blacklisted(true)));
 die(build_db());
 
 function wpscan() {

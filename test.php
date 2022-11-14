@@ -116,8 +116,8 @@ $d = preg_match("~bijaya(?<X4fc34911>)~smiS", " eee   bijaya", $l_Found, PREG_OF
 $vdbURL = 'http://'.'cdn.virusdie.com'.'/data/rexplacer/vdb/?'.http_build_query(['vdbid' => (int) 1, 'vdbver' => 4, 'from' => strtr('libavscanner', '/', '-'), 'php' => (float) PHP_VERSION, 'clz' => false ? '1' : ''], '', '&');
 //var_dump($vdbURL);
 //die;
-$vdbURL = 'http://cdn.virusdie.com/data/rexplacer/vdb/?ctr=6209ee2f0e29&cfn=vdconnect-pbi7x1nz.php&clv=26&php=7.3&clz=0&ref=0.0.0.1&sid=635280&vdbid=0&vdbver=4&from=rexplacer';
-#$vdbURL = 'http://cdn.virusdie.com/data/rexplacer/ignored/?vdbid=1&vdbver=4&from=libavscanner&php=7.3&clz=';
+$vdbURL = 'http://cdn.virusdie.com/data/rexplacer/vdb/?ctr=6209ee2f0e29&cfn=vdconnect-pbi7x1nz.php&clv=26&php=7.3&clz=0&ref=0.0.0.1&sid=635280&vdbid=0&vdbver=4&from=rexplacer&clz=1';
+#$vdbURL = 'http://cdn.virusdie.com/data/rexplacer/ignored/?vdbid=1&vdbver=4&from=libavscanner&php=7.3&clz=1';
 /*
 $SVC_QDATA = 'SVC_QDATA';
 $svc = 'svc';
@@ -131,7 +131,7 @@ var_dump($url); die;
 //$vdbJSON = file_get_contents($vdbURL, 0, stream_context_create(['http' => ['method' => 'GET', 'header' => implode("\r\n", ['Accept: *'.'/'.'*', 'Connection: Close', 'User-Agent: '.'libavscanner', 'Cookie: apikey='.urlencode((string) 'vk@digitalwebsolutions.in'), '']), 'protocol_version' => 1.1, 'follow_location' => 1, 'max_redirects' => 3, 'timeout' => 30, 'ignore_errors' => false]]));
 $vdbJSON = file_get_contents($vdbURL, 0, stream_context_create(['http' => ['method' => 'GET', 'header' => implode("\r\n", ['Accept: *'.'/'.'*', 'Connection: Close', 'User-Agent: '.'libavscanner', 'Cookie: svcuid=it.bijaya%40gmail.com; svckey=haxnq57ZF8m37Mf6iD95dcFfEm', '']), 'protocol_version' => 1.1, 'follow_location' => 1, 'max_redirects' => 3, 'timeout' => 100, 'ignore_errors' => false]]));
 file_put_contents('vdb.json', ($vdbJSON));
-die;
+
 define('SVC_CDIR', '/Applications/XAMPP/xamppfiles/htdocs/vdie/cachex');
 //require './svc-rexplacer-0b64055bb54ae109c48775e07fa16744.php';
 require './vscaner.php';
