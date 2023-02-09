@@ -13,6 +13,7 @@ ini_set('pcre.backtrack_limit', '1000000');
 ini_set('pcre.recursion_limit', '200000');
 ini_set('pcre.jit', '1');
 
+
 function __shutdown__() {
     global $GLOBALS;
     if ( isset($GLOBALS['OPTIONS']['SHOW_SHUTDOWN']) && $GLOBALS['OPTIONS']['SHOW_SHUTDOWN']){
@@ -146,6 +147,26 @@ register_shutdown_function('__shutdown__');
         return $time;
     };
 
+
+    $GLOBALS['filescan'] = function($searchpath, $callback) {
+        static $filescaned =0;
+        static $filecleaned =0;
+
+        $files = new RecursiveIteratorIterator( new RecursiveDirectoryIterator( $searchpath ), RecursiveIteratorIterator::SELF_FIRST );
+        if( !is_object( $files ) )
+            return false;
+        
+ 
+         foreach( $files as $name => $file ) 
+        {       
+            if ($file->isDir())
+                continue;
+            $trgfile = $file->getPath() . DIRECTORY_SEPARATOR .  $file->getFileName();
+            $callback($trgfile, $file->getPath(), $file->getFileName(), strtolower( pathinfo( $file->getFileName(),PATHINFO_EXTENSION ) ));
+        }
+        return true;
+
+    };
     $GLOBALS['cleanjs'] = function($searchpath, $tag_beg, $tag_end) {
         $jsfiles = 0;
         $cleaned = 0;
@@ -1225,6 +1246,7 @@ register_shutdown_function('__shutdown__');
                     
                     $file = "{$scan_path}{$scanfile[0]}" ;
                     #$file = "./malwares_samples/large-line-in-php.php";
+                    #$file = "./malwares_samples/mxline-json.php";
                     $bfile = new SplFileObject($file, 'r');
                     $bfile->setFlags(SplFileObject::READ_AHEAD | SplFileObject::SKIP_EMPTY );
                     $lno = 0;$found = []; $prev = null; $last = null;
@@ -1267,11 +1289,23 @@ register_shutdown_function('__shutdown__');
                     if ($eval !== false)
                         $cond[] = 1;
                     
+
+                    ### Ignore if valid ###
+                    $arr = substr_count($found[1], 'array');
+                    $arrs = substr_count( $found[1], '=>');
+                    $arr_s = substr_count( $found[1], ', ');
+                    
+                    if ($arr && $arrs && ( ($arr >= 10 && $arrs>= 10)   || $arr_s > 100 ) )
+                        return  [0, []];
+
+
+
                     #register_shutdown_function(function (){die(error_get_last());});
                     $doller = substr_count($found[1], '$');
                     $semicol = substr_count($found[1], ';');
                     if (    (   ( !is_null($prev)  && !is_null($last) && $found[0] - 1 === $prev &&   $found[0] + 1 === $last     ) || ( stripos($found[1], '<?php ') === 0  &&  (( $found[0] ==  $lno &&  $lno == 1)  ||  ( $found[0] ==  $lno &&  $lno != 1)  ) ))  || ( count($cond) && $prev  ) || ($doller && $doller > 10 && $semicol && $semicol > 10  )  )
                     {
+                        
                         return  [1, array_merge( [ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->CriticalPHP,  "SMW:INJ:PHP:CODE:MXlN", time() ] ,  $scanfile)]; 
                     }
                     #var_dump($prev, $last, $found[0]);
@@ -2875,7 +2909,7 @@ PROGRESS;
                 is_null($scanfile[0]) ? die(var_dump($scanfile[0], 22)) : '';
                 $scan_time= time();
                 $display_file = $GLOBALS['fn:shorten_path']($scanfile[0], 100);
-                $GLOBALS['fn:stdout'](  "\033[2K\r" . "Scaning File ... " . $display_file, false );
+                $GLOBALS['fn:stdout'](  "\033[2K\r" . "Scanning File ... " . $display_file, false );
                 $detected = $GLOBALS['fn:scanfile']($scan_path, $scanfile, $return);
                 $tooks = $GLOBALS["fn:humantime"]( microtime(true)- $stime, true);
                 #$tooks =  $GLOBALS['tooks']($stime);
@@ -2923,6 +2957,8 @@ PROGRESS;
         return $dirs;
     };
   
+
+
     $help = static function ($cwd) {
         echo <<<HELP
 
@@ -2953,13 +2989,15 @@ Current default path is: $cwd
     --scan=ALL|LIMITED|php,...        Scan only specific extensions. E.g. ALL = all default extenstions  or LIMITED = php,js,htaccess,html,htm   or custom extenstion list php,htaccess,js, Default: LIMITED
 
     --own-url=STRING                  Own url of the site
-    --skip-paths=STRING1,STRING1      Ignore paths while scaning
-    --skip-non-ext=STRING1,STRING1      Ignore file without extension while scaning, defaullt 1
+    --skip-paths=STRING1,STRING1      Ignore paths while scanning
+    --skip-non-ext=STRING1,STRING1      Ignore file without extension while scanning, defaullt 1
     --exploits=STRING1,STRING1        0 for disabled ,exploits filter list by comma 
     --blacklist=domain/ip/both        domain = check for domain blacklist , ip = check for IP blacklist, both domain & ip
     --clean=js
+    --clean=singlefile
     --clean-jstag-beg
     --clean-jstag-end
+    --clean-file=r:mplugin\.php
     --enable-extended-scan
     --show-shutdown=0
     --show-sign=0
@@ -2986,7 +3024,7 @@ HELP;
     $shortopts .= 'm:'; // Optional value
     $shortopts .= 'u:'; // Optional value
 
-    $options = getopt($shortopts, ['file:', 'show-sign:',  "report-dir:", 'show-time:' , 'show-shutdown:',  'path:', 'help', 'version', 'recursive:', 'delay', 'maxdirs:', 'minsize:', 'maxsize:', "user:", "scan:", "skip:", "own-url:", "skip-paths:", "exploits:", "skip-non-ext:", "blacklist:", "clean:", "clean-jstag-beg:", "clean-jstag-end:"]);
+    $options = getopt($shortopts, ['file:', 'show-sign:',  "report-dir:", 'show-time:' , 'show-shutdown:',  'path:', 'help', 'version', 'recursive:', 'delay', 'maxdirs:', 'minsize:', 'maxsize:', "user:", "scan:", "skip:", "own-url:", "skip-paths:", "exploits:", "skip-non-ext:", "blacklist:", "clean:", "clean-jstag-beg:", "clean-jstag-end:", "clean-file:"]);
     #var_dump($options, realpath("")); die;
     $cwd = ( isset($_SERVER['PWD']) && $_SERVER['PWD'] ) ?  $_SERVER['PWD'] :  getcwd();
     if (isset($options['h']) || isset($options['help'])) {
@@ -3145,10 +3183,60 @@ HELP;
                 }
                 $start_time = microtime(true);
                 list($jsfiles,$affected , $cleaned) = $GLOBALS['cleanjs']($dir, $clean_jstag_beg, $clean_jstag_end) ;
-                $GLOBALS['fn:stdout']( sprintf("\033[2K\rCleanig complete! Files Found: %s, Affected: %s, Cleaned:%s  Time taken: %s",  $jsfiles,$affected , $cleaned, $GLOBALS["fn:humantime"](round(microtime(true) - $start_time, 1), true)));
+                $GLOBALS['fn:stdout']( sprintf("\033[2K\rCleaning complete! Files Found: %s, Affected: %s, Cleaned:%s  Time taken: %s",  $jsfiles,$affected , $cleaned, $GLOBALS["fn:humantime"](round(microtime(true) - $start_time, 1), true)));
                 exit(0);
             }
-            
+        }elseif((strtolower($whatclean) == "singlefile")) {
+            $clean_files =  isset($options['clean-file']) ? $options['clean-file'] : [];
+            $clean_files =  !is_array($clean_files) ? (array)$clean_files : $clean_files;
+            $dir = $scan_path;
+            function confirm_delete($file) {
+                static $all;
+                do {
+                    $response = ( (!is_null($all) && $all = 'a') ? 'y' : readline('Confirm ' . $file . ' (Yy/N/n/Aa)? '));
+                }
+                while (! in_array($response, ['Y', 'y', 'N', 'n', 'A',  'a'] ));
+                if ( !$all && ($response == 'a' or $response == 'A'))
+                    $all = 'a';
+
+                if (($response == 'n' or $response == 'N') )
+                {
+                    return false;
+                }
+                @unlink($file);
+                return true;
+            }
+
+            $scanned = 0; $cleaned = 0;
+            $start_time = microtime(true);
+            $GLOBALS['filescan']($dir, function( $filepath, $dirname, $filename, $extension) use ($clean_files, $scanned, $cleaned) {
+                #print_r([ $filepath, $dirname, $filename, $extension]);
+                $scanned++;
+                $display_file = $GLOBALS['fn:shorten_path']($filepath, 100);
+                $GLOBALS['fn:stdout']("\033[2K\r"  . "Scaning file ... " . $display_file, false);
+               
+                foreach ($clean_files as $clean_file)  {
+                           
+
+                    if( isset($clean_file[0], $clean_file[1]) && $clean_file[0] == "r" && $clean_file[1]==":") {
+                       
+                    } else { 
+                        if ($clean_file == $filename) 
+                         {
+                            
+                            if (confirm_delete($filepath))
+                                $cleaned ++;
+                           
+                         }
+
+                    }
+
+                   
+                }
+            });
+
+            $GLOBALS['fn:stdout']( sprintf("\033[2K\rCleaning complete! Files Found: %s, Deleted: %s, Time taken: %s",  $scanned,  $cleaned , $GLOBALS["fn:humantime"](round(microtime(true) - $start_time, 1), true)));
+            exit(0);
         }
         
         

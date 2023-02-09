@@ -1,4 +1,8 @@
 <?php
+
+function xdebug_enabled($usingip=false, $allowips= [] ) { static $debug_enabled ; if ( is_null($debug_enabled)) { $debug_enabled = $usingip ? isset( $_SERVER['REMOTE_ADDR']) && in_array($_SERVER['REMOTE_ADDR'], $allowips) : (isset($_GET['XDEBUG']) && $_GET['XDEBUG'] == "1" ) || isset($_COOKIE['XDEBUG']) && $_COOKIE['XDEBUG'] == "1"; if (!$debug_enabled) return $debug_enabled; function xdebug_string_backtrace() { ob_start(); debug_print_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS); $trace = ob_get_contents(); ob_end_clean(); // Remove first item from backtrace as it's this function which // is redundant. #$trace = preg_replace ('/^#0\s+' . __FUNCTION__ . "[^\n]*\n/", '', $trace, 1); // Renumber backtrace items. #$trace = preg_replace ('/^#(\d+)/me', '\'#\' . ($1 - 1)', $trace); return explode("\n", $trace)[1]; } function xdebug_lasterr() { echo "\n Laste Err: \n" ; var_dump( error_get_last() ); } register_shutdown_function("xdebug_lasterr"); } return $debug_enabled; } function xdebug_print($data, $die = true, $vardump = false ) { if (!xdebug_enabled()) return ; if ($vardump) var_dump($data) ; else print_r($data) ; $s = xdebug_string_backtrace(); echo chr(10) . date('Y-m-d h:i:s') . ': ' . ($s) . chr(10) ; if ($die) die; }
+die;
+
 /*
 $_GET['svc'] = 'filelist';
 $_GET['crc'] = 'fab8b325';
