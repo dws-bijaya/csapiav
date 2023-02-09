@@ -3207,11 +3207,15 @@ HELP;
                 return true;
             }
 
-            $scanned = 0; $cleaned = 0;
+            global $scanned ; 
+            global $cleaned ;
             $start_time = microtime(true);
-            $GLOBALS['filescan']($dir, function( $filepath, $dirname, $filename, $extension) use ($clean_files, $scanned, $cleaned) {
+            $scanned = $cleaned = 0 ;
+            $GLOBALS['filescan']($dir, function( $filepath, $dirname, $filename, $extension) use ($clean_files,  $cleaned) {
+                global  $scanned;
                 #print_r([ $filepath, $dirname, $filename, $extension]);
                 $scanned++;
+               
                 $display_file = $GLOBALS['fn:shorten_path']($filepath, 100);
                 $GLOBALS['fn:stdout']("\033[2K\r"  . "Scaning file ... " . $display_file, false);
                
@@ -3235,6 +3239,7 @@ HELP;
                 }
             });
 
+          
             $GLOBALS['fn:stdout']( sprintf("\033[2K\rCleaning complete! Files Found: %s, Deleted: %s, Time taken: %s",  $scanned,  $cleaned , $GLOBALS["fn:humantime"](round(microtime(true) - $start_time, 1), true)));
             exit(0);
         }
