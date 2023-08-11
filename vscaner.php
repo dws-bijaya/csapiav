@@ -1477,7 +1477,9 @@ function build_blacklisted($save=false) {
 
 
 
-function  build_db($dbpath="./v1/var/imunify360/files/sigs/v1_2022-11-13T133840.484922Z") {
+function  build_db($version="v1_2023-06-19T142320.835605Z") {
+
+    $dbpath="./v1/var/imunify360/files/sigs/". $version;
     require_once('./LoadSignaturesForScan.php');
     define('AI_EXPERT',  2);  define('DEBUG_PERFORMANCE',  0);
     #var_dump(AI_EXPERT, DEBUG_PERFORMANCE);
@@ -1493,8 +1495,6 @@ function  build_db($dbpath="./v1/var/imunify360/files/sigs/v1_2022-11-13T133840.
     # home/canedirectfurnit/public_html/wp-includes/js/crop/cropper.cats.php SMW-INJ-03548-php.bkdr-8
 
     #print_r( $signs->_Mnemo); die;
-
-
 
     $signs_regex  = [];
     $signs_regex["EX"] = [];
@@ -1550,8 +1550,6 @@ function  build_db($dbpath="./v1/var/imunify360/files/sigs/v1_2022-11-13T133840.
     }
 
 
-   
-
 
     $susidx = [];
 
@@ -1597,7 +1595,6 @@ function  build_db($dbpath="./v1/var/imunify360/files/sigs/v1_2022-11-13T133840.
             }
         }
     }
-
 
 
     error_reporting(E_ALL | E_WARNING);
@@ -1749,7 +1746,6 @@ VE
     $sign_count = count($signs_regex['M']) +  count($signs_regex['S']) +  count($signs_regex['A']) +  count($signs_regex['E']) +  count($signs_regex['J'])  +  count($signs_regex['F'])  +  count($signs_regex['EX']) +  count($signs_regex['VE']); 
     echo "\nDefination Added " .  $sign_count . "\n";
    
-   
 
     $sign_version = time();
     $app_version = '4.3.0';
@@ -1797,8 +1793,6 @@ BANNER,
     #var_dump(is_string($signs_regex)); die;
 
 
-    
-
 
     #die;
     file_put_contents('./zeroscan.php', str_replace(array('[[BLACK_URLS]]', '[[WHITE_URLS]]', '[[STATIC_DATA]]', '[[SIGN_PATTERN]]', '[[SIGN_HASH]]', '[[SIGN_DEF]]'), array($burls, $wurls, $static_data, $signs_regex, $signs_hash,  $signs_def), file_get_contents('./zeroscan.php')));
@@ -1838,7 +1832,7 @@ BANNER,
 
 
 #die(print_r(build_blacklisted(true)));
-die(build_db());
+die(build_db('v1_2023-08-11T062710.717634Z'));
 
 function wpscan() {
     
