@@ -1485,9 +1485,9 @@ function  build_db($version="v1_2023-06-19T142320.835605Z") {
     #var_dump(AI_EXPERT, DEBUG_PERFORMANCE);
     #root@69.167.148.63:/var/imunify360/files/sigs/v1_2022-06-16T074309.987928Z/aibolit/
     #$signs = new LoadSignaturesForScan('./v1/aibolit/ai-bolit-hoster-full.db', AI_EXPERT, DEBUG_PERFORMANCE);
-    $signs = new LoadSignaturesForScan('./v1/var/imunify360/files/sigs/v1_2022-06-16T074309.987928Z/aibolit/ai-bolit-hoster-full.db', AI_EXPERT, DEBUG_PERFORMANCE);
+    ##$signs = new LoadSignaturesForScan('./v1/var/imunify360/files/sigs/v1_2022-06-16T074309.987928Z/aibolit/ai-bolit-hoster-full.db', AI_EXPERT, DEBUG_PERFORMANCE);
     #$signs = new LoadSignaturesForScan('./v1/var/imunify360/files/sigs/v1_2022-06-16T074309.987928Z/aibolit/ai-bolit.db', AI_EXPERT, DEBUG_PERFORMANCE);
-    $signs = new LoadSignaturesForScan('./v1/var/imunify360/files/sigs/v1/aibolit/ai-bolit-hoster-full.db', AI_EXPERT, DEBUG_PERFORMANCE);
+    ##$signs = new LoadSignaturesForScan('./v1/var/imunify360/files/sigs/v1/aibolit/ai-bolit-hoster-full.db', AI_EXPERT, DEBUG_PERFORMANCE);
     $signs = new LoadSignaturesForScan($dbpath . '/aibolit/ai-bolit-hoster-full.db', AI_EXPERT, DEBUG_PERFORMANCE);
     # /home/canedirectfurnit/public_html/wp-content/uploads/2021/12/index.php  SMW-BLKH-1373673-php.bkdr.wshll.autoast
     # /home/canedirectfurnit/public_html/wp-content/uploads/2021/10/shate.php SMW-BLKH-144350-php.bkdr
@@ -1832,7 +1832,9 @@ BANNER,
 
 
 #die(print_r(build_blacklisted(true)));
-die(build_db('v1_2023-08-11T062710.717634Z'));
+###rsync -rapv  root@67.225.161.14:/var/imunify360/files/sigs  ./v1/var/imunify360/files/  
+die(build_db('v1_2023-10-25T062717.470658Z'));
+
 
 function wpscan() {
     
