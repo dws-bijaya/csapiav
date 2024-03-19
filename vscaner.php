@@ -1833,7 +1833,7 @@ BANNER,
 
 #die(print_r(build_blacklisted(true)));
 ###rsync -rapv  root@67.225.161.14:/var/imunify360/files/sigs  ./v1/var/imunify360/files/  
-die(build_db('v1_2023-10-25T062717.470658Z'));
+die(build_db('v1_2024-03-18T213128.982416Z'));
 
 
 function wpscan() {
