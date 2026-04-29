@@ -1444,8 +1444,9 @@ function build_blacklisted($save=false) {
 
 
     #
-    $blist_ip = json_decode( str_replace("'", '"', file_get_contents('./malware-blacklists-ip.json'))); #, true);
+    #$blist_ip = json_decode( str_replace("'", '"', file_get_contents('./malware-blacklists-ip.json'))); #, true);
     #print_r($blist_ip); die;
+    $blist_ip  = [];
     foreach($blist_ip as $host) {
         $b = false;
         foreach($sgns as $s) {
@@ -1833,7 +1834,7 @@ BANNER,
 
 #die(print_r(build_blacklisted(true)));
 ###rsync -rapv  root@67.225.161.14:/var/imunify360/files/sigs  ./v1/var/imunify360/files/  
-die(build_db('v1_2024-07-20T062706.327391Z'));
+die(build_db('v1_2026-04-28T142122.658979Z'));
 
 
 function wpscan() {
