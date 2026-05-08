@@ -3132,7 +3132,7 @@ Current default path is: $cwd
 
     -u, --user=INT/STRING               user name (Available in Future)
 
-    
+    --phpinfo=1                         Show PHP Info      
     --skip=jpg,...                    Skip specific extensions. E.g. --skip=jpg,gif,png,xls,pdf.
     --scan=ALL|LIMITED|php,...        Scan only specific extensions. E.g. ALL = all default extenstions  or LIMITED = php,js,htaccess,html,htm   or custom extenstion list php,htaccess,js, Default: LIMITED
 
@@ -3166,6 +3166,7 @@ HELP;
     #
     $shortopts = '';
     $shortopts .= 'f:';  // Required value
+    $shortopts .= 'i:';  // Required value
     $shortopts .= 'p:';  // Required value
     $shortopts .= 'h';  // Optional value
     $shortopts .= 'r:'; // Required value
@@ -3174,7 +3175,7 @@ HELP;
     $shortopts .= 'm:'; // Optional value
     $shortopts .= 'u:'; // Optional value
 
-    $options = getopt($shortopts, ['file:', 'show-sign:',  "report-dir:", 'show-time:' , 'show-shutdown:',  'path:', 'help', 'version', 'recursive:', 'delay', 'maxdirs:', 'minsize:', 'maxsize:', "user:", "scan:", "skip:", "own-url:", "skip-paths:", "exploits:", "skip-non-ext:", "blacklist:", "clean:", "clean-jstag-beg:", "clean-jstag-end:", "clean-file:", "vdie:"]);
+    $options = getopt($shortopts, ['file:', 'show-sign:', "phpinfo:",  "show", "report-dir:", 'show-time:' , 'show-shutdown:',  'path:', 'help', 'version', 'recursive:', 'delay', 'maxdirs:', 'minsize:', 'maxsize:', "user:", "scan:", "skip:", "own-url:", "skip-paths:", "exploits:", "skip-non-ext:", "blacklist:", "clean:", "clean-jstag-beg:", "clean-jstag-end:", "clean-file:", "vdie:"]);
     #var_dump($options, realpath("")); die;
     $cwd = ( isset($_SERVER['PWD']) && $_SERVER['PWD'] ) ?  $_SERVER['PWD'] :  getcwd();
     if (isset($options['h']) || isset($options['help'])) {
@@ -3183,6 +3184,10 @@ HELP;
     if (isset($options['v']) || isset($options['version'])) {
         exit($show_version($ret[1], $ret[2], $ret[3]));
     }
+    
+    global $phpinfo;
+    $phpinfo = (isset($options['i']) || isset($options['phpinfo'] ))? true: false;
+    #var_dump($phpinfo, $options );die;
     #print_r($options);die;
     $scan_what = isset($options['f']) ? $options['f'] : (isset($options['file'])?($options['file']): (isset($options['p'])?($options['p']): (isset($options['path'])?($options['path']): $cwd  )));
     $scan_what = $GLOBALS['fn:path_join']($cwd, $scan_what);
@@ -3405,7 +3410,8 @@ HELP;
     
     $info =  $GLOBALS['fn:info']($scan_path);
     call_user_func_array(function(&$info){
-
+        global $phpinfo;
+        #var_dump($phpinfo); die;
         /*
         display_errors = Off
         expose_php = Off
@@ -3519,7 +3525,7 @@ HELP;
 
 
 
-
+        if ($phpinfo)
         echo  <<<INFOIUT
 {$T1}
 |{$label}|{$v_clabel}|{$v_llabel}|
