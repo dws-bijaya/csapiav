@@ -1627,29 +1627,18 @@ register_shutdown_function('__shutdown__');
     if ($len !== 8) {
         return false;
     }
-
-    // 3. Digit Check: Must contain at least one number
-    // preg_match stops at the first digit found, making it very efficient.
-    if (!preg_match('/\d/', $name)) {
-        return false;
+    
+     if (str_starts_with(strtolower($name), 'x')) {
+        $name = substring($name, 1);
+        if (preg_match('/^\d{7}$/D', $input)) {
+            return true;
+        }
+     }
+      if (!ctype_alnum($name) or $name !== strtolower($name) ) {
+            return false;
     }
 
-    // 4. Character set check: Must be entirely alphanumeric
-    // ctype_alnum is a C-level function, significantly faster than regex.
-    if (!ctype_alnum($name) or $name !== strtolower($name) ) {
-        return false;
-    }
 
-    // 5. Final specific 'x' logic
-    // We already know it's 8 chars and has a digit. 
-    // We just need to ensure that if it starts with 'x', the rest follows suit.
-    if (str_starts_with(strtolower($name), 'x')) {
-        // Starts with x + 7 chars (already checked by length 8)
-        return true;
-    } else {
-        // No x + 8 chars (already checked by length 8)
-        return true;
-    }
 }
 
 
