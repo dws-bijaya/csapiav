@@ -1273,6 +1273,14 @@ register_shutdown_function('__shutdown__');
                         #if (  !$found && stripos($line, '<?php ') === 0 && strlen(substr($line, 5)) >= $GLOBALS['OPTIONS']['PHPLINE_LEN'] &&  stripos($line, '<?php ', 10) === FALSE    && (preg_match('~[A-z0-9\+/]{100,}~sm', $line) || substr_count($line, 'function ')>=3  )     ) {
                                 
                     }
+                    if ($found)
+                   { 
+                        $count = substr_count($found[1] , '$');
+                        if (!$count )
+                            return  [0, []];
+                    }
+
+
                     $bfile = null;
                     /* First line Or Last Line injected  */
                     if ( !$found || strlen(($found[1])) <= $GLOBALS['OPTIONS']['PHPLINE_LEN'] )  
@@ -1299,6 +1307,8 @@ register_shutdown_function('__shutdown__');
                     
                     if ($arr && $arrs && ( ($arr >= 10 && $arrs>= 10)   || $arr_s > 100 ) )
                         return  [0, []];
+
+
 
 
 
