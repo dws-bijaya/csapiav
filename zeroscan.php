@@ -1605,7 +1605,7 @@ register_shutdown_function('__shutdown__');
 
                 static function is_malicious_pattern_xAlphaNum8($filename) {
     // 1. Strip extension - pathinfo is faster than regex
-    $name = strtolower($filename[8]);
+    $name = ($filename[8]);
     $extn = $filename[3];
     if ( ! in_array($extn, ["php"]))
         return false;
@@ -1626,7 +1626,7 @@ register_shutdown_function('__shutdown__');
 
     // 4. Character set check: Must be entirely alphanumeric
     // ctype_alnum is a C-level function, significantly faster than regex.
-    if (!ctype_alnum($name)) {
+    if (!ctype_alnum($name) or $name !== strtolower($name) ) {
         return false;
     }
 
