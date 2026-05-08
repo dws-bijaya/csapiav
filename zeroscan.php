@@ -1602,6 +1602,47 @@ register_shutdown_function('__shutdown__');
                     return false;
                 }
 
+
+                static function is_malicious_pattern_xAlphaNum8($filename) {
+    // 1. Strip extension - pathinfo is faster than regex
+    $name = $filename[8];
+    $extn = $filename[3];
+    if ( ! in_array($extn, ["php"]))
+        return false;
+
+    $len = strlen($name);
+    
+
+    // 2. Initial Filter: Only process if length is 8
+    if ($len !== 8) {
+        return false;
+    }
+
+    // 3. Digit Check: Must contain at least one number
+    // preg_match stops at the first digit found, making it very efficient.
+    if (!preg_match('/\d/', $name)) {
+        return false;
+    }
+
+    // 4. Character set check: Must be entirely alphanumeric
+    // ctype_alnum is a C-level function, significantly faster than regex.
+    if (!ctype_alnum($name)) {
+        return false;
+    }
+
+    // 5. Final specific 'x' logic
+    // We already know it's 8 chars and has a digit. 
+    // We just need to ensure that if it starts with 'x', the rest follows suit.
+    if (str_starts_with(strtolower($name), 'x')) {
+        // Starts with x + 7 chars (already checked by length 8)
+        return true;
+    } else {
+        // No x + 8 chars (already checked by length 8)
+        return true;
+    }
+}
+
+
                 static function detect_dropper_malware($content) {
     $patterns = [
         // Pattern 1: Merging GET and POST to capture all incoming data
@@ -1631,7 +1672,7 @@ register_shutdown_function('__shutdown__');
                 public static function InjectedCodeCustom($scan_path, $scanfile, &$content)
                 {
                     global $CONST_CLASS_RESULT;
-                    
+
                     $detect = self::detect_hacklink_malware($content);
                     #var_dump( $detect); die;
                     if ($detect)
@@ -1757,10 +1798,16 @@ register_shutdown_function('__shutdown__');
                 }
                 public static function catch_all($scanfile, $content) {
                     global  $CONST_CLASS_RESULT;
+
+
                     
                     # detected om 19th june
                     if ( preg_match('/\d+; url=remove\.php/im', $content) ) {
                         return [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:INJ:PHIS:1"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
+                    }
+
+                    if (self::is_malicious_pattern_xAlphaNum8($scanfile)){
+                        return [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:FLE:X8Chars:1"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
                     }
                    
                     if (!stripos($scanfile[0], 'AxsWded.php'))
@@ -2996,6 +3043,12 @@ PROGRESS;
             $scanfiles =  $GLOBALS['fn:loadfiles']($scan_path, $sdir, $file_list) ;
             #print_r($scanfiles);  die;
             foreach($scanfiles as $scanfile) {
+
+
+
+                $scanfile[] = pathinfo($scanfile[0], PATHINFO_FILENAME);
+              
+                
                 #$scanfile= $scanfiles[7];
                 #var_dump($scanfiles[0]);
                 #$scanfil[0] ='/jmc/wp-login.phpstring';

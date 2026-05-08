@@ -1,5 +1,11 @@
 <?php
 
+$name = "1";
+
+var_dump((bool)is_malicious_pattern('xswd2rdr.php')); die;
+
+
+
 class CSApiAVScanner
 {
     const version = '5.4.0';
@@ -1836,7 +1842,7 @@ BANNER,
 ###rsync -rapv  root@67.225.161.14:/var/imunify360/files/sigs  ./v1/var/imunify360/files/  
 die(build_db('v1_2026-04-28T142122.658979Z'));
 
-
+sftp://whunt3-dev@whunt3.sftp.wpengine.com:2222/
 function wpscan() {
     
     $headers = array();
