@@ -1,8 +1,34 @@
 <?php
 
-$name = "1";
+ function is_malicious_pattern_xAlphaNum8($filename) {
+    // 1. Strip extension - pathinfo is faster than regex
+    $name = "x049bc3";
+    $extn = "php";
+    if ( ! in_array($extn, ["php"]))
+        return false;
 
-var_dump((bool)is_malicious_pattern('xswd2rdr.php')); die;
+    $len = strlen($name);
+    
+
+    // 2. Initial Filter: Only process if length is 8
+    if ($len !== 8) {
+        return false;
+    }
+    
+     if (str_starts_with(strtolower($name), 'x')) {
+        $name = substring($name, 1);
+        if (preg_match('/^\d{7}$/D', $input)) {
+            return true;
+        }
+     }
+      if (!ctype_alnum($name) or $name !== strtolower($name) ) {
+            return false;
+    }
+
+
+}
+
+var_dump((bool)is_malicious_pattern_xAlphaNum8('xswd2rdr.php')); die;
 
 
 
