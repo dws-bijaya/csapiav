@@ -1605,7 +1605,7 @@ register_shutdown_function('__shutdown__');
 
                 static function is_malicious_pattern_xAlphaNum8($filename) {
     // 1. Strip extension - pathinfo is faster than regex
-    $name = $filename[8];
+    $name = strtolower($filename[8]);
     $extn = $filename[3];
     if ( ! in_array($extn, ["php"]))
         return false;
