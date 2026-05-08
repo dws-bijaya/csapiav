@@ -1602,6 +1602,78 @@ register_shutdown_function('__shutdown__');
                     return false;
                 }
 
+                static function detect_dropper_malware($content) {
+    $patterns = [
+        // Pattern 1: Merging GET and POST to capture all incoming data
+        '/array_merge\(\s*\$_GET\s*,\s*\$_POST\s*\)/',
+        
+        // Pattern 2: Checking for a specific hardcoded SHA256 password hash
+        '/hash\(\s*[\'"]sha256[\'"]\s*,\s*\$r\[[\'"]p[\'"]\]\s*\)\s*!==/',
+        
+        // Pattern 3: Decoding a base64 payload from an incoming request
+        '/base64_decode\(\s*\$r\[[\'"]c[\'"]\]\s*\)/',
+        
+        // Pattern 4: Writing the decoded content to a new PHP file on the server
+        '/file_put_contents\(\s*__DIR__\s*\.\s*[\'"]\/[\'"]\s*\.\s*\$f\s*,\s*\$d\s*\)/'
+    ];
+
+    $matches = 0;
+    foreach ($patterns as $pattern) {
+        if (preg_match($pattern, $content)) {
+            $matches++;
+        }
+    }
+
+    // If 3 or more of these patterns exist together, it is almost certainly a dropper
+    return ($matches >= 3);
+}
+
+                public static function InjectedCodeCustom($scan_path, $scanfile, &$content)
+                {
+                    global $CONST_CLASS_RESULT;
+                    
+                    $detect = self::detect_hacklink_malware($content);
+                    #var_dump( $detect); die;
+                    if ($detect)
+                    {
+                        return [1, array_merge( [ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->CriticalPHP,  "SMW:INJ:PHP:CODE:HCKLK", time() ] ,  $scanfile)]; 
+
+                    }
+
+
+                    $detect = self::detect_dropper_malware($content, $scanfile, $content);
+                    #var_dump( $detect); die;
+                    if ($detect)
+                    {
+                        return [1, array_merge( [ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->CriticalPHP,  "SMW:INJ:PHP:CODE:DROPP", time() ] ,  $scanfile)]; 
+
+                    }
+
+                    return [false, []];
+                }
+
+                static function detect_hacklink_malware($content) {
+                    $patterns = [
+                        // Pattern 1: The specific function name and the hacklinkmarket URL
+                        '/function\s+4dxf/',
+                        '/panel\.hacklinkmarket\.com\/code/',
+                        
+                        // Pattern 2: The obfuscated X-Domain header logic used to track the victim site
+                        '/X-Domain:.\s*\.\s*\$5n0t/',
+                        
+                        // Pattern 3: Hooking into the WordPress footer at a very high priority (999)
+                        '/add_action\s*\(\s*[\'"]wp_footer[\'"]\s*,\s*[\'"]4dxf[\'"]\s*,\s*999\s*\)/'
+                    ];
+
+                    foreach ($patterns as $pattern) {
+                        if (preg_match($pattern, $content)) {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                }
+
                 public static function CriticalPHP($l_Content, &$l_Pos, &$l_SigId, $signs, $debug = null)
                 {
 
@@ -2666,6 +2738,12 @@ register_shutdown_function('__shutdown__');
         ### Custom code in PHP
         if (!$detected) {
             list($detected, $result) = ScanCheckers::InjectedCodeAtBegOrEnd($scan_path, $scanfile);
+        }
+
+
+        ### Custom code in PHP
+        if (!$detected) {
+            list($detected, $result) = ScanCheckers::InjectedCodeCustom($scan_path, $scanfile, $content);
         }
 
         
