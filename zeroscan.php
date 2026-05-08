@@ -1623,8 +1623,9 @@ register_shutdown_function('__shutdown__');
     $len = strlen($name);
     
 
+
     // 2. Initial Filter: Only process if length is 8
-    if ($len !== 7 or $len !== 8)) {
+    if ($len !== 7 || $len !== 8)) {
         return false;
     }
     
