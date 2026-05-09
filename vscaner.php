@@ -1,5 +1,8 @@
 <?php
 
+
+var_dump(ctype_alnum('32213123')); die;
+
  function is_malicious_pattern_xAlphaNum8($filename) {
     // 1. Strip extension - pathinfo is faster than regex
     $name = "x049bc3";

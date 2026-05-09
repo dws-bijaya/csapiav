@@ -1273,9 +1273,10 @@ register_shutdown_function('__shutdown__');
                         #if (  !$found && stripos($line, '<?php ') === 0 && strlen(substr($line, 5)) >= $GLOBALS['OPTIONS']['PHPLINE_LEN'] &&  stripos($line, '<?php ', 10) === FALSE    && (preg_match('~[A-z0-9\+/]{100,}~sm', $line) || substr_count($line, 'function ')>=3  )     ) {
                                 
                     }
+
                     if ($found)
                    { 
-                        $count = substr_count($found[1] , '$');
+                        $count = substr_count($found[1] , '$', 10);
                         if (!$count )
                             return  [0, []];
                     }
@@ -1614,33 +1615,39 @@ register_shutdown_function('__shutdown__');
 
 
                 static function is_malicious_pattern_xAlphaNum8($filename) {
-    // 1. Strip extension - pathinfo is faster than regex
-    $name = ($filename[8]);
-    $extn = $filename[3];
-    if ( ! in_array($extn, ["php"]))
-        return false;
 
-    $len = strlen($name);
-    
+                    
 
 
-    // 2. Initial Filter: Only process if length is 8
-    if ($len !== 7 || $len !== 8) {
-        return false;
-    }
-    
-     if (str_starts_with(strtolower($name), 'x')) {
-        $name = substring($name, 1);
-        if (preg_match('/^\d{7}$/D', $input)) {
-            return true;
-        }
-     }
-      if (!ctype_alnum($name) or $name !== strtolower($name) ) {
-            return false;
-    }
+                    // 1. Strip extension - pathinfo is faster than regex
+                    $name = ($filename[8]);
+                    $extn = $filename[3];
+                    if ( ! in_array($extn, ["php"]))
+                        return false;
 
+                    $len = strlen($name);
+                    
 
-}
+                    
+                    // 2. Initial Filter: Only process if length is 8
+                    if (!in_array((string)($len), ['7', '8'])) {
+                        return false;
+                    }
+
+                    $started_x = false;
+                    if (str_starts_with(strtolower($name), 'x')) {
+                        $started_x = true;
+                        $name = substr($name, 1);
+                        if (preg_match('/^\d{7}$/D', $name)) {
+                            return true;
+                        }
+                    }
+                    if (ctype_alnum($name) && $name === strtolower($name)  ) {
+                            return true;
+                    }
+                    return false;
+
+                }
 
 
                 static function detect_dropper_malware($content) {
@@ -1801,6 +1808,7 @@ register_shutdown_function('__shutdown__');
 
 
                     
+                    
                     # detected om 19th june
                     if ( preg_match('/\d+; url=remove\.php/im', $content) ) {
                         return [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:INJ:PHIS:1"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
@@ -1809,6 +1817,9 @@ register_shutdown_function('__shutdown__');
                     if (self::is_malicious_pattern_xAlphaNum8($scanfile)){
                         return [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:FLE:X8Chars:1"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
                     }
+
+                   
+
                    
                     if (!stripos($scanfile[0], 'AxsWded.php'))
                         return;
@@ -2810,6 +2821,10 @@ register_shutdown_function('__shutdown__');
         if (!$detected && $GLOBALS['OPTIONS']['VDIE']) {
             list($detected, $result)  = ScanCheckers::scan_vdie($scanfile, $content);
         }
+
+
+
+       
 
         if (!$detected) {
             list($detected, $result)  = ScanCheckers::catch_all($scanfile, $content);
