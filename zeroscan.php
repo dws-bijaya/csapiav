@@ -1641,6 +1641,14 @@ register_shutdown_function('__shutdown__');
                         if (preg_match('/^\d{7}$/D', $name)) {
                             return true;
                         }
+                        $hasDigit = preg_match('/\d/', $name);
+                        if (!$hasDigit) return false;
+
+                        preg_match_all('/[aeiou]/i', $name, $vowels);
+                        $vowelCount = count($vowels[0]);
+                        if ($vowelCount < 2) return true;
+
+
                         if (ctype_alnum($name) && $name === strtolower($name)  ) {
                             return true;
                         }
