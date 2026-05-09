@@ -1641,10 +1641,11 @@ register_shutdown_function('__shutdown__');
                         if (preg_match('/^\d{7}$/D', $name)) {
                             return true;
                         }
-                    }
-                    if (ctype_alnum($name) && $name === strtolower($name)  ) {
+                        if (ctype_alnum($name) && $name === strtolower($name)  ) {
                             return true;
+                        }
                     }
+                    
                     return false;
 
                 }
