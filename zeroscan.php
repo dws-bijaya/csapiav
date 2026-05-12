@@ -3005,7 +3005,7 @@ register_shutdown_function('__shutdown__');
             is_null($file) ? die(var_dump($sdir)) : '';
             $display_file = $GLOBALS['fn:shorten_path']($file, 100); 
             if ($file_list &&  !in_array( basename( $sdir),  $file_list )) {
-                $GLOBALS['fn:stdout'](  "\033[2K\r" . "Skiping File  [FILE-LIST] " . $display_file, false );
+                #$GLOBALS['fn:stdout'](  "\033[2K\r" . "Skiping File  [FILE-LIST] " . $display_file, false );
                 continue;
             }
            
