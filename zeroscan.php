@@ -1635,7 +1635,7 @@ register_shutdown_function('__shutdown__');
                     }
 
                     $started_x = false;
-                    if (str_starts_with(strtolower($name), 'x')) {
+                    if (str_starts_with(($name), 'x') ) {
                         $started_x = true;
                         $name = substr($name, 1);
                         if (preg_match('/^\d{7}$/D', $name)) {
@@ -1812,20 +1812,102 @@ register_shutdown_function('__shutdown__');
                     }
                     return !empty($l_Pos);
                 }
+
+
+                public static function is_malicious_wp_cache_buster(&$content) {
+    // 1. Core Signatures: These specific header combinations are rarely found together in clean code.
+    $signatures = [
+        'DONOTCACHEPAGE',
+        'X-LiteSpeed-Control: no-cache',
+        'CF-Cache-Status: BYPASS',
+        'X-Robots-Tag: noindex',
+        'wp_cache_flush',
+        'w3tc_flush_all'
+    ];
+
+    $matches = 0;
+    foreach ($signatures as $sig) {
+        if (stripos($content, $sig) !== false) {
+            $matches++;
+        }
+    }
+
+    // 2. Structural Pattern: Look for the specific hooks used to execute the code.
+    $has_hooks = (stripos($content, 'add_action("init"') !== false || stripos($content, "add_action('init'") !== false) &&
+                 (stripos($content, 'add_action("wp_footer"') !== false || stripos($content, "add_action('wp_footer'") !== false);
+
+    // 3. Logic Decision:
+    // If it contains more than 3 of the cache-busting headers + the hooks, it's definitely the malware utility.
+    if ($matches >= 3 && $has_hooks) {
+        return true;
+    }
+
+    // High-confidence single signature check
+    if (stripos($content, 'CF-Cache-Status: BYPASS') !== false && stripos($content, 'wp_cache_flush') !== false) {
+        return true;
+    }
+
+    return false;
+}
+
+
+
+
+                 public static function is_malicious_mailer(&$content) {
+    // 1. Pre-filter: Malware usually contains these high-density strings
+    // We use a "Sieve" approach to reject clean files quickly
+    $fingerprints = [
+        'emailcampaign2024',      // The specific Auth Token
+        'X-AUTH-TOKEN',           // The custom header used for C2
+        'displayNameSpoof',       // Specific variable name in this mailer
+        'forceSmtpServer',        // Specific variable name
+        'quoted-printable_encode' // Used for obfuscating spam content
+    ];
+
+    $score = 0;
+    foreach ($fingerprints as $sig) {
+        if (strpos($content, $sig) !== false) {
+            $score++;
+        }
+    }
+
+    // 2. Structural Analysis (Heuristics)
+    // This mailer uses a very specific combination of functions:
+    $has_api_input = strpos($content, 'php://input') !== false;
+    $has_json      = strpos($content, 'json_decode') !== false;
+    $has_mailing   = strpos($content, 'mail(') !== false || strpos($content, 'popen') !== false;
+    $has_stealth   = strpos($content, 'error_reporting(0)') !== false;
+
+    // 3. Final Decision Logic
+    // If it has the specific Auth Token, it's 100% the malware.
+    if (strpos($content, 'emailcampaign2024') !== false) return true;
+
+    // If it has 3 or more fingerprints, it's highly likely.
+    if ($score >= 3) return true;
+
+    // If it is a stealthy script that takes JSON input and sends mail, it is suspicious.
+    if ($has_api_input && $has_json && $has_mailing && $has_stealth) return true;
+
+    return false;
+}
+
+
                 public static function catch_all($scanfile, $content) {
                     global  $CONST_CLASS_RESULT;
 
 
-                    
                     
                     # detected om 19th june
                     if ( preg_match('/\d+; url=remove\.php/im', $content) ) {
                         return [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:INJ:PHIS:1"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
                     }
 
-                    if (self::is_malicious_pattern_xAlphaNum8($scanfile)){
+                    if (self::is_malicious_pattern_xAlphaNum8($content)){
                         return [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:FLE:X8Chars:1"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
                     }
+
+
+                   
 
                    
 
@@ -2800,6 +2882,19 @@ register_shutdown_function('__shutdown__');
             list($detected, $result) = $CheckVulnerability($scan_path, $scanfile, 0, $content);
            
         }
+
+
+         if (ScanCheckers::is_malicious_mailer($content)){
+             list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:FLE:Mailr:11"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
+        }
+
+
+
+         if (ScanCheckers::is_malicious_wp_cache_buster($content)){
+             list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:FLE:WPCacheBuster:11"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
+        }
+
+
 
         
         ### Custom code in PHP
