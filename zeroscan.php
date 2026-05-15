@@ -1813,6 +1813,42 @@ register_shutdown_function('__shutdown__');
                     return !empty($l_Pos);
                 }
 
+/**
+ * Detects the specific "Update Verification Helper" malware in a string.
+ * * @param string $content The PHP code to analyze.
+ * @return bool True if malware is detected, false otherwise.
+ */
+static function detect_credential_stealer_malware(&$content) {
+    // 1. The unique 16-char hex key (The most reliable indicator)
+    $has_secret_key = strpos($content, 'a3f8b2c1d4e5f607') !== false;
+
+    // 2. The specific database persistence key
+    $has_db_key = strpos($content, 'wp_session_tokens_config') !== false;
+
+    // 3. The logic that hooks into the login process (base64 encoded)
+    $has_login_hook = strpos($content, 'd3AtY29udGVudC91cGxvYWRz') !== false;
+
+    // 4. The temporary file inclusion backdoor pattern
+    $has_backdoor = strpos($content, 'include($_t)') !== false && strpos($content, 'unlink($_t)') !== false;
+
+    // Logic: If the secret key is found, OR if at least two other patterns match.
+    if ($has_secret_key) {
+        return true;
+    }
+
+    if (($has_db_key + $has_login_hook + $has_backdoor) >= 2) {
+        return true;
+    }
+
+    return false;
+}
+
+// Example Usage:
+// if (is_malware_sample(file_get_contents('suspicious.php'))) {
+//     echo "Danger: Malware Detected!";
+// }
+
+
 
                 public static function is_malicious_wp_cache_buster(&$content) {
     // 1. Core Signatures: These specific header combinations are rarely found together in clean code.
@@ -2895,6 +2931,14 @@ register_shutdown_function('__shutdown__');
         }
 
 
+         if (ScanCheckers::detect_credential_stealer_malware($content)){
+             list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:FLE:CRED:Stealer"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
+        }
+
+
+
+        
+
 
         
         ### Custom code in PHP
@@ -3013,7 +3057,7 @@ register_shutdown_function('__shutdown__');
             #var_dump($ext, $perms, $mtime, $size, $ownerid, $user_name, $group_name, $sdir); die;
             #$size = filesize($sdir);
             if ( $size <$GLOBALS['OPTIONS']['MIN_CONTENT_LEN'] || $size > $GLOBALS['OPTIONS']['MAX_CONTENT_LEN'] || !is_readable($sdir)){
-                $GLOBALS['fn:stdout'](  "\033[2K\r" . "Skiping File [MAXLEN] " . $display_file, false );
+                #$GLOBALS['fn:stdout'](  "\033[2K\r" . "Skiping File [MAXLEN] " . $display_file, false );
                 continue;
             }
             if ( $dir == "." ) {
@@ -3029,14 +3073,14 @@ register_shutdown_function('__shutdown__');
             #$ext  = pathinfo($sdir, PATHINFO_EXTENSION);
             if ( (! $ext  &&  $GLOBALS['OPTIONS']['SKIP-NON-EXT'])  || ! in_array($ext,  isset($GLOBALS['OPTIONS']["SCAN_ONLY_EXTENSIONS"]) ?$GLOBALS['OPTIONS']['SCAN_ONLY_EXTENSIONS']:  $GLOBALS['OPTIONS']['EXTENSIONS']  ))
             {
-                $GLOBALS['fn:stdout'](  "\033[2K\r" . "Skiping File [NON-EXTENSION] " . $display_file, false );
+               # $GLOBALS['fn:stdout'](  "\033[2K\r" . "Skiping File [NON-EXTENSION] " . $display_file, false );
                 continue;
             }   
 
 
             /* Only regular File */
             if ($perms & 0xF000  !== 0x8000 &&   ($perms &  0777)  !== 0777 ){
-                $GLOBALS['fn:stdout'](  "\033[2K\r" . "Skiping File [NON-REGULAR] " . $display_file, false );
+                @$GLOBALS['fn:stdout'](  "\033[2K\r" . "Skiping File [NON-REGULAR] " . $display_file, false );
                 continue;
             }
             $ret_files[]= [ substr($sdir,  strlen($scan_path)), $hashfile, $size,  $ext , $perms, $mtime, "{$group_name}:{$user_name}" , $flag ];;
