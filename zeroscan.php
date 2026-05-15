@@ -1850,6 +1850,44 @@ static function detect_credential_stealer_malware(&$content) {
 
 
 
+/**
+ * Analyzes code for the "WP Performance Analytics" dropper patterns.
+ * * @param string $content The PHP code to analyze.
+ * @return bool True if malware signatures are found, false otherwise.
+ */
+public static function Detect_PolymorphicDropper($content) {
+    // 1. Check for the "Cloaking" list (Common in this specific malware)
+    // This looks for the list of bots the malware tries to hide from.
+    $bot_list = 'bot|crawl|spider|lighthouse|pagespeed|semrush|ahrefs';
+    $has_cloaking = strpos($content, $bot_list) !== false;
+
+    // 2. Check for the XOR decoding pattern in the injected script
+    // Specifically looking for the charCodeAt(i)^k logic used to decrypt $d
+    $has_xor_logic = strpos($content, 'charCodeAt(i)^k') !== false;
+
+    // 3. Check for the "VM" trigger (Dynamic function execution)
+    $has_dynamic_exec = strpos($content, 'new Function(') !== false;
+
+    // 4. Check for the specific Skip-Roles array
+    $has_admin_skip = strpos($content, "array('administrator','editor','author')") !== false;
+
+    // SCORING:
+    // If it has XOR logic and New Function execution, it's almost certainly a dropper.
+    if ($has_xor_logic && $has_dynamic_exec) {
+        return true;
+    }
+
+    // If it has cloaking logic combined with admin skipping in a non-standard file.
+    if ($has_cloaking && $has_admin_skip) {
+        return true;
+    }
+
+    return false;
+}
+
+
+
+
                 public static function is_malicious_wp_cache_buster(&$content) {
     // 1. Core Signatures: These specific header combinations are rarely found together in clean code.
     $signatures = [
@@ -2935,6 +2973,13 @@ static function detect_credential_stealer_malware(&$content) {
              list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:FLE:CRED:Stealer"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
         }
 
+
+        if (ScanCheckers::Detect_PolymorphicDropper($content)){
+             list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:FLE:Polymorphic:Dropper"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
+        }
+
+
+        
 
 
         
