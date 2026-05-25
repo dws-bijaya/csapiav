@@ -1887,6 +1887,30 @@ public static function Detect_PolymorphicDropper($content) {
 
 
 
+ public static function detect_blockchain_malware($content) {
+    $threat_indicators = [
+        'blockchain_rpc' => '/https:\/\/[a-z0-9-]+\.publicnode\.com/i', // BSC/ETH RPC nodes
+        'headless_check' => '/navigator\.webdriver|HeadlessChrome/i',   // Sandbox evasion
+        'hex_to_string'  => '/fromCharCode\.apply.*unhexed/i',          // Obfuscation logic
+        'eval_atob'      => '/eval\(atob\(value\)\)/i',                 // Final execution payload
+        'eth_address'    => '/0x[a-fA-F0-9]{40}/'                       // Hardcoded wallet/contract addresses
+    ];
+
+    $findings = [];
+
+    foreach ($threat_indicators as $key => $pattern) {
+        if (preg_match($pattern, $content)) {
+            $findings[] = $key;
+        }
+    }
+    return count($findings) >=1;
+    return [
+        'is_malicious' => count($findings) >= 2, // If 2 or more match, it's highly likely malware
+        'matched_patterns' => $findings
+    ];
+}
+
+
 
                 public static function is_malicious_wp_cache_buster(&$content) {
     // 1. Core Signatures: These specific header combinations are rarely found together in clean code.
@@ -2979,6 +3003,13 @@ public static function Detect_PolymorphicDropper($content) {
         }
 
 
+
+        if (ScanCheckers::detect_blockchain_malware($content)){
+             list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:JS:BlockChain:L"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
+        }
+
+
+        
         
 
 
