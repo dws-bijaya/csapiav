@@ -1,38 +1,6 @@
 <?php
 
 
-var_dump(str_starts_with('Xwqdqd62d', 'X')); die;
-
- function is_malicious_pattern_xAlphaNum8($filename) {
-    // 1. Strip extension - pathinfo is faster than regex
-    $name = "x049bc3";
-    $extn = "php";
-    if ( ! in_array($extn, ["php"]))
-        return false;
-
-    $len = strlen($name);
-    
-
-    // 2. Initial Filter: Only process if length is 8
-    if ($len !== 8) {
-        return false;
-    }
-    
-     if (str_starts_with(strtolower($name), 'x')) {
-        $name = substring($name, 1);
-        if (preg_match('/^\d{7}$/D', $input)) {
-            return true;
-        }
-     }
-      if (!ctype_alnum($name) or $name !== strtolower($name) ) {
-            return false;
-    }
-
-
-}
-
-var_dump((bool)is_malicious_pattern_xAlphaNum8('xswd2rdr.php')); die;
-
 
 
 class CSApiAVScanner
@@ -1869,7 +1837,7 @@ BANNER,
 
 #die(print_r(build_blacklisted(true)));
 ###rsync -rapv  root@67.225.161.14:/var/imunify360/files/sigs  ./v1/var/imunify360/files/  
-die(build_db('v1_2026-04-28T142122.658979Z'));
+die(build_db('v1_2026-05-27T192650.598476Z'));
 
 sftp://whunt3-dev@whunt3.sftp.wpengine.com:2222/
 function wpscan() {

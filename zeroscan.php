@@ -36,7 +36,7 @@ register_shutdown_function('__shutdown__');
     $GLOBALS['OPTIONS']['PHPLINE_LEN'] = 500;
     $GLOBALS['OPTIONS']['DEFAULT_SLOWDOWN_DELAY'] =  1;
     $GLOBALS['OPTIONS']['EXTENSIONS'] =  explode("|", base64_decode("cGhwfHBocDd8fGNvbXxqc3xweXxodG1sfHBocDR8b3xjZ2l8cGh0bWx8c3VzcHxqc29ufHN1c3BpY2lvdXN8cGhwNnx2aXJ8cGh0fGh0bXxodGFjY2Vzc3xwbHxwaHAzfHN1c3BlY3RlZHxzaHxpbmZlY3RlZHxpY298c2h0bWx8c298cGhwNXx0cGw=") );
-    $stat_data = unserialize(base64_decode("YTo0OntpOjA7czo0ODY6IiAgICAgX19fX19fICAgICAgICAgICAgICBfX19fXyAgICAgICAgICAgICAgICAgIAogICAgfF9fXyAgLyAgICAgICAgICAgICAvIF9fX198ICAgICAgICAgICAgICAgIAogICAgICAgLyAvIF9fXyBfIF9fIF9fX3wgKF9fXyAgIF9fXyBfXyBfIF8gX18gIAogICAgICAvIC8gLyBfIFwgJ19fLyBfIFxfX18gXCAvIF9fLyBfYCB8ICdfIFwgCiAgICAgLyAvX3wgIF9fLyB8IHwgKF8pIHxfX18pIHwgKF98IChffCB8IHwgfCB8CiAgICAvX19fX19cX19ffF98ICBcX19fL19fX19fLyBcX19fXF9fLF98X3wgfF98Clplcm9TY2FuIDQuMy4wICwgTWFsd2FyZSwgRXhwbG9pdHMgYW5mIFZ1bG5lcmFiaWxpdHkgRmlsZXMgU2Nhbm5lciBmb3IgUEhQIFdlYnNpdGVzCkNvcHlyaWdodDogMjAyMi0yMDIzIFplcm9TY2FuIEluYy4KU2lnbmF0dXJlcyBWZXJpb246IDE3Nzc0NjkzNDAgfCAyMDI2LTA0LTI5LTE1OjI5OjAwNzIwMApTaWduYXR1cmVzIExvYWRlZDogOTc1MCI7aToxO3M6NToiNC4zLjAiO2k6MjtpOjE3Nzc0NjkzNDA7aTozO2k6OTc1MDt9"));
+    $stat_data = unserialize(base64_decode("YTo0OntpOjA7czo0ODc6IiAgICAgX19fX19fICAgICAgICAgICAgICBfX19fXyAgICAgICAgICAgICAgICAgIAogICAgfF9fXyAgLyAgICAgICAgICAgICAvIF9fX198ICAgICAgICAgICAgICAgIAogICAgICAgLyAvIF9fXyBfIF9fIF9fX3wgKF9fXyAgIF9fXyBfXyBfIF8gX18gIAogICAgICAvIC8gLyBfIFwgJ19fLyBfIFxfX18gXCAvIF9fLyBfYCB8ICdfIFwgCiAgICAgLyAvX3wgIF9fLyB8IHwgKF8pIHxfX18pIHwgKF98IChffCB8IHwgfCB8CiAgICAvX19fX19cX19ffF98ICBcX19fL19fX19fLyBcX19fXF9fLF98X3wgfF98Clplcm9TY2FuIDQuMy4wICwgTWFsd2FyZSwgRXhwbG9pdHMgYW5mIFZ1bG5lcmFiaWxpdHkgRmlsZXMgU2Nhbm5lciBmb3IgUEhQIFdlYnNpdGVzCkNvcHlyaWdodDogMjAyMi0yMDIzIFplcm9TY2FuIEluYy4KU2lnbmF0dXJlcyBWZXJpb246IDE3Nzk5NjAwODkgfCAyMDI2LTA1LTI4LTExOjIxOjI5NzIwMApTaWduYXR1cmVzIExvYWRlZDogMTAwNjkiO2k6MTtzOjU6IjQuMy4wIjtpOjI7aToxNzc5OTYwMDg5O2k6MztpOjEwMDY5O30="));
     #$stat_data = unserialize(base64_decode("[STATIC_DATA]]"));
     list($BANNER, $APP_VERSION, $SIGN_VERSION, $SIGN_COUNT) =  $stat_data;
     unset($stat_data);
@@ -1885,6 +1885,9 @@ public static function Detect_PolymorphicDropper($content) {
     return false;
 }
 
+
+
+cPanel login page that has been compromised with a malicious script
 
 
  public static function detect_blockchain_malware($content) {
