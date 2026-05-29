@@ -1614,6 +1614,57 @@ register_shutdown_function('__shutdown__');
                 }
 
 
+
+
+
+                static function detect_obfuscated_js($content, $scanfile) {
+
+                    #print_r($scanfile);
+                    $scores = 0;
+                    $findings = [];
+
+                    // 1. Check for the "Hex Variable" pattern (e.g., _0x442ca0)
+                    // High frequency of these is a major red flag.
+                    if (preg_match_all('/_0x[a-f0-9]{4,6}/', $content, $matches)) {
+                        if (count($matches[0]) > 15) {
+                            $scores += 30;
+                            $findings[] = "High density of hex-encoded variable names.";
+                        }
+                    }
+
+                    // 2. Check for the "Large String Array" pattern
+                    // Usually starts with var _0x.... = ['...', '...'];
+                    if (preg_match('/var\s+_0x[a-f0-9]+\s*=\s*\[\s*(\'|")[^\]]{100,}/', $content)) {
+                        $scores += 25;
+                        $findings[] = "Large encoded string array detected.";
+                    }
+
+                    // 3. Check for the "Decoder Function" math pattern
+                    // e.g., _0x442ca0 = _0x442ca0 - (0x9ed + -0x1c8d + 0xd7 * 0x17)
+                    if (preg_match('/_0x[a-f0-9]+\s*=\s*_0x[a-f0-9]+\s*-\s*\(\s*0x[a-f0-9]+/', $content)) {
+                        $scores += 25;
+                        $findings[] = "Arithmetic decoder logic found (anti-analysis).";
+                    }
+
+                    // 4. Check for the "Self-Defending" Regex
+                    // This is the code that crashes your browser if you try to format it.
+                    if (strpos($content, '\x5cw+\x20*\x5c(\x5c)\x20*{\x5cw+\x20*') !== false) {
+                        $scores += 20;
+                        $findings[] = "Self-defending/Anti-tamper regex detected.";
+                    }
+
+                   
+                    return  ($scores >= 50);
+                    /* ?  [
+                        'is_malicious' => ($scores >= 50), // Threshold for alert
+                        'threat_score' => $scores,
+                        'findings' => $findings
+                    ];*/
+        }
+
+
+
+
                 static function is_malicious_pattern_xAlphaNum8($filename) {
 
                     
@@ -1705,6 +1756,17 @@ register_shutdown_function('__shutdown__');
                         return [1, array_merge( [ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->CriticalPHP,  "SMW:INJ:PHP:CODE:DROPP", time() ] ,  $scanfile)]; 
 
                     }
+
+
+                    $detect = self::detect_obfuscated_js($content, $scanfile, $content);
+                    #var_dump( $detect); die;
+                    if ($detect)
+                    {
+                        return [1, array_merge( [ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->CriticalPHP,  "SMW:INJ:JS:CODE:Obf", time() ] ,  $scanfile)]; 
+
+                    }
+
+
 
                     return [false, []];
                 }
