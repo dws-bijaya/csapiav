@@ -1,0 +1,266 @@
+[
+  {
+    "Id": 6,
+    "Name": "0spam URLBL Listings",
+    "DnsZone": "url.0spam.org",
+    "Url": "https://0spam.org/"
+  },
+  {
+    "Id": 7,
+    "Name": "0spam URLBL Listings (mirror)",
+    "DnsZone": "0spamurl.fusionzero.com",
+    "Url": "https://0spam.fusionzero.com/"
+  },
+  {
+    "Id": 12,
+    "Name": "abuse.ro URI RBL",
+    "DnsZone": "uribl.abuse.ro",
+    "Url": "http://www.abuse.ro/"
+  },
+  {
+    "Id": 43,
+    "Name": "blacklist.netcore.co.in",
+    "DnsZone": "blacklist.netcore.co.in",
+    "Url": "http://ecm.netcore.co.in/cgi-bin/blacklist"
+  },
+  {
+    "Id": 49,
+    "Name": "Blog Spam Blocklist (empty.us)",
+    "DnsZone": "bsb.empty.us",
+    "Url": "http://bsb.empty.us/"
+  },
+  {
+    "Id": 50,
+    "Name": "Blog Spam Blocklist (spamlookup.net)",
+    "DnsZone": "bsb.spamlookup.net",
+    "Url": "http://bsb.spamlookup.net/"
+  },
+  {
+    "Id": 57,
+    "Name": "Brukalai.lt DNSBL black",
+    "DnsZone": "black.dnsbl.brukalai.lt",
+    "Url": "https://www.brukalai.lt/"
+  },
+  {
+    "Id": 58,
+    "Name": "Brukalai.lt DNSBL light",
+    "DnsZone": "light.dnsbl.brukalai.lt",
+    "Url": "https://www.brukalai.lt/"
+  },
+  {
+    "Id": 108,
+    "Name": "fmb.la bl",
+    "DnsZone": "bl.fmb.la",
+    "Url": "http://bl.fmb.la/"
+  },
+  {
+    "Id": 109,
+    "Name": "fmb.la communicado",
+    "DnsZone": "communicado.fmb.la",
+    "Url": "http://bl.fmb.la/"
+  },
+  {
+    "Id": 110,
+    "Name": "fmb.la nsbl",
+    "DnsZone": "nsbl.fmb.la",
+    "Url": "http://bl.fmb.la/"
+  },
+  {
+    "Id": 112,
+    "Name": "fmb.la short",
+    "DnsZone": "short.fmb.la",
+    "Url": "http://bl.fmb.la/"
+  },
+  {
+    "Id": 122,
+    "Name": "Hostkarma blacklist",
+    "DnsZone": "black.junkemailfilter.com",
+    "Url": "http://wiki.junkemailfilter.com/index.php/Spam_DNS_Lists"
+  },
+  {
+    "Id": 154,
+    "Name": "MailCleaner URIBL",
+    "DnsZone": "uribl.mailcleaner.net",
+    "Url": "https://www.mailcleaner.net/"
+  },
+  {
+    "Id": 175,
+    "Name": "NordSpam Domain Blacklist",
+    "DnsZone": "dbl.nordspam.com",
+    "Url": "https://www.nordspam.com/"
+  },
+  {
+    "Id": 183,
+    "Name": "nsZones.com SURBL",
+    "DnsZone": "ubl.nszones.com",
+    "Url": "http://nszones.com/"
+  },
+  {
+    "Id": 191,
+    "Name": "pofon.foobar.hu URI Blacklist",
+    "DnsZone": "uribl.pofon.foobar.hu",
+    "Url": "https://rbl.foobar.hu/"
+  },
+  {
+    "Id": 206,
+    "Name": "Polspam RHSBL",
+    "DnsZone": "rhsbl.rbl.polspam.pl",
+    "Url": "https://polspam.pl/"
+  },
+  {
+    "Id": 207,
+    "Name": "Polspam RHSBL-H",
+    "DnsZone": "rhsbl-h.rbl.polspam.pl",
+    "Url": "https://polspam.pl/"
+  },
+  {
+    "Id": 227,
+    "Name": "rjek.com mailsl DNSBL",
+    "DnsZone": "mailsl.dnsbl.rjek.com",
+    "Url": "https://rjek.com/dnsbl.html"
+  },
+  {
+    "Id": 233,
+    "Name": "Rymsho's RHSBL",
+    "DnsZone": "rhsbl.rymsho.ru",
+    "Url": "http://spam.rymsho.ru/"
+  },
+  {
+    "Id": 235,
+    "Name": "SARBL",
+    "DnsZone": "public.sarbl.org",
+    "Url": "https://www.sarbl.org/Main"
+  },
+  {
+    "Id": 236,
+    "Name": "scientificspam.net Domain list",
+    "DnsZone": "rhsbl.scientificspam.net",
+    "Url": "http://www.scientificspam.net/"
+  },
+  {
+    "Id": 253,
+    "Name": "SORBS Domain names indicating no email sender",
+    "DnsZone": "nomail.rhsbl.sorbs.net",
+    "Url": "http://www.sorbs.net/"
+  },
+  {
+    "Id": 254,
+    "Name": "SORBS Domain names pointing to bad addresses",
+    "DnsZone": "badconf.rhsbl.sorbs.net",
+    "Url": "http://www.sorbs.net/"
+  },
+  {
+    "Id": 263,
+    "Name": "SORBS RHS Aggregate zone",
+    "DnsZone": "rhsbl.sorbs.net",
+    "Url": "http://www.sorbs.net/"
+  },
+  {
+    "Id": 274,
+    "Name": "Spam Eating Monkey SEM-FRESH",
+    "DnsZone": "fresh.spameatingmonkey.net",
+    "Url": "https://spameatingmonkey.com/services"
+  },
+  {
+    "Id": 275,
+    "Name": "Spam Eating Monkey SEM-FRESH10",
+    "DnsZone": "fresh10.spameatingmonkey.net",
+    "Url": "https://spameatingmonkey.com/services"
+  },
+  {
+    "Id": 276,
+    "Name": "Spam Eating Monkey SEM-FRESH15",
+    "DnsZone": "fresh15.spameatingmonkey.net",
+    "Url": "https://spameatingmonkey.com/services"
+  },
+  {
+    "Id": 277,
+    "Name": "Spam Eating Monkey SEM-FRESH30",
+    "DnsZone": "fresh30.spameatingmonkey.net",
+    "Url": "https://spameatingmonkey.com/services"
+  },
+  {
+    "Id": 278,
+    "Name": "Spam Eating Monkey SEM-FRESHZERO",
+    "DnsZone": "freshzero.spameatingmonkey.net",
+    "Url": "https://spameatingmonkey.com/services"
+  },
+  {
+    "Id": 281,
+    "Name": "Spam Eating Monkey SEM-URI",
+    "DnsZone": "uribl.spameatingmonkey.net",
+    "Url": "https://spameatingmonkey.com/services"
+  },
+  {
+    "Id": 282,
+    "Name": "Spam Eating Monkey SEM-URIRED",
+    "DnsZone": "urired.spameatingmonkey.net",
+    "Url": "https://spameatingmonkey.com/services"
+  },
+  {
+    "Id": 287,
+    "Name": "Spamhaus DBL Domain Block List",
+    "DnsZone": "dbl.spamhaus.org",
+    "Url": "http://www.spamhaus.org/dbl/"
+  },
+  {
+    "Id": 304,
+    "Name": "SPFBL.net RBL",
+    "DnsZone": "dnsbl.spfbl.net",
+    "Url": "https://spfbl.net/en/dnsbl/"
+  },
+  {
+    "Id": 309,
+    "Name": "Suomispam Domain Blacklist",
+    "DnsZone": "dbl.suomispam.net",
+    "Url": "http://suomispam.net/"
+  },
+  {
+    "Id": 311,
+    "Name": "SURBL multi (Combined SURBL list)",
+    "DnsZone": "multi.surbl.org",
+    "Url": "http://www.surbl.org/"
+  },
+  {
+    "Id": 314,
+    "Name": "Swinog URIBL",
+    "DnsZone": "uribl.swinog.ch",
+    "Url": "http://antispam.imp.ch/05-uribl.php?lng=1"
+  },
+  {
+    "Id": 333,
+    "Name": "URIBL black",
+    "DnsZone": "black.uribl.com",
+    "Url": "http://www.uribl.com/"
+  },
+  {
+    "Id": 334,
+    "Name": "URIBL grey",
+    "DnsZone": "grey.uribl.com",
+    "Url": "http://www.uribl.com/"
+  },
+  {
+    "Id": 335,
+    "Name": "URIBL multi",
+    "DnsZone": "multi.uribl.com",
+    "Url": "http://www.uribl.com/"
+  },
+  {
+    "Id": 336,
+    "Name": "URIBL red",
+    "DnsZone": "red.uribl.com",
+    "Url": "http://www.uribl.com/"
+  },
+  {
+    "Id": 343,
+    "Name": "Woody's SMTP Blacklist URIBL",
+    "DnsZone": "uri.blacklist.woody.ch",
+    "Url": "http://blacklist.woody.ch/rblcheck.php3"
+  },
+  {
+    "Id": 347,
+    "Name": "ZapBL RHSBL",
+    "DnsZone": "rhsbl.zapbl.net",
+    "Url": "http://zapbl.net/"
+  }
+]

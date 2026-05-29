@@ -1,0 +1,890 @@
+[
+  {
+    "Id": 2,
+    "Name": "0spam General DNSBL Listings",
+    "DnsZone": "bl.0spam.org",
+    "Url": "https://0spam.org/"
+  },
+  {
+    "Id": 4,
+    "Name": "0spam Network DNSBL Listings",
+    "DnsZone": "nbl.0spam.org",
+    "Url": "https://0spam.org/"
+  },
+  {
+    "Id": 11,
+    "Name": "abuse.ro IP RBL",
+    "DnsZone": "rbl.abuse.ro",
+    "Url": "http://www.abuse.ro/"
+  },
+  {
+    "Id": 21,
+    "Name": "anonmails.de DNSBL",
+    "DnsZone": "spam.dnsbl.anonmails.de",
+    "Url": "http://www.anonmails.de/dnsbl.php"
+  },
+  {
+    "Id": 24,
+    "Name": "ANTISPAM-UFRJ orvedb",
+    "DnsZone": "orvedb.aupads.org",
+    "Url": "http://www.aupads.org/"
+  },
+  {
+    "Id": 25,
+    "Name": "ANTISPAM-UFRJ rsbl",
+    "DnsZone": "rsbl.aupads.org",
+    "Url": "http://www.aupads.org/"
+  },
+  {
+    "Id": 26,
+    "Name": "Ascams.com Block",
+    "DnsZone": "block.ascams.com",
+    "Url": "http://ascams.com/category/rbl/"
+  },
+  {
+    "Id": 27,
+    "Name": "Ascams.com Superblock",
+    "DnsZone": "superblock.ascams.com",
+    "Url": "http://ascams.com/category/rbl/"
+  },
+  {
+    "Id": 28,
+    "Name": "ASPEWS Listings",
+    "DnsZone": "aspews.ext.sorbs.net",
+    "Url": "http://www.aspews.org/"
+  },
+  {
+    "Id": 29,
+    "Name": "Backscatterer.org",
+    "DnsZone": "ips.backscatterer.org",
+    "Url": "http://www.backscatterer.org/"
+  },
+  {
+    "Id": 30,
+    "Name": "Barracuda Reputation Block List",
+    "DnsZone": "b.barracudacentral.org",
+    "Url": "http://www.barracudacentral.org/rbl/"
+  },
+  {
+    "Id": 31,
+    "Name": "Barracuda Reputation Block List (for SpamAssassin)",
+    "DnsZone": "bb.barracudacentral.org",
+    "Url": "http://www.barracudacentral.org/rbl/"
+  },
+  {
+    "Id": 42,
+    "Name": "blackholes.tepucom.nl",
+    "DnsZone": "blackholes.tepucom.nl",
+    "Url": "https://blackholes.tepucom.nl/"
+  },
+  {
+    "Id": 45,
+    "Name": "BlockedServers NetScan RBL",
+    "DnsZone": "netscan.rbl.blockedservers.com",
+    "Url": "http://www.blockedservers.com/"
+  },
+  {
+    "Id": 46,
+    "Name": "BlockedServers RBL",
+    "DnsZone": "rbl.blockedservers.com",
+    "Url": "http://www.blockedservers.com/"
+  },
+  {
+    "Id": 47,
+    "Name": "BlockedServers Spam RBL",
+    "DnsZone": "spam.rbl.blockedservers.com",
+    "Url": "http://www.blockedservers.com/"
+  },
+  {
+    "Id": 49,
+    "Name": "Blog Spam Blocklist (empty.us)",
+    "DnsZone": "bsb.empty.us",
+    "Url": "http://bsb.empty.us/"
+  },
+  {
+    "Id": 50,
+    "Name": "Blog Spam Blocklist (spamlookup.net)",
+    "DnsZone": "bsb.spamlookup.net",
+    "Url": "http://bsb.spamlookup.net/"
+  },
+  {
+    "Id": 57,
+    "Name": "Brukalai.lt DNSBL black",
+    "DnsZone": "black.dnsbl.brukalai.lt",
+    "Url": "https://www.brukalai.lt/"
+  },
+  {
+    "Id": 58,
+    "Name": "Brukalai.lt DNSBL light",
+    "DnsZone": "light.dnsbl.brukalai.lt",
+    "Url": "https://www.brukalai.lt/"
+  },
+  {
+    "Id": 60,
+    "Name": "C&amp;CZ's own black list",
+    "DnsZone": "blacklist.sci.kun.nl",
+    "Url": "http://wiki.science.ru.nl/cncz/Email_spam"
+  },
+  {
+    "Id": 67,
+    "Name": "CBL",
+    "DnsZone": "cbl.abuseat.org",
+    "Url": "http://cbl.abuseat.org/"
+  },
+  {
+    "Id": 74,
+    "Name": "Cymru Bogon List",
+    "DnsZone": "bogons.cymru.com",
+    "Url": "http://www.team-cymru.org/Services/Bogons/"
+  },
+  {
+    "Id": 75,
+    "Name": "Cymru Fullbogon IPv4 List",
+    "DnsZone": "v4.fullbogons.cymru.com",
+    "Url": "http://www.team-cymru.org/Services/Bogons/"
+  },
+  {
+    "Id": 82,
+    "Name": "darklist.de",
+    "DnsZone": "dnsbl.darklist.de",
+    "Url": "https://darklist.de/"
+  },
+  {
+    "Id": 83,
+    "Name": "Digibase BLS Open Proxy",
+    "DnsZone": "openproxy.bls.digibase.ca",
+    "Url": "http://bls.digibase.ca/DNSBL"
+  },
+  {
+    "Id": 84,
+    "Name": "Digibase BLS Proxy Abuse",
+    "DnsZone": "proxyabuse.bls.digibase.ca",
+    "Url": "http://bls.digibase.ca/DNSBL"
+  },
+  {
+    "Id": 85,
+    "Name": "Digibase BLS Spambot",
+    "DnsZone": "spambot.bls.digibase.ca",
+    "Url": "http://bls.digibase.ca/DNSBL"
+  },
+  {
+    "Id": 86,
+    "Name": "DNS-SERVICIOS RBL",
+    "DnsZone": "rbl.dns-servicios.com",
+    "Url": "http://rbl.dns-servicios.com/"
+  },
+  {
+    "Id": 88,
+    "Name": "dnsbl.beetjevreemd.nl",
+    "DnsZone": "dnsbl.beetjevreemd.nl",
+    "Url": "https://www.beetjevreemd.nl/dnsbl/"
+  },
+  {
+    "Id": 89,
+    "Name": "dnsbl.calivent.com.pe",
+    "DnsZone": "dnsbl.calivent.com.pe",
+    "Url": "http://dnsbl.calivent.com.pe/"
+  },
+  {
+    "Id": 90,
+    "Name": "dnsbl.isx.fr",
+    "DnsZone": "dnsbl.isx.fr",
+    "Url": "https://bl.isx.fr/"
+  },
+  {
+    "Id": 92,
+    "Name": "dnsbl.net.ua",
+    "DnsZone": "dnsbl.net.ua",
+    "Url": "http://dnsbl.net.ua/"
+  },
+  {
+    "Id": 93,
+    "Name": "dnsbl.rv-soft.info",
+    "DnsZone": "dnsbl.rv-soft.info",
+    "Url": "http://dnsbl.rv-soft.info/"
+  },
+  {
+    "Id": 94,
+    "Name": "dnsblchile.org",
+    "DnsZone": "dnsblchile.org",
+    "Url": "http://www.dnsblchile.org/"
+  },
+  {
+    "Id": 98,
+    "Name": "DRBL caravan.ru (vote node)",
+    "DnsZone": "vote.drbl.caravan.ru",
+    "Url": "http://drbl.caravan.ru/"
+  },
+  {
+    "Id": 99,
+    "Name": "DRBL caravan.ru (work node)",
+    "DnsZone": "work.drbl.caravan.ru",
+    "Url": "http://drbl.caravan.ru/"
+  },
+  {
+    "Id": 100,
+    "Name": "DRBL gremlin.ru (vote node)",
+    "DnsZone": "vote.drbl.gremlin.ru",
+    "Url": "http://drbl.gremlin.ru/en.html"
+  },
+  {
+    "Id": 101,
+    "Name": "DRBL gremlin.ru (work node)",
+    "DnsZone": "work.drbl.gremlin.ru",
+    "Url": "http://drbl.gremlin.ru/en.html"
+  },
+  {
+    "Id": 102,
+    "Name": "DrMX",
+    "DnsZone": "bl.drmx.org",
+    "Url": "http://www.drmx.org/"
+  },
+  {
+    "Id": 103,
+    "Name": "DroneBL",
+    "DnsZone": "dnsbl.dronebl.org",
+    "Url": "http://www.dronebl.org/"
+  },
+  {
+    "Id": 104,
+    "Name": "EFnet RBL",
+    "DnsZone": "rbl.efnet.org",
+    "Url": "http://efnetrbl.org/"
+  },
+  {
+    "Id": 105,
+    "Name": "EFnet RBL mirror",
+    "DnsZone": "rbl.efnetrbl.org",
+    "Url": "http://efnetrbl.org/"
+  },
+  {
+    "Id": 107,
+    "Name": "Fasthosts RBL",
+    "DnsZone": "rbl.fasthosts.co.uk",
+    "Url": "http://www.fasthosts.co.uk/knowledge-base/?article_id=961"
+  },
+  {
+    "Id": 108,
+    "Name": "fmb.la bl",
+    "DnsZone": "bl.fmb.la",
+    "Url": "http://bl.fmb.la/"
+  },
+  {
+    "Id": 113,
+    "Name": "fnrbl.fast.net",
+    "DnsZone": "fnrbl.fast.net",
+    "Url": "http://www.fast.net/"
+  },
+  {
+    "Id": 114,
+    "Name": "forbidden.icm.edu.pl",
+    "DnsZone": "forbidden.icm.edu.pl",
+    "Url": "http://sunsite.icm.edu.pl/spam/bh.html"
+  },
+  {
+    "Id": 116,
+    "Name": "Habeas Infringer List",
+    "DnsZone": "hil.habeas.com",
+    "Url": "http://www.habeas.com/"
+  },
+  {
+    "Id": 122,
+    "Name": "Hostkarma blacklist",
+    "DnsZone": "black.junkemailfilter.com",
+    "Url": "http://wiki.junkemailfilter.com/index.php/Spam_DNS_Lists"
+  },
+  {
+    "Id": 124,
+    "Name": "IBM DNS Blacklist",
+    "DnsZone": "dnsbl.cobion.com",
+    "Url": "http://filterdb.iss.net/dnsblinfo/"
+  },
+  {
+    "Id": 125,
+    "Name": "ImproWare IP based spamlist",
+    "DnsZone": "spamrbl.imp.ch",
+    "Url": "http://antispam.imp.ch/04-spamlist.html?lng=1"
+  },
+  {
+    "Id": 126,
+    "Name": "ImproWare IP based wormlist",
+    "DnsZone": "wormrbl.imp.ch",
+    "Url": "http://antispam.imp.ch/03-wormlist.html?lng=1"
+  },
+  {
+    "Id": 127,
+    "Name": "inps.de-DNSBL",
+    "DnsZone": "dnsbl.inps.de",
+    "Url": "http://dnsbl.inps.de/"
+  },
+  {
+    "Id": 129,
+    "Name": "InterServer BL",
+    "DnsZone": "rbl.interserver.net",
+    "Url": "http://rbl.interserver.net/"
+  },
+  {
+    "Id": 139,
+    "Name": "JIPPG's RBL Project (mail-abuse Listings)",
+    "DnsZone": "mail-abuse.blacklist.jippg.org",
+    "Url": "http://blacklist.jippg.org/"
+  },
+  {
+    "Id": 140,
+    "Name": "JustSpam.org",
+    "DnsZone": "dnsbl.justspam.org",
+    "Url": "http://www.justspam.org/"
+  },
+  {
+    "Id": 141,
+    "Name": "Kempt.net DNS Black List",
+    "DnsZone": "dnsbl.kempt.net",
+    "Url": "http://www.kempt.net/dnsbl/"
+  },
+  {
+    "Id": 143,
+    "Name": "KONSTANT DNSBL",
+    "DnsZone": "bl.konstant.no",
+    "Url": "http://bl.konstant.no/"
+  },
+  {
+    "Id": 146,
+    "Name": "kundenserver.de relays",
+    "DnsZone": "relays.bl.kundenserver.de",
+    "Url": "http://relaytest.kundenserver.de/"
+  },
+  {
+    "Id": 150,
+    "Name": "Leadmon.Net's SpamGuard Listings (LNSG)",
+    "DnsZone": "spamguard.leadmon.net",
+    "Url": "http://www.leadmon.net/spamguard/"
+  },
+  {
+    "Id": 151,
+    "Name": "lugh.ch DNSBL",
+    "DnsZone": "rbl.lugh.ch",
+    "Url": "https://lugh.ch/dnsbl.html"
+  },
+  {
+    "Id": 156,
+    "Name": "Mailspike Blacklist",
+    "DnsZone": "bl.mailspike.net",
+    "Url": "http://mailspike.org/"
+  },
+  {
+    "Id": 160,
+    "Name": "MAV BL",
+    "DnsZone": "bl.mav.com.br",
+    "Url": "http://www.emailcomseguranca.com.br/mav-bl/"
+  },
+  {
+    "Id": 161,
+    "Name": "McAfee RBL",
+    "DnsZone": "cidr.bl.mcafee.com",
+    "Url": "https://kc.mcafee.com/corporate/index?page=content&amp;id=KB53783"
+  },
+  {
+    "Id": 164,
+    "Name": "MSRBL combined",
+    "DnsZone": "combined.rbl.msrbl.net",
+    "Url": "http://www.msrbl.com/"
+  },
+  {
+    "Id": 165,
+    "Name": "MSRBL images",
+    "DnsZone": "images.rbl.msrbl.net",
+    "Url": "http://www.msrbl.com/"
+  },
+  {
+    "Id": 166,
+    "Name": "MSRBL phishing",
+    "DnsZone": "phishing.rbl.msrbl.net",
+    "Url": "http://www.msrbl.com/"
+  },
+  {
+    "Id": 167,
+    "Name": "MSRBL spam",
+    "DnsZone": "spam.rbl.msrbl.net",
+    "Url": "http://www.msrbl.com/"
+  },
+  {
+    "Id": 168,
+    "Name": "MSRBL virus",
+    "DnsZone": "virus.rbl.msrbl.net",
+    "Url": "http://www.msrbl.com/"
+  },
+  {
+    "Id": 169,
+    "Name": "MSRBL web",
+    "DnsZone": "web.rbl.msrbl.net",
+    "Url": "http://www.msrbl.com/"
+  },
+  {
+    "Id": 171,
+    "Name": "nether.net (relays)",
+    "DnsZone": "relays.nether.net",
+    "Url": "http://puck.nether.net/or/"
+  },
+  {
+    "Id": 173,
+    "Name": "nether.net (unsure)",
+    "DnsZone": "unsure.nether.net",
+    "Url": "http://puck.nether.net/or/"
+  },
+  {
+    "Id": 174,
+    "Name": "NiX Spam DNSBL",
+    "DnsZone": "ix.dnsbl.manitu.net",
+    "Url": "http://www.dnsbl.manitu.net/"
+  },
+  {
+    "Id": 176,
+    "Name": "NordSpam IP Blacklist",
+    "DnsZone": "bl.nordspam.com",
+    "Url": "https://www.nordspam.com/"
+  },
+  {
+    "Id": 177,
+    "Name": "NoSolicitado.org BL",
+    "DnsZone": "bl.nosolicitado.org",
+    "Url": "http://www.nosolicitado.org/"
+  },
+  {
+    "Id": 178,
+    "Name": "NoSolicitado.org Worst BL",
+    "DnsZone": "bl.worst.nosolicitado.org",
+    "Url": "http://www.nosolicitado.org/"
+  },
+  {
+    "Id": 184,
+    "Name": "Octopus RBL Monster",
+    "DnsZone": "bl.octopusdns.com",
+    "Url": "https://octopusdns.com/"
+  },
+  {
+    "Id": 188,
+    "Name": "Pedantic.org spam",
+    "DnsZone": "spam.pedantic.org",
+    "Url": "http://www.pedantic.org/"
+  },
+  {
+    "Id": 189,
+    "Name": "pofon.foobar.hu IP Blacklist",
+    "DnsZone": "pofon.foobar.hu",
+    "Url": "https://rbl.foobar.hu/"
+  },
+  {
+    "Id": 192,
+    "Name": "Polspam BL",
+    "DnsZone": "bl.rbl.polspam.pl",
+    "Url": "https://polspam.pl/"
+  },
+  {
+    "Id": 193,
+    "Name": "Polspam BL-H1",
+    "DnsZone": "bl-h1.rbl.polspam.pl",
+    "Url": "https://polspam.pl/"
+  },
+  {
+    "Id": 194,
+    "Name": "Polspam BL-H2",
+    "DnsZone": "bl-h2.rbl.polspam.pl",
+    "Url": "https://polspam.pl/"
+  },
+  {
+    "Id": 195,
+    "Name": "Polspam BL-H3",
+    "DnsZone": "bl-h3.rbl.polspam.pl",
+    "Url": "https://polspam.pl/"
+  },
+  {
+    "Id": 196,
+    "Name": "Polspam BL-H4",
+    "DnsZone": "bl-h4.rbl.polspam.pl",
+    "Url": "https://polspam.pl/"
+  },
+  {
+    "Id": 198,
+    "Name": "Polspam CNKR",
+    "DnsZone": "cnkr.rbl.polspam.pl",
+    "Url": "https://polspam.pl/"
+  },
+  {
+    "Id": 199,
+    "Name": "Polspam Dyn",
+    "DnsZone": "dyn.rbl.polspam.pl",
+    "Url": "https://polspam.pl/"
+  },
+  {
+    "Id": 202,
+    "Name": "Polspam LBLIP4",
+    "DnsZone": "lblip4.rbl.polspam.pl",
+    "Url": "https://polspam.pl/"
+  },
+  {
+    "Id": 204,
+    "Name": "Polspam RBLIP4",
+    "DnsZone": "rblip4.rbl.polspam.pl",
+    "Url": "https://polspam.pl/"
+  },
+  {
+    "Id": 211,
+    "Name": "PSBL (Passive Spam Block List)",
+    "DnsZone": "psbl.surriel.com",
+    "Url": "http://psbl.surriel.com/"
+  },
+  {
+    "Id": 214,
+    "Name": "rbl.schulte.org",
+    "DnsZone": "rbl.schulte.org",
+    "Url": "http://rbl.schulte.org/"
+  },
+  {
+    "Id": 216,
+    "Name": "realtimeBLACKLIST.COM",
+    "DnsZone": "rbl.realtimeblacklist.com",
+    "Url": "https://realtimeblacklist.com/"
+  },
+  {
+    "Id": 217,
+    "Name": "Redhawk.org",
+    "DnsZone": "access.redhawk.org",
+    "Url": "http://www.redhawk.org/"
+  },
+  {
+    "Id": 229,
+    "Name": "rothen.com DynIp",
+    "DnsZone": "dynip.rothen.com",
+    "Url": "http://antispam.rothen.com/"
+  },
+  {
+    "Id": 232,
+    "Name": "Rymsho's DNSBL",
+    "DnsZone": "dnsbl.rymsho.ru",
+    "Url": "http://spam.rymsho.ru/"
+  },
+  {
+    "Id": 234,
+    "Name": "s5h.net RBL",
+    "DnsZone": "all.s5h.net",
+    "Url": "http://www.usenix.org.uk/wiki/RBL"
+  },
+  {
+    "Id": 237,
+    "Name": "scientificspam.net IP list",
+    "DnsZone": "bl.scientificspam.net",
+    "Url": "http://www.scientificspam.net/"
+  },
+  {
+    "Id": 244,
+    "Name": "SenderScore Blacklist",
+    "DnsZone": "bl.score.senderscore.com",
+    "Url": "http://www.senderscore.org/"
+  },
+  {
+    "Id": 246,
+    "Name": "SINGULARis Spam/scam blocklist ",
+    "DnsZone": "singular.ttk.pte.hu",
+    "Url": "http://singular.ttk.pte.hu/en/"
+  },
+  {
+    "Id": 248,
+    "Name": "SORBS Aggregate zone",
+    "DnsZone": "dnsbl.sorbs.net",
+    "Url": "http://www.sorbs.net/"
+  },
+  {
+    "Id": 249,
+    "Name": "SORBS Aggregate zone (problems)",
+    "DnsZone": "problems.dnsbl.sorbs.net",
+    "Url": "http://www.sorbs.net/"
+  },
+  {
+    "Id": 250,
+    "Name": "SORBS Aggregate zone (proxies)",
+    "DnsZone": "proxies.dnsbl.sorbs.net",
+    "Url": "http://www.sorbs.net/"
+  },
+  {
+    "Id": 251,
+    "Name": "SORBS Aggregate zone (relays)",
+    "DnsZone": "relays.dnsbl.sorbs.net",
+    "Url": "http://www.sorbs.net/"
+  },
+  {
+    "Id": 252,
+    "Name": "SORBS Aggregate zone (safe)",
+    "DnsZone": "safe.dnsbl.sorbs.net",
+    "Url": "http://www.sorbs.net/"
+  },
+  {
+    "Id": 255,
+    "Name": "SORBS Dynamic IP Addresses",
+    "DnsZone": "dul.dnsbl.sorbs.net",
+    "Url": "http://www.sorbs.net/"
+  },
+  {
+    "Id": 256,
+    "Name": "SORBS hijacked networks",
+    "DnsZone": "zombie.dnsbl.sorbs.net",
+    "Url": "http://www.sorbs.net/"
+  },
+  {
+    "Id": 258,
+    "Name": "SORBS netblocks of spam supporting service providers",
+    "DnsZone": "escalations.dnsbl.sorbs.net",
+    "Url": "http://www.sorbs.net/"
+  },
+  {
+    "Id": 259,
+    "Name": "SORBS Open HTTP Proxies",
+    "DnsZone": "http.dnsbl.sorbs.net",
+    "Url": "http://www.sorbs.net/"
+  },
+  {
+    "Id": 260,
+    "Name": "SORBS Open other Proxies",
+    "DnsZone": "misc.dnsbl.sorbs.net",
+    "Url": "http://www.sorbs.net/"
+  },
+  {
+    "Id": 261,
+    "Name": "SORBS Open SMTP relays",
+    "DnsZone": "smtp.dnsbl.sorbs.net",
+    "Url": "http://www.sorbs.net/"
+  },
+  {
+    "Id": 262,
+    "Name": "SORBS Open SOCKS Proxies",
+    "DnsZone": "socks.dnsbl.sorbs.net",
+    "Url": "http://www.sorbs.net/"
+  },
+  {
+    "Id": 264,
+    "Name": "SORBS Spamhost (any time)",
+    "DnsZone": "spam.dnsbl.sorbs.net",
+    "Url": "http://www.sorbs.net/"
+  },
+  {
+    "Id": 265,
+    "Name": "SORBS Spamhost (last 28 days)",
+    "DnsZone": "recent.spam.dnsbl.sorbs.net",
+    "Url": "http://www.sorbs.net/"
+  },
+  {
+    "Id": 266,
+    "Name": "SORBS Spamhost (last 48 hours)",
+    "DnsZone": "new.spam.dnsbl.sorbs.net",
+    "Url": "http://www.sorbs.net/"
+  },
+  {
+    "Id": 267,
+    "Name": "SORBS Spamhost (last year)",
+    "DnsZone": "old.spam.dnsbl.sorbs.net",
+    "Url": "http://www.sorbs.net/"
+  },
+  {
+    "Id": 268,
+    "Name": "SORBS Vulnerable formmailers",
+    "DnsZone": "web.dnsbl.sorbs.net",
+    "Url": "http://www.sorbs.net/"
+  },
+  {
+    "Id": 269,
+    "Name": "South Korean Network Blocking List",
+    "DnsZone": "korea.services.net",
+    "Url": "http://korea.services.net/"
+  },
+  {
+    "Id": 272,
+    "Name": "Spam Eating Monkey SEM-BACKSCATTER",
+    "DnsZone": "backscatter.spameatingmonkey.net",
+    "Url": "https://spameatingmonkey.com/services"
+  },
+  {
+    "Id": 273,
+    "Name": "Spam Eating Monkey SEM-BLACK",
+    "DnsZone": "bl.spameatingmonkey.net",
+    "Url": "https://spameatingmonkey.com/services"
+  },
+  {
+    "Id": 280,
+    "Name": "Spam Eating Monkey SEM-NETBLACK",
+    "DnsZone": "netbl.spameatingmonkey.net",
+    "Url": "https://spameatingmonkey.com/services"
+  },
+  {
+    "Id": 283,
+    "Name": "Spam Grouper Net block list",
+    "DnsZone": "netblockbl.spamgrouper.to",
+    "Url": "http://www.spamgrouper.to/"
+  },
+  {
+    "Id": 285,
+    "Name": "SpamCop Blocking List",
+    "DnsZone": "bl.spamcop.net",
+    "Url": "http://spamcop.net/bl.shtml"
+  },
+  {
+    "Id": 286,
+    "Name": "Spamdown RBL",
+    "DnsZone": "sbl.spamdown.org",
+    "Url": "https://www.spamdown.org/"
+  },
+  {
+    "Id": 289,
+    "Name": "Spamhaus PBL Policy Block List",
+    "DnsZone": "pbl.spamhaus.org",
+    "Url": "http://www.spamhaus.org/pbl/"
+  },
+  {
+    "Id": 290,
+    "Name": "Spamhaus SBL Spamhaus Block List",
+    "DnsZone": "sbl.spamhaus.org",
+    "Url": "http://www.spamhaus.org/sbl/"
+  },
+  {
+    "Id": 291,
+    "Name": "Spamhaus SBL-XBL Combined Block List",
+    "DnsZone": "sbl-xbl.spamhaus.org",
+    "Url": "http://www.spamhaus.org/"
+  },
+  {
+    "Id": 293,
+    "Name": "Spamhaus XBL Exploits Block List",
+    "DnsZone": "xbl.spamhaus.org",
+    "Url": "http://www.spamhaus.org/xbl/"
+  },
+  {
+    "Id": 294,
+    "Name": "Spamhaus ZEN Combined Block List",
+    "DnsZone": "zen.spamhaus.org",
+    "Url": "http://www.spamhaus.org/zen/"
+  },
+  {
+    "Id": 295,
+    "Name": "SpamLab FEB",
+    "DnsZone": "feb.spamlab.com",
+    "Url": "http://www.spamlab.com/"
+  },
+  {
+    "Id": 296,
+    "Name": "SpamLab RBL",
+    "DnsZone": "rbl.spamlab.com",
+    "Url": "http://www.spamlab.com/"
+  },
+  {
+    "Id": 302,
+    "Name": "spamsources.fabel.dk",
+    "DnsZone": "spamsources.fabel.dk",
+    "Url": "http://www.spamsources.fabel.dk/"
+  },
+  {
+    "Id": 304,
+    "Name": "SPFBL.net RBL",
+    "DnsZone": "dnsbl.spfbl.net",
+    "Url": "https://spfbl.net/en/dnsbl/"
+  },
+  {
+    "Id": 307,
+    "Name": "StopSpam.org dul",
+    "DnsZone": "dul.pacifier.net",
+    "Url": "https://www.stopspam.org/rbl-info/"
+  },
+  {
+    "Id": 308,
+    "Name": "Suomispam Blacklist",
+    "DnsZone": "bl.suomispam.net",
+    "Url": "http://suomispam.net/"
+  },
+  {
+    "Id": 310,
+    "Name": "Suomispam Graylist",
+    "DnsZone": "gl.suomispam.net",
+    "Url": "http://suomispam.net/"
+  },
+  {
+    "Id": 311,
+    "Name": "SURBL multi (Combined SURBL list)",
+    "DnsZone": "multi.surbl.org",
+    "Url": "http://www.surbl.org/"
+  },
+  {
+    "Id": 313,
+    "Name": "Swinog DNSRBL",
+    "DnsZone": "dnsrbl.swinog.ch",
+    "Url": "http://antispam.imp.ch/06-dnsbl.php?lng=1"
+  },
+  {
+    "Id": 320,
+    "Name": "TornevallNET DNSBL",
+    "DnsZone": "dnsbl.tornevall.org",
+    "Url": "http://dnsbl.tornevall.org/"
+  },
+  {
+    "Id": 323,
+    "Name": "TRIUMF.ca DNSBL",
+    "DnsZone": "rbl2.triumf.ca",
+    "Url": "http://rbl2.triumf.ca/"
+  },
+  {
+    "Id": 325,
+    "Name": "truncate.gbudb.net",
+    "DnsZone": "truncate.gbudb.net",
+    "Url": "http://www.gbudb.com/truncate/index.jsp"
+  },
+  {
+    "Id": 328,
+    "Name": "UCEPROTECT Level 0",
+    "DnsZone": "dnsbl-0.uceprotect.net",
+    "Url": "http://www.uceprotect.net/"
+  },
+  {
+    "Id": 329,
+    "Name": "UCEPROTECT Level 1",
+    "DnsZone": "dnsbl-1.uceprotect.net",
+    "Url": "http://www.uceprotect.net/en/index.php?m=3&amp;s=3"
+  },
+  {
+    "Id": 330,
+    "Name": "UCEPROTECT Level 2",
+    "DnsZone": "dnsbl-2.uceprotect.net",
+    "Url": "http://www.uceprotect.net/en/index.php?m=3&amp;s=4"
+  },
+  {
+    "Id": 331,
+    "Name": "UCEPROTECT Level 3",
+    "DnsZone": "dnsbl-3.uceprotect.net",
+    "Url": "http://www.uceprotect.net/en/index.php?m=3&amp;s=5"
+  },
+  {
+    "Id": 338,
+    "Name": "V4BL-FREE/DDNSBL-FREE",
+    "DnsZone": "free.v4bl.org",
+    "Url": "http://v4bl.org/"
+  },
+  {
+    "Id": 341,
+    "Name": "Woody's SMTP Blacklist IPv4",
+    "DnsZone": "blacklist.woody.ch",
+    "Url": "http://blacklist.woody.ch/rblcheck.php3"
+  },
+  {
+    "Id": 344,
+    "Name": "WPBL - Weighted Private Block List",
+    "DnsZone": "db.wpbl.info",
+    "Url": "http://www.wpbl.info/"
+  },
+  {
+    "Id": 345,
+    "Name": "www.blocklist.de",
+    "DnsZone": "bl.blocklist.de",
+    "Url": "http://www.blocklist.de/"
+  },
+  {
+    "Id": 346,
+    "Name": "ZapBL DNSRBL",
+    "DnsZone": "dnsbl.zapbl.net",
+    "Url": "http://zapbl.net/"
+  }
+]
