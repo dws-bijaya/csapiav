@@ -1887,9 +1887,6 @@ public static function Detect_PolymorphicDropper($content) {
 
 
 
-cPanel login page that has been compromised with a malicious script
-
-
  public static function detect_blockchain_malware($content) {
     $threat_indicators = [
         'blockchain_rpc' => '/https:\/\/[a-z0-9-]+\.publicnode\.com/i', // BSC/ETH RPC nodes
