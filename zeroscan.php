@@ -1416,6 +1416,7 @@ register_shutdown_function('__shutdown__');
                 }
 
 
+
                 ////////////////////////////////////////////////////////////////////////////
                 public static function CheckException(&$l_Content, &$l_Found, $debug = null)
                 {
