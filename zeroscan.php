@@ -1289,9 +1289,6 @@ register_shutdown_function('__shutdown__');
 
                 public static function InjectedCodeAtBegOrEnd($scan_path, $scanfile)
                 {
-
-                    
-
                     global $CONST_CLASS_RESULT;
                     if ( !preg_match('~php(\d+)?$~', $scanfile[3]) )
                     {
@@ -1414,7 +1411,6 @@ register_shutdown_function('__shutdown__');
 
                     return $l_Res;
                 }
-
 
 
                 ////////////////////////////////////////////////////////////////////////////
@@ -1793,10 +1789,6 @@ register_shutdown_function('__shutdown__');
 
                 public static function InjectedCodeCustom($scan_path, $scanfile, &$content)
                 {
-                    if ( $scanfile[3] !== 'php' )
-                        return false;
-
-                    
                     global $CONST_CLASS_RESULT;
 
                     $detect = self::detect_hacklink_malware($content);
@@ -1854,8 +1846,6 @@ register_shutdown_function('__shutdown__');
 
                 public static function CriticalPHP($l_Content, &$l_Pos, &$l_SigId, $signs, $debug = null)
                 {
-
-
 
                     #$l_Content = file_get_contents('/Applications/XAMPP/xamppfiles/htdocs/vdie/malwares_samples/x.htaccess');
                     #print_r($signs->_FlexDBShe); 
@@ -1978,12 +1968,7 @@ static function detect_credential_stealer_malware(&$content) {
  * * @param string $content The PHP code to analyze.
  * @return bool True if malware signatures are found, false otherwise.
  */
-public static function Detect_PolymorphicDropper($content, $scanfile) {
-
-    if ( $scanfile[3] !== 'js' )
-        return false;
-
-
+public static function Detect_PolymorphicDropper($content) {
     // 1. Check for the "Cloaking" list (Common in this specific malware)
     // This looks for the list of bots the malware tries to hide from.
     $bot_list = 'bot|crawl|spider|lighthouse|pagespeed|semrush|ahrefs';
@@ -2015,10 +2000,7 @@ public static function Detect_PolymorphicDropper($content, $scanfile) {
 
 
 
- public static function detect_blockchain_malware($scanfile, $content) {
-    if ( $scanfile[3] !== 'js' )
-        return false;
-
+ public static function detect_blockchain_malware($content) {
     $threat_indicators = [
         'blockchain_rpc' => '/https:\/\/[a-z0-9-]+\.publicnode\.com/i', // BSC/ETH RPC nodes
         'headless_check' => '/navigator\.webdriver|HeadlessChrome/i',   // Sandbox evasion
@@ -2043,11 +2025,7 @@ public static function Detect_PolymorphicDropper($content, $scanfile) {
 
 
 
-                public static function is_malicious_wp_cache_buster(&$content, $scanfile) {
-                    if ( $scanfile[3] !== 'php' )
-                        return false;
-
-
+                public static function is_malicious_wp_cache_buster(&$content) {
     // 1. Core Signatures: These specific header combinations are rarely found together in clean code.
     $signatures = [
         'DONOTCACHEPAGE',
@@ -2086,10 +2064,7 @@ public static function Detect_PolymorphicDropper($content, $scanfile) {
 
 
 
-                 public static function is_malicious_mailer(&$content, $scanfile) {
-                    if ( $scanfile[3] !== 'php' )
-                        return false;
-
+                 public static function is_malicious_mailer(&$content) {
     // 1. Pre-filter: Malware usually contains these high-density strings
     // We use a "Sieve" approach to reject clean files quickly
     $fingerprints = [
@@ -3120,14 +3095,14 @@ public static function Detect_PolymorphicDropper($content, $scanfile) {
         }
 
 
-         if (ScanCheckers::is_malicious_mailer($content, $scanfile)){
-             list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:FLE:PHP:Mailr:11"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
+         if (ScanCheckers::is_malicious_mailer($content)){
+             list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:FLE:Mailr:11"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
         }
 
 
 
-         if (ScanCheckers::is_malicious_wp_cache_buster($content, $scanfile)){
-             list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:FLE:PHP:WPCacheBuster:11"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
+         if (ScanCheckers::is_malicious_wp_cache_buster($content)){
+             list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:FLE:WPCacheBuster:11"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
         }
 
 
@@ -3136,13 +3111,13 @@ public static function Detect_PolymorphicDropper($content, $scanfile) {
         }
 
 
-        if (ScanCheckers::Detect_PolymorphicDropper($content, $scanfile)){
+        if (ScanCheckers::Detect_PolymorphicDropper($content)){
              list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:FLE:Polymorphic:Dropper"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
         }
 
 
 
-        if (ScanCheckers::detect_blockchain_malware($scanfile, $content)){
+        if (ScanCheckers::detect_blockchain_malware($content)){
              list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:JS:BlockChain:L"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
         }
 
@@ -3236,6 +3211,7 @@ public static function Detect_PolymorphicDropper($content, $scanfile) {
     };
 
     $GLOBALS['fn:loadfiles'] = static function($scan_path, $dir, $file_list) {
+        static $ctr =0;
         global $gCmsVersionDetector, $gBlackAndWhiteURLs;
       
         $fdir =  $dir == "." ?  "{$scan_path}/{*}" : "{$scan_path}{$dir}/{*}" ;
@@ -3298,7 +3274,9 @@ public static function Detect_PolymorphicDropper($content, $scanfile) {
                 continue;
             }
             $ret_files[]= [ substr($sdir,  strlen($scan_path)), $hashfile, $size,  $ext , $perms, $mtime, "{$group_name}:{$user_name}" , $flag ];;
-            $GLOBALS['fn:stdout'](  "\033[2K\r" . "Adding File ... " . $display_file, false );
+            $GLOBALS['fn:stdout'](  "\033[2K\r" . "Adding File ... " . basename($display_file), false );
+
+
         }
         $GLOBALS['fn:stdout']( "\033[2K\r", false);
         /* SUSPICIOUS */
@@ -3434,7 +3412,7 @@ PROGRESS;
                 is_null($scanfile[0]) ? die(var_dump($scanfile[0], 22)) : '';
                 $scan_time= time();
                 $display_file = $GLOBALS['fn:shorten_path']($scanfile[0], 100);
-                $GLOBALS['fn:stdout'](  "\033[2K\r" . "Scanning File ... " . $display_file, false );
+                $GLOBALS['fn:stdout'](  "\033[2K\r" . "Scanning File ... " . basename($display_file), false );
                 $detected = $GLOBALS['fn:scanfile']($scan_path, $scanfile, $return);
                 $tooks = $GLOBALS["fn:humantime"]( microtime(true)- $stime, true);
                 #$tooks =  $GLOBALS['tooks']($stime);
@@ -3670,7 +3648,6 @@ HELP;
     if (isset($options['show-time']) && in_array($options['show-time'], ["1", "on", "yes", "true"]) )
         $GLOBALS['OPTIONS']['SHOW_TIME'] = 1;
 
-   
       
     $exploits = isset($options['exploits']) ?  strtolower($options['exploits']) : "0";
     if ( in_array($exploits, ['0', 'off', 'no', 'false']) )
