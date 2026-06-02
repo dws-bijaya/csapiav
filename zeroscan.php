@@ -1796,7 +1796,7 @@ register_shutdown_function('__shutdown__');
                     if ( $scanfile[3] !== 'php' )
                         return false;
 
-                print_r($scanfile);die;
+               # print_r($scanfile);die;
                     global $CONST_CLASS_RESULT;
 
                     $detect = self::detect_hacklink_malware($content);
