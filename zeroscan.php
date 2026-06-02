@@ -1086,6 +1086,7 @@ register_shutdown_function('__shutdown__');
         #var_dump($scanned_directory); die;
         $ret_dirs = [];
         foreach($scanned_directory as $s=>$sdir) {
+            static $xctr =0;
             $xdir =  substr($sdir,  strlen($scan_path));
            
             if (in_array(basename($xdir), [ ".",".."] ))
@@ -1114,7 +1115,57 @@ register_shutdown_function('__shutdown__');
             $file = str_replace($scan_path, '', $sdir);
             is_null($file) ? die(var_dump($sdir)) : '';
             $display_file = $GLOBALS['fn:shorten_path']($file, 100);
-            $GLOBALS['fn:stdout']("\033[2K\r"  . "Adding directory ... " . $display_file, false);
+            #$GLOBALS['fn:stdout']("\033[2K\r"  . "Adding directory .. " . $display_file, false);
+            if ($xctr ==0 )
+            {
+                $GLOBALS['fn:stdout']("\033[2K\r"  . "Adding directory . " . '', false);
+                $xctr ++;
+
+            } elseif ($xctr == 1 )
+            {
+                $GLOBALS['fn:stdout']("\033[2K\r"  . "Adding directory .. " . '', false);
+                $xctr ++;
+
+            } elseif ($xctr == 2 )
+            {
+                $GLOBALS['fn:stdout']("\033[2K\r"  . "Adding directory ... " . '', false);
+                $xctr ++;
+
+            } elseif ($xctr == 3 )
+            {
+                $GLOBALS['fn:stdout']("\033[2K\r"  . "Adding directory .... " . '', false);
+                $xctr ++;
+
+            } elseif ($xctr == 4 )
+            {
+                $GLOBALS['fn:stdout']("\033[2K\r"  . "Adding directory ..... " . '', false);
+                $xctr ++;
+
+            } elseif ($xctr == 5 )
+            {
+                $GLOBALS['fn:stdout']("\033[2K\r"  . "Adding directory ...... " . '', false);
+                $xctr =0;
+
+            } elseif ($xctr == 6 )
+            {
+                $GLOBALS['fn:stdout']("\033[2K\r"  . "Adding directory ....... " . '', false);
+                $xctr ++;
+
+            } elseif ($xctr == 7 )
+            {
+                $GLOBALS['fn:stdout']("\033[2K\r"  . "Adding directory ........ " . '', false);
+                $xctr ++;
+
+            } elseif ($xctr == 8 )
+            {
+                $GLOBALS['fn:stdout']("\033[2K\r"  . "Adding directory ......... " . '', false);
+                $xctr ++;
+
+            } elseif ($xctr == 9 )
+            {
+                $GLOBALS['fn:stdout']("\033[2K\r"  . "Adding directory .......... " . '', false);
+                $xctr =0;
+            }
             #$s % 20 ? $GLOBALS['fn:slowdown'](): null;
             $ret_dirs[] = $xdir;
         }
@@ -1238,6 +1289,9 @@ register_shutdown_function('__shutdown__');
 
                 public static function InjectedCodeAtBegOrEnd($scan_path, $scanfile)
                 {
+
+                    
+
                     global $CONST_CLASS_RESULT;
                     if ( !preg_match('~php(\d+)?$~', $scanfile[3]) )
                     {
@@ -1738,6 +1792,10 @@ register_shutdown_function('__shutdown__');
 
                 public static function InjectedCodeCustom($scan_path, $scanfile, &$content)
                 {
+                    if ( $scanfile[3] !== 'php' )
+                        continue;
+
+                print_r($scanfile);die;
                     global $CONST_CLASS_RESULT;
 
                     $detect = self::detect_hacklink_malware($content);
@@ -1795,6 +1853,8 @@ register_shutdown_function('__shutdown__');
 
                 public static function CriticalPHP($l_Content, &$l_Pos, &$l_SigId, $signs, $debug = null)
                 {
+
+
 
                     #$l_Content = file_get_contents('/Applications/XAMPP/xamppfiles/htdocs/vdie/malwares_samples/x.htaccess');
                     #print_r($signs->_FlexDBShe); 
@@ -1917,7 +1977,12 @@ static function detect_credential_stealer_malware(&$content) {
  * * @param string $content The PHP code to analyze.
  * @return bool True if malware signatures are found, false otherwise.
  */
-public static function Detect_PolymorphicDropper($content) {
+public static function Detect_PolymorphicDropper($content, $scanfile) {
+
+    if ( $scanfile[3] !== 'js' )
+        return false;
+
+
     // 1. Check for the "Cloaking" list (Common in this specific malware)
     // This looks for the list of bots the malware tries to hide from.
     $bot_list = 'bot|crawl|spider|lighthouse|pagespeed|semrush|ahrefs';
@@ -1949,7 +2014,10 @@ public static function Detect_PolymorphicDropper($content) {
 
 
 
- public static function detect_blockchain_malware($content) {
+ public static function detect_blockchain_malware($scanfile, $content) {
+    if ( $scanfile[3] !== 'js' )
+        return false;
+
     $threat_indicators = [
         'blockchain_rpc' => '/https:\/\/[a-z0-9-]+\.publicnode\.com/i', // BSC/ETH RPC nodes
         'headless_check' => '/navigator\.webdriver|HeadlessChrome/i',   // Sandbox evasion
@@ -1974,7 +2042,11 @@ public static function Detect_PolymorphicDropper($content) {
 
 
 
-                public static function is_malicious_wp_cache_buster(&$content) {
+                public static function is_malicious_wp_cache_buster(&$content, $scanfile) {
+                    if ( $scanfile[3] !== 'php' )
+                        return false;
+
+
     // 1. Core Signatures: These specific header combinations are rarely found together in clean code.
     $signatures = [
         'DONOTCACHEPAGE',
@@ -2013,7 +2085,10 @@ public static function Detect_PolymorphicDropper($content) {
 
 
 
-                 public static function is_malicious_mailer(&$content) {
+                 public static function is_malicious_mailer(&$content, $scanfile) {
+                    if ( $scanfile[3] !== 'php' )
+                        return false;
+
     // 1. Pre-filter: Malware usually contains these high-density strings
     // We use a "Sieve" approach to reject clean files quickly
     $fingerprints = [
@@ -3044,14 +3119,14 @@ public static function Detect_PolymorphicDropper($content) {
         }
 
 
-         if (ScanCheckers::is_malicious_mailer($content)){
-             list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:FLE:Mailr:11"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
+         if (ScanCheckers::is_malicious_mailer($content, $scanfile)){
+             list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:FLE:PHP:Mailr:11"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
         }
 
 
 
-         if (ScanCheckers::is_malicious_wp_cache_buster($content)){
-             list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:FLE:WPCacheBuster:11"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
+         if (ScanCheckers::is_malicious_wp_cache_buster($content, $scanfile)){
+             list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:FLE:PHP:WPCacheBuster:11"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
         }
 
 
@@ -3060,13 +3135,13 @@ public static function Detect_PolymorphicDropper($content) {
         }
 
 
-        if (ScanCheckers::Detect_PolymorphicDropper($content)){
+        if (ScanCheckers::Detect_PolymorphicDropper($content, $scanfile)){
              list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:FLE:Polymorphic:Dropper"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
         }
 
 
 
-        if (ScanCheckers::detect_blockchain_malware($content)){
+        if (ScanCheckers::detect_blockchain_malware($scanfile, $content)){
              list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:JS:BlockChain:L"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
         }
 
@@ -3594,6 +3669,7 @@ HELP;
     if (isset($options['show-time']) && in_array($options['show-time'], ["1", "on", "yes", "true"]) )
         $GLOBALS['OPTIONS']['SHOW_TIME'] = 1;
 
+   
       
     $exploits = isset($options['exploits']) ?  strtolower($options['exploits']) : "0";
     if ( in_array($exploits, ['0', 'off', 'no', 'false']) )
