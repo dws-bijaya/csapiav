@@ -1794,7 +1794,7 @@ register_shutdown_function('__shutdown__');
                 public static function InjectedCodeCustom($scan_path, $scanfile, &$content)
                 {
                     if ( $scanfile[3] !== 'php' )
-                        continue;
+                        return false;
 
                 print_r($scanfile);die;
                     global $CONST_CLASS_RESULT;
