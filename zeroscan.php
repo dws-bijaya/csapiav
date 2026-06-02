@@ -31,7 +31,7 @@ register_shutdown_function('__shutdown__');
 
     $GLOBALS['OPTIONS'] = array();
     $GLOBALS['OPTIONS']['DEFAULT_MIN_CONTENT_LEN'] = 10;
-    $GLOBALS['OPTIONS']['DEFAULT_MAX_CONTENT_LEN'] = 600000;
+    $GLOBALS['OPTIONS']['DEFAULT_MAX_CONTENT_LEN'] = 1000000;
     $GLOBALS['OPTIONS']['DEFAULT_PHPLINE_LEN'] = 1000;
     $GLOBALS['OPTIONS']['PHPLINE_LEN'] = 500;
     $GLOBALS['OPTIONS']['DEFAULT_SLOWDOWN_DELAY'] =  1;
@@ -1670,18 +1670,23 @@ register_shutdown_function('__shutdown__');
 
                 static function detect_obfuscated_js($content, $scanfile) {
 
+
                     #print_r($scanfile);
+                    #$content = file_get_contents("/Applications/XAMPP/xamppfiles/htdocs/vdie/malwares_samples/new/rs6.min.js");
+                    #print_r($content); die;
                     $scores = 0;
                     $findings = [];
 
                     // 1. Check for the "Hex Variable" pattern (e.g., _0x442ca0)
                     // High frequency of these is a major red flag.
                     if (preg_match_all('/_0x[a-f0-9]{4,6}/', $content, $matches)) {
-                        if (count($matches[0]) > 15) {
-                            $scores += 30;
+                        if (count($matches[0]) > 1000) {
+                            $scores += 50 ;
                             $findings[] = "High density of hex-encoded variable names.";
                         }
                     }
+                   # print_r(count($matches)); die;
+                   
 
                     // 2. Check for the "Large String Array" pattern
                     // Usually starts with var _0x.... = ['...', '...'];
@@ -1690,12 +1695,15 @@ register_shutdown_function('__shutdown__');
                         $findings[] = "Large encoded string array detected.";
                     }
 
+                    
                     // 3. Check for the "Decoder Function" math pattern
                     // e.g., _0x442ca0 = _0x442ca0 - (0x9ed + -0x1c8d + 0xd7 * 0x17)
                     if (preg_match('/_0x[a-f0-9]+\s*=\s*_0x[a-f0-9]+\s*-\s*\(\s*0x[a-f0-9]+/', $content)) {
                         $scores += 25;
                         $findings[] = "Arithmetic decoder logic found (anti-analysis).";
                     }
+
+                    
 
                     // 4. Check for the "Self-Defending" Regex
                     // This is the code that crashes your browser if you try to format it.
@@ -1791,6 +1799,8 @@ register_shutdown_function('__shutdown__');
                 {
                     global $CONST_CLASS_RESULT;
 
+                    
+                    
                     $detect = self::detect_hacklink_malware($content);
                     #var_dump( $detect); die;
                     if ($detect)
@@ -1813,7 +1823,7 @@ register_shutdown_function('__shutdown__');
                     #var_dump( $detect); die;
                     if ($detect)
                     {
-                        return [1, array_merge( [ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->CriticalPHP,  "SMW:INJ:JS:CODE:Obf", time() ] ,  $scanfile)]; 
+                        return [1, array_merge( [ $CONST_CLASS_RESULT->MALWARE | $CONST_CLASS_RESULT->CriticalJS,  "SMW:INJ:JS:CODE:Obf", time() ] ,  $scanfile)]; 
 
                     }
 
@@ -3007,7 +3017,8 @@ public static function Detect_PolymorphicDropper($content) {
         $file = "{$scan_path}{$scanfile[0]}" ;
         $content = $l_Unwrapped = file_get_contents($file);
         
-        
+       
+
         #
         $started = microtime(true);
         $processResult = function ($checker, $content, $l_Pos, $l_SigId, &$return) use ($scanfile, &$result) {
@@ -3076,6 +3087,7 @@ public static function Detect_PolymorphicDropper($content) {
         }
 
        
+        
 
         
         ### Wordprss unknown files as Suspectd
@@ -3124,8 +3136,6 @@ public static function Detect_PolymorphicDropper($content) {
 
         
         
-
-
         
 
 
@@ -3228,7 +3238,7 @@ public static function Detect_PolymorphicDropper($content) {
         }
         /* SKIP  */
 
-
+        #die("eeeee");
        
         $scan_files = array_diff( array_filter(glob($fdir, GLOB_BRACE), 'is_file'), array('..', '.'));
         #var_dump($scan_files); die;
@@ -3238,11 +3248,13 @@ public static function Detect_PolymorphicDropper($content) {
             $file = substr($sdir, strlen($scan_path));
             is_null($file) ? die(var_dump($sdir)) : '';
             $display_file = $GLOBALS['fn:shorten_path']($file, 100); 
+           
             if ($file_list &&  !in_array( basename( $sdir),  $file_list )) {
-                #$GLOBALS['fn:stdout'](  "\033[2K\r" . "Skiping File  [FILE-LIST] " . $display_file, false );
+                $GLOBALS['fn:stdout'](  "\033[2K\r" . "Skiping File  [FILE-LIST] " . $display_file, false );
                 continue;
             }
            
+
             list($ext, $perms, $mtime, $size, $ownerid, $hashfile, $user_name, $group_name, $flag) = $GLOBALS['fn:filestats']($sdir);
             #var_dump($ext, $perms, $mtime, $size, $ownerid, $user_name, $group_name, $sdir); die;
             #$size = filesize($sdir);
@@ -3396,14 +3408,8 @@ PROGRESS;
         global $CONST_CLASS_RESULT, $gBlackAndWhiteURLs, $GLOBALS;
         while (($sdir=array_shift($dirs)) !== NULL) {       
             $scanfiles =  $GLOBALS['fn:loadfiles']($scan_path, $sdir, $file_list) ;
-            #print_r($scanfiles);  die;
             foreach($scanfiles as $scanfile) {
-
-
-
                 $scanfile[] = pathinfo($scanfile[0], PATHINFO_FILENAME);
-              
-                
                 #$scanfile= $scanfiles[7];
                 #var_dump($scanfiles[0]);
                 #$scanfil[0] ='/jmc/wp-login.phpstring';
@@ -3412,7 +3418,7 @@ PROGRESS;
                 is_null($scanfile[0]) ? die(var_dump($scanfile[0], 22)) : '';
                 $scan_time= time();
                 $display_file = $GLOBALS['fn:shorten_path']($scanfile[0], 100);
-                $GLOBALS['fn:stdout'](  "\033[2K\r" . "Scanning File ... " . basename($display_file), false );
+                $GLOBALS['fn:stdout'](  "\033[2K\r" . "Scanning File ... " . ($display_file), false );
                 $detected = $GLOBALS['fn:scanfile']($scan_path, $scanfile, $return);
                 $tooks = $GLOBALS["fn:humantime"]( microtime(true)- $stime, true);
                 #$tooks =  $GLOBALS['tooks']($stime);
@@ -3725,14 +3731,12 @@ HELP;
             global $cleaned ;
             $start_time = microtime(true);
             $scanned = $cleaned = 0 ;
-            $GLOBALS['filescan']($dir, function( $filepath, $dirname, $filename, $extension) use ($clean_files,  $cleaned) {
+            $GLOBALS['filescanss']($dir, function( $filepath, $dirname, $filename, $extension) use ($clean_files,  $cleaned) {
                 global  $scanned;
-                #print_r([ $filepath, $dirname, $filename, $extension]);
                 $scanned++;
-               
                 $display_file = $GLOBALS['fn:shorten_path']($filepath, 100);
                 $GLOBALS['fn:stdout']("\033[2K\r"  . "Scaning file ... " . $display_file, false);
-               
+                return ;
                 foreach ($clean_files as $clean_file)  {
                            
 
