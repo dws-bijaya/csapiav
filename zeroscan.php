@@ -3418,7 +3418,7 @@ PROGRESS;
                 is_null($scanfile[0]) ? die(var_dump($scanfile[0], 22)) : '';
                 $scan_time= time();
                 $display_file = $GLOBALS['fn:shorten_path']($scanfile[0], 100);
-                $GLOBALS['fn:stdout'](  "\033[2K\r" . "Scanning File ... " . ($display_file), false );
+                $GLOBALS['fn:stdout'](  "\033[2K\r" . "Scanning File ... " . basename($display_file), false );
                 $detected = $GLOBALS['fn:scanfile']($scan_path, $scanfile, $return);
                 $tooks = $GLOBALS["fn:humantime"]( microtime(true)- $stime, true);
                 #$tooks =  $GLOBALS['tooks']($stime);
