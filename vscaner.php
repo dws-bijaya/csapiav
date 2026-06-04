@@ -1778,7 +1778,7 @@ VE
      / /_|  __/ | | (_) |___) | (_| (_| | | | |
     /_____\___|_|  \___/_____/ \___\__,_|_| |_|
 ZeroScan {$app_version} , Malware, Exploits anf Vulnerability Files Scanner for PHP Websites
-Copyright: 2022-2023 ZeroScan Inc.
+Copyright: (c) 2026-2027 Digital Web Solutions Pvt Ltd., bijaya.kumar@digitalwebsolutions.in
 Signatures Verion: {$sign_version} | {$YYYY_MM_DD_H_I_S_Z}
 Signatures Loaded: {$sign_count}
 BANNER,
@@ -1836,8 +1836,8 @@ BANNER,
 
 
 #die(print_r(build_blacklisted(true)));
-###rsync -rapv  root@67.225.161.14:/var/imunify360/files/sigs  ./v1/var/imunify360/files/  
-die(build_db('v1_2026-05-27T192650.598476Z'));
+###rsync -rapv  root@50.28.104.181:/var/imunify360/files/sigs  ./v1/var/imunify360/files/  
+die(build_db('v1_2026-06-02T191658.614779Z'));
 
 sftp://whunt3-dev@whunt3.sftp.wpengine.com:2222/
 function wpscan() {
