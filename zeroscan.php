@@ -2008,6 +2008,32 @@ public static function Detect_PolymorphicDropper($content) {
     return false;
 }
 
+public static  function isMaliciousUpload(string $content, $scanfile): bool 
+{
+    if ($scanfile[3] !== 'php') {
+        return false; // Only analyze PHP files
+    }
+    
+    // Signatures target the exact patterns found in the backdoor web shell
+    $signatures = [
+        'execution_chain'     => '/(system|passthru|shell_exec|exec|proc_open|popen)\(\s*\$[a-zA-Z0-9_\x80-\xff]+/i',
+        'windows_com_shell'   => '/new\s+COM\s*\(\s*[\'"]WScript\.Shell[\'"]/i',
+        'aggressive_silence'  => '/@error_reporting\s*\(\s*0\s*\)\s*;\s*@ini_set/i',
+        'request_to_exec'     => '/(system|passthru|shell_exec|exec)\(\s*\$_REQUEST\[/i',
+        'b64_file_write'      => '/base64_decode\(\s*\$_POST\[.*file_put_contents/si'
+    ];
+
+    foreach ($signatures as $name => $pattern) {
+        if (preg_match($pattern, $content)) {
+            // Un-comment the line below if you want to log what triggered it
+            // error_log("Malware trigger matched: " . $name);
+            return true; 
+        }
+    }
+
+    return false; 
+}
+
 
 
  public static function detect_blockchain_malware($content) {
@@ -3133,6 +3159,9 @@ public static function Detect_PolymorphicDropper($content) {
              list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:JS:BlockChain:L"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
         }
 
+        if (ScanCheckers::isMaliciousUpload($content, $scanfile)){
+             list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:PHP:Random:Upload"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
+        }
 
         
         
