@@ -2008,12 +2008,51 @@ public static function Detect_PolymorphicDropper($content) {
     return false;
 }
 
+
+/**
+ * Detects the database exfiltration and credential harvesting web shell.
+ *
+ * @param string $content The source code content to inspect.
+ * @return bool True if malware signature matches, false otherwise.
+ */
+public static  function detectExfiltrationShell( $content,  $scanfile)
+{
+    if ($scanfile[3] !== 'php') {
+        return false; // Only analyze PHP files
+    }
+    // Signatures specific to this unique malware family
+    $signatures = [
+        // 1. Matches the custom hardcoded request validation token check
+        'auth_token_gate' => '/_cxk\'\]\s*!==\s*[\'"][a-f0-9]{32}[\'"]/i',
+        
+        // 2. Matches the highly specific configuration harvesting list array structure
+        'config_harvest_list' => '/(\.bash_history|\.my\.cnf|\.pgpass|\.ssh\/id_rsa|\.ssl\/private\.key)/i',
+        
+        // 3. Matches the exact command execution router specific to this shell's endpoints
+        'malicious_actions' => '/case\s+[\'"](download_collect|cleanup_collect|download_file)[\'"]\s*:/i',
+        
+        // 4. Matches the automated CMS fingerprinting logic structure
+        'cms_fingerprint' => '/[\'"](wordpress|joomla|laravel|magento2|whmcs)[\'"]\s*=>\s*array\s*\(/i'
+    ];
+
+    $matchesFound = 0;
+
+    foreach ($signatures as $name => $pattern) {
+        if (preg_match($pattern, $content)) {
+            $matchesFound++;
+        }
+    }
+
+    // If it hits 2 or more of these highly unique behavioral footprints, it's a match.
+    return ($matchesFound >= 2);
+}
+
 public static  function isMaliciousUpload(string $content, $scanfile): bool 
 {
     if ($scanfile[3] !== 'php') {
         return false; // Only analyze PHP files
     }
-    
+
     // Signatures target the exact patterns found in the backdoor web shell
     $signatures = [
         'execution_chain'     => '/(system|passthru|shell_exec|exec|proc_open|popen)\(\s*\$[a-zA-Z0-9_\x80-\xff]+/i',
@@ -3162,6 +3201,12 @@ public static  function isMaliciousUpload(string $content, $scanfile): bool
         if (ScanCheckers::isMaliciousUpload($content, $scanfile)){
              list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:PHP:Random:Upload"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
         }
+
+         if (ScanCheckers::detectExfiltrationShell($content, $scanfile)){
+             list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:PHP:Exfil:Shell"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
+        }
+
+        
 
         
         
