@@ -2047,6 +2047,26 @@ public static  function detectExfiltrationShell( $content,  $scanfile)
     return ($matchesFound >= 2);
 }
 
+
+
+public static  function isMalwarePatternSupression($content, $scanfile) {
+    
+    if ($scanfile[3] !== 'php') {
+        return false; // Only analyze PHP files
+    }
+
+    $matched =  preg_match(
+        '/@\s*(system|passthru|shell_exec|exec|popen|proc_open|eval|assert|base64_decode|gzuncompress|create_function)\s*\(/i',
+        $content
+    ) === 1;
+
+    if ($matched ) 
+        return  $matched;
+    return preg_match('/@\s*[a-zA-Z_][a-zA-Z0-9_]*\s*\(/', $content) === 1; 
+
+}
+
+
 public static  function isMaliciousUpload(string $content, $scanfile): bool 
 {
     if ($scanfile[3] !== 'php') {
@@ -3197,6 +3217,15 @@ public static  function isMaliciousUpload(string $content, $scanfile): bool
         if (ScanCheckers::detect_blockchain_malware($content)){
              list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:JS:BlockChain:L"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
         }
+
+
+
+        
+        if (ScanCheckers::isMalwarePatternSupression($content, $scanfile)){
+             list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:PHP:Def:Supression"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
+        }
+
+
 
         if (ScanCheckers::isMaliciousUpload($content, $scanfile)){
              list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:PHP:Random:Upload"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
