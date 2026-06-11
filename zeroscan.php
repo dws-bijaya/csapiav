@@ -2056,7 +2056,7 @@ public static  function isMalwarePatternSupression($content, $scanfile) {
     }
 
     $matched =  preg_match(
-        '/@\s*(system|passthru|shell_exec|exec|popen|proc_open|eval|assert|base64_decode|gzuncompress|create_function)\s*\(/i',
+        '/@(system|passthru|shell_exec|exec|popen|proc_open|eval|assert|base64_decode|gzuncompress|create_function)\(/i',
         $content
     ) === 1;
 
