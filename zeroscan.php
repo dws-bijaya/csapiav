@@ -2060,10 +2060,9 @@ public static  function isMalwarePatternSupression($content, $scanfile) {
         $content
     ) === 1;
 
-    if ($matched ) 
-        return  $matched;
-    return preg_match('/@\s*[a-zA-Z_][a-zA-Z0-9_]*\s*\(/', $content) === 1; 
-
+    #if ($matched ) 
+    return  $matched;
+    #return preg_match('/@\s*[a-zA-Z_][a-zA-Z0-9_]*\s*\(/', $content) === 1; 
 }
 
 
