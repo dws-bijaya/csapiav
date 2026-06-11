@@ -3191,46 +3191,46 @@ public static  function isMaliciousUpload(string $content, $scanfile): bool
         }
 
 
-         if (ScanCheckers::is_malicious_mailer($content)){
+         if (!$detected && ScanCheckers::is_malicious_mailer($content)){
              list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:FLE:Mailr:11"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
         }
 
 
 
-         if (ScanCheckers::is_malicious_wp_cache_buster($content)){
+         if (!$detected &&  ScanCheckers::is_malicious_wp_cache_buster($content)){
              list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:FLE:WPCacheBuster:11"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
         }
 
 
-         if (ScanCheckers::detect_credential_stealer_malware($content)){
+         if (!$detected &&  ScanCheckers::detect_credential_stealer_malware($content)){
              list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:FLE:CRED:Stealer"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
         }
 
 
-        if (ScanCheckers::Detect_PolymorphicDropper($content)){
+        if (!$detected &&  ScanCheckers::Detect_PolymorphicDropper($content)){
              list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:FLE:Polymorphic:Dropper"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
         }
 
 
 
-        if (ScanCheckers::detect_blockchain_malware($content)){
+        if (!$detected &&  ScanCheckers::detect_blockchain_malware($content)){
              list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:JS:BlockChain:L"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
         }
 
 
 
         
-        if (ScanCheckers::isMalwarePatternSupression($content, $scanfile)){
+        if (!$detected &&  ScanCheckers::isMalwarePatternSupression($content, $scanfile)){
              list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:PHP:Def:Supression"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
         }
 
 
 
-        if (ScanCheckers::isMaliciousUpload($content, $scanfile)){
+        if ( !$detected &&  ScanCheckers::isMaliciousUpload($content, $scanfile)){
              list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:PHP:Random:Upload"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
         }
 
-         if (ScanCheckers::detectExfiltrationShell($content, $scanfile)){
+         if (!$detected &&  ScanCheckers::detectExfiltrationShell($content, $scanfile)){
              list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:PHP:Exfil:Shell"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
         }
 
