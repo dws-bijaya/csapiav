@@ -1839,7 +1839,7 @@ BANNER,
 ###rsync -rapv  root@50.28.104.181:/var/imunify360/files/sigs  ./v1/var/imunify360/files/  
 die(build_db('v1_2026-06-02T191658.614779Z'));
 
-sftp://whunt3-dev@whunt3.sftp.wpengine.com:2222/
+#sftp://whunt3-dev@whunt3.sftp.wpengine.com:2222/
 function wpscan() {
     
     $headers = array();
