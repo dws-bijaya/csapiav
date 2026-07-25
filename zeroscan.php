@@ -3253,7 +3253,7 @@ public static  function isMaliciousUpload(string $content, $scanfile): bool
         }
 
          if (!$detected && ScanCheckers::isFileManagerBackdoor($scan_path, $scanfile, $content)) {
-            list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:PHP:Random:Upload"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
+            list($detected, $result) =  [ 1,  array_merge( [ $CONST_CLASS_RESULT->MALWARE,  "SMW:PHP:FileManager:Backdoor"  , time() ] ,  $scanfile, ['CriticFILE'] ) ];
         }
 
 
